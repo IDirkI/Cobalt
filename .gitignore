@@ -1,3 +1,21 @@
+# VSCode settings
+.vscode/
+
+# CMake build directories
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+/*.user
+/*.suo
+/*.vcxproj
+
+# Temp
+*~
+*.swp
+*.DS_Store
+
 # Prerequisites
 *.d
 
