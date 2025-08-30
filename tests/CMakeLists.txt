@@ -1,3 +1,18 @@
-## add_executable("TEST" "TEST".cpp)
-## target_link_libraries("TEST" PRIVATE cobalt)
-## add_test(NAME "TEST-NAME" COMMAND "TEST")
+# Build tests
+add_executable(cobalt_tests
+    test_sanity.cpp
+)
+
+# Include paths
+target_include_directories(cobalt_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include      # Cobalt Headers
+)
+
+# Link Libraries
+target_link_libraries(cobalt_tests PRIVATE cobalt Catch2::Catch2WithMain)
+
+# Register the tests
+enable_testing()
+include(CTEST)
+include(CATCH)
+catch_discover_tests(cobalt_tests)
