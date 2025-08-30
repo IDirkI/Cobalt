@@ -18,6 +18,3 @@ target_include_directories(cobalt_sanity_check
 # Tests
 add_subdirectory(extern/Catch2)
 add_subdirectory(tests)
-
-
-
