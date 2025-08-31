@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "cobalt/cobalt.h"
+#include "cobalt/cobalt.hpp"
 
 int main() {
     printf("Hello World!\n");

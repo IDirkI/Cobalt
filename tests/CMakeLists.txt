@@ -1,6 +1,8 @@
 # Build tests
 add_executable(cobalt_tests
-    test_sanity.cpp
+    sanity_test.cpp
+
+    ./math/linear_algebra/vector_test.cpp
 )
 
 # Include paths
