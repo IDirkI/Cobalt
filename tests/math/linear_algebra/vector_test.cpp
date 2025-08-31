@@ -163,13 +163,17 @@ TEST_CASE("Vector, hadamard product", "[vector]") {
 TEST_CASE("Vector, normalization", "[vector]") {
     Vector<3> v1{3.0f, 0.0f, 4.0f};
     Vector<3> v2{0.0000000003f, 0.0f, 0.0000000004f};
+
     Vector<3> n = normalize(v1);
+    REQUIRE(isNormalized(n));
 
     REQUIRE(n[0] == Catch::Approx(0.6f));
     REQUIRE(n[1] == Catch::Approx(0.0f));
     REQUIRE(n[2] == Catch::Approx(0.8f));
 
     n = normalize(v2);
+    REQUIRE(isNormalized(n));
+
     REQUIRE(n[0] == Catch::Approx(0.6f));
     REQUIRE(n[1] == Catch::Approx(0.0f));
     REQUIRE(n[2] == Catch::Approx(0.8f));
@@ -234,6 +238,13 @@ TEST_CASE("Vector, projection", "[vector]") {
     REQUIRE(vY.x() == Catch::Approx(0.0f));
     REQUIRE(vY.y() == Catch::Approx(4.0f));
     REQUIRE(vY.z() == Catch::Approx(0.0f));
+}  
+
+TEST_CASE("Vector, sum/multiply across", "[vector]") {
+    Vector<7> v{3.0f, 4.0f, 0.2f, 8.1f, -1.0f, 2.3f, -0.4f};
+
+    REQUIRE(sumElements(v) == Catch::Approx(16.2f));
+    REQUIRE(productElements(v) == Catch::Approx(17.8848f));
 }  
 
 TEST_CASE("Vector, lerp", "[vector]") {

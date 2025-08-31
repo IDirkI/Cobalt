@@ -145,6 +145,33 @@ template<uint8_t N, typename T = float>
     }
 
 /**
+ *  @brief Compute sum of all elements of a vector.
+ *  @param v Vector to sum across.
+ */
+template<uint8_t N, typename T = float>
+    constexpr inline T sumElements(const Vector<N, T> &v) {
+        T output = static_cast<T>(0);
+        for(uint8_t i = 0; i < N; i++) {
+            output += v[i];
+        } 
+        return output;
+    }
+
+/**
+ *  @brief Compute product of all elements of a vector.
+ *  @param v Vector to multiply across.
+ */
+template<uint8_t N, typename T = float>
+    constexpr inline T productElements(const Vector<N, T> &v) {
+        T output = static_cast<T>(1);
+        for(uint8_t i = 0; i < N; i++) {
+            output *= v[i];
+        } 
+        return output;
+    }
+
+
+/**
  *  @brief Linear interpolation between two vectors.
  *  @param v Start vector.
  *  @param u End vector.
@@ -203,6 +230,15 @@ constexpr inline Vector<N, T> fromArray(const std::array<T, N> &arr) {
     }
 
     return v;
+}
+
+// ---------------- Checks ----------------
+/**
+ *  @brief Convert a vector to std::array.
+ */
+template<uint8_t N, typename T = float>
+constexpr inline bool isNormalized(const Vector<N, T> &v) {
+    return (static_cast<float>(std::abs(norm(v) - 1.0f)) < VECTOR_EQUAL_THRESHOLD);
 }
 
 } // cobalt::math::linear_algebra
