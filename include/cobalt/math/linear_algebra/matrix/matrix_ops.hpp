@@ -7,6 +7,34 @@
 
 namespace cobalt::math::linear_algebra {
 
+// ---------------- Member Functions ----------------
+/**
+ *  @brief Get a NxM matrix block out of a RxC matrix.
+ *  
+ *  Extracts a NxM matrix from the elements `(r0, c0)` --> `(r0 + N, c0 + M)`.
+ * 
+ * 
+ *  @tparam N Row count of the output matrix.
+ *  @tparam M Column count of the output matrix.
+ *  @param r0 (optional) Starting row of the block
+ *  @param c0 (optional) Starting column of the block
+ * 
+ *  @note If the original matrix isn't defined inside the output block the missing entried are set to zero.
+ */
+template<uint8_t R, uint8_t C, typename T>
+template<uint8_t N, uint8_t M>
+    constexpr inline Matrix<N, M, T> Matrix<R, C, T>::block(uint8_t r0, uint8_t c0) const {
+        Matrix<N, M, T> output = Matrix<N, M, T>::zero();
+
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = data_[(i+r0)*C + (j+c0)];
+            }
+        }
+
+        return output;
+    }
+
 // ---------------- Non-member Arithmetic Overloads ----------------
 /**
  *  @brief Matrix addition.
@@ -157,7 +185,12 @@ template<uint8_t R, uint8_t C, typename T = float>
 template<uint8_t N, typename T = float>
     [[nodiscard]] constexpr inline bool inv(const Matrix<N, N, T> &A, Matrix<N, N, T> &Ainv) {
         switch(N) {
-            case 1: { Ainv(0, 0) = 1.0f / A(0, 0); return true; }   //TODO check A(0,0) = 0 case
+            case 1: { 
+                if(std::fabs(A(0, 0)) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                Ainv(0, 0) = 1.0f / A(0, 0); 
+
+                return true; 
+            }
             case 2: { 
                 float denom = static_cast<float>(det(A));
                 if(std::fabs(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
@@ -183,6 +216,7 @@ template<uint8_t N, typename T = float>
                 Ainv(2, 0) =  (A(1,0)*A(2,1) - A(1,1)*A(2,0)) / denom;
                 Ainv(2, 1) = -(A(0,0)*A(2,1) - A(0,1)*A(2,0)) / denom;
                 Ainv(2, 2) =  (A(0,0)*A(1,1) - A(0,1)*A(1,0)) / denom;
+                
                 return true;
             }
             default: { 
@@ -205,6 +239,26 @@ template<uint8_t N, typename T = float>
                 return true;
             }
         }
+    }
+
+/**
+ *  @brief Compute rank of matrix
+ *  @param A Matrix to compute rank of 
+ */
+template<uint8_t R, uint8_t C, typename T = float>
+    constexpr inline uint8_t rank(const Matrix<R, C, T> &A) {
+        Matrix<R, C> Q;
+
+        if(gramSchmidt(A, Q)) { return R; } // Full rank
+
+        uint8_t rankNum = R;
+        for(uint8_t j = 0; j < C; j++) {
+            Vector<C, T> colVec = toVector(Q, j);
+
+            if(norm(colVec) < MATRIX_ZERO_THRESHOLD) { rankNum--; }
+        }
+
+        return rankNum;
     }
 
 /**

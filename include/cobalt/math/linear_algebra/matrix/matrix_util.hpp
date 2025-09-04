@@ -1,12 +1,180 @@
 #pragma once
 
+#include <sstream>
+#include<iomanip>
+
 #include "matrix.hpp"
 
+#include "../vector/vector_ops.hpp"
 #include "../vector/vector_util.hpp"
 
 namespace cobalt::math::linear_algebra {
 
+// ---------------- Member Utility ----------------
+/**
+ *  @brief Convert the matrix to a string representation.
+ *  @param percision Number of decimal places.
+ *  @return String representation of the matrix.
+ */
+template<uint8_t R, uint8_t C, typename T>
+    std::string Matrix<R, C, T>::toString(uint8_t percision) const {
+        std::ostringstream oss;
+        
+        for(uint8_t i = 0; i < R; i++) {
+            oss << "| ";
+            for(uint8_t j = 0; j < C; j++) {
+                oss << std::fixed << std::setprecision(percision) << data_[i*C + j] << " ";
+            }
+            oss << "|\n";
+        }
+        oss << "\n";
+
+        return oss.str();
+    }
+
 // ---------------- Non-member Utility ----------------
+/**
+ *  @brief Extract eigenvalue and eigenvectors of a symmetric matrix
+ * 
+ * 
+ *  @param A Matrix to extract eigenvalue and eigenvectors of.
+ *  @param e Vector with eigenvalue elements in decreasing order.
+ *  @param V Eigen vector V matrix(CxC) output.
+ *  @param maxIterations (optional) The maximum number of iterations to compute for.
+ *  @return `iterations` The number of iterations it ran to converge.
+ * 
+ *  @note `A` has to be symmetric otherwise the results are not correct.
+ */
+template<uint8_t N, typename T>
+    size_t jacobi(Matrix<N, N, T> &A, Vector<N, T> &e, Matrix<N, N, T> &V,  size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
+        int iteration = 0;
+        V = Matrix<N, N>::eye();
+
+        for(uint8_t i = 0; i < maxIterations; i++) {
+            iteration++;
+            bool converged = true;
+
+            for(uint8_t p = 0; p < N; p++) {
+                for(uint8_t q = p+1; q < N; q++) {
+                    T A_pp = A(p, p);
+                    T A_pq = A(p, q);
+                    T A_qq = A(q, q);
+
+                    if(std::fabs(A_pq) > MATRIX_EQUAL_THRESHOLD) {
+                        converged = false;
+
+                        T phi = static_cast<T>( 0.5f * std::atan2(static_cast<T>(2)*A_pq, A_qq - A_pp));
+                        T c = static_cast<T>(std::cos(phi));
+                        T s = static_cast<T>(std::sin(phi));
+
+                        for(uint8_t k = 0; k < N; k++) {
+                            T V_kp = V(k, p);
+                            T V_kq = V(k, q);
+
+                            V(k, p) = c*V_kp - s*V_kq;
+                            V(k, q) = s*V_kp + c*V_kq;
+                        }
+
+                        for(uint8_t k = 0; k < N; k++) {
+                            if(k != p && k != q) {
+                                T A_kp = A(k, p);
+                                T A_kq = A(k, q);
+
+                                A(k, p) = c*A_kp - s*A_kq;
+                                A(p, k) = A(k, p);
+                                A(k, q) = s*A_kp + c*A_kq;
+                                A(q, k) = A(k, q);
+                            }
+                        }
+
+                        A(p, p) = c*c*A_pp - 2*s*c*A_pq + s*s*A_qq;
+                        A(q, q) = s*s*A_pp + 2*s*c*A_pq + c*c*A_qq;
+                        A(p, q) = A(q, p) = static_cast<T>(0);
+                    }
+                }
+            }
+
+            if(converged) { break; }
+        }
+
+        // Eigenvalue extraction
+        for(uint8_t i = 0; i < N; i++) {
+            e[i] = A(i, i);
+        }
+
+        // Eigenvalue/vector ordering      high --> low
+        for(uint8_t i = 0; i < N; i++) {
+            uint8_t index = i;
+
+            for(uint8_t j = i+1; j < N; j++) {
+                if(e[j] > e[index]) { index = j; }
+            }
+
+        
+            if(index != i) {
+                std::swap(e[i], e[index]);
+
+                for(uint8_t k = 0; k < N; k++) { std::swap(V(k, i), V(k, index)); }
+            }
+        }
+
+        return iteration;
+    }
+
+/**
+ *  @brief Compute the Single Value Decomposion of a matrix.
+ * 
+ *  Decomposes A into U, Σ & V  matricies such that A = U*Σ*Vᵀ. 
+ * 
+ *  @param A Matrix to single value decompose.
+ *  @param U Orthogonal U matrix(RxR) output
+ *  @param S Diagonal eigenvalue Σ matrix(RxC) output
+ *  @param V Eigen vector V matrix(CxC) output.
+ *  @param maxIterations (optional) The maximum number of iterations to compute for
+ * 
+ *  @return `iterations` The number of iterations it ran to converge.
+ *  @note SVD always converges so it cannot fail.
+ */
+template<uint8_t R, uint8_t C, typename T = float>
+    size_t svd(const Matrix<R, C, T> &A, Matrix<R, R, T> &U, Matrix<R, C, T> &S, Matrix<C, C, T> &V, size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
+        static_assert(R >= C, "[MATRIX Error] : SVD only exists for matricies(NxM) with N >= M.");
+
+        Matrix<C, C, T> AtA = transpose(A)*A;
+
+        for(uint8_t i = 0; i < R; i++) {
+            for(uint8_t j = 0; j < R; j++) {
+                U(i, j) = (j < C) ?A(i, j) :static_cast<T>(0);
+            }
+        }
+        Vector<C> eigen{};
+        S = Matrix<R, C, T>::zero();
+        V = Matrix<C, C, T>::eye();
+
+        size_t iterations = jacobi(AtA, eigen, V);
+
+
+        // Compute S, singular values
+        Vector<C, T> sig{};
+        for(uint8_t i = 0; i < C; i++) {
+            sig[i] = static_cast<T>(std::sqrt(std::max({eigen[i], static_cast<T>(0)})));
+        }
+        S = Matrix<R, C, T>::diagonal(sig);
+
+
+        // Compute U, A*V*S_inv
+        Matrix<R, C, T> AV = A * V;
+
+        for(uint8_t j = 0; j < C; j++) {
+            if(static_cast<float>(sig[j]) > MATRIX_ZERO_THRESHOLD) {
+                for(uint8_t i = 0; i < R; i++) {
+                    U(i, j) = AV(i, j) / sig[j];
+                }
+            }
+        }
+
+        return iterations;    
+    }
+
 /**
  *  @brief Compute the LU-decomposion of a matrix.
  * 
@@ -19,7 +187,7 @@ namespace cobalt::math::linear_algebra {
  *  @return `true` if decomposision succeeds, `false` if A is signular.
  *  @note Return value should not be ignored and handled properly if A is singular
  */
-template<uint8_t N, typename T>
+template<uint8_t N, typename T = float>
     [[nodiscard]] bool decompLU(const Matrix<N, N, T> &A, Matrix<N, N, T> &L, Matrix<N, N, T> &U, Vector<N, T> &P) {
         L = Matrix<N, N, T>::eye();
         U = A;
@@ -66,5 +234,89 @@ template<uint8_t N, typename T>
 
         return true;    // Non-Singular
     }
+
+/**
+ *  @brief Compute the QR-decomposion of a matrix.
+ * 
+ *  Decomposes `A` into orthonormal `Q` & upper triangular `R` matricies such that A = QR. 
+ * 
+ *  @param A Matrix to QR-decompose.
+ *  @param Q Orthonormal matrix Q (NxN) decomposion output.
+ *  @param R Upper triangular matrix R (NxN) decomposion output.
+ *  @return `true` if A's columns were independent, `false` otherwise. Returning false indicates `R` will be singular.
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    bool decompQR(const Matrix<N, M, T> &A, Matrix<N, N, T> &Q, Matrix<N, M, T> &R) {
+        
+        bool isIndependent = gramSchmidt(A, Q);
+
+        if(!isIndependent) { return false; }
+
+        R =  transpose(Q) * A;
+
+        return true;
+    }
+
+/**
+ *  @brief Extract a orthonormal set of vectors from a column vector matrix
+ * 
+ *  Creates a orthonormal set of vectors from the column vectors of `A` as the column vectors of the output matrix `Q`
+ * 
+ *  @param A Matrix with column vectors to orthonormalize.
+ *  @param Q Output matrix with orthonormal column vectors.
+ *  @return `true` if input vectors were linearly independent, `false` otherwise. Returning false indicates `Q` has zero column(s)
+ */
+template<uint8_t R, uint8_t C, typename T = float>
+    bool gramSchmidt(const Matrix<R, C, T> &A, Matrix<R, C, T> &Q) {
+        Q = Matrix<R, C, T>::zero();
+        bool isIndependent = true;
+
+        for(uint8_t j = 0; j < C; j++) {
+            Vector<R, T> vec = toVector(A, j);
+
+            for(uint8_t i = 0; i < j; i++) {
+                vec = rejectFrom(vec, toVector(Q, i));
+            }
+
+            vec = normalize(vec);
+
+            if(norm(vec) < MATRIX_ZERO_THRESHOLD) { return isIndependent = false; } // Zero colummn
+
+            for(uint8_t i = 0; i < R; i++) { Q(i, j) = vec[i]; }
+        }
+
+        return isIndependent;
+    }
+
+// ---------------- Conversions ----------------
+/**
+ *  @brief Convert a matrix into a vector
+ * 
+ *  Creates a vector out of a matrix(Rx1) or the colummn of a matrix(RxC)
+ * 
+ *  @param A Matrix to convert to a vector
+ *  @param d (optional) Matrix column to convert. Defaults to 0.
+ *  @return Vector of size `R`
+ * 
+ */
+template<uint8_t R, uint8_t C, typename T = float>
+    constexpr inline Vector<R, T> toVector(const Matrix<R, C, T> &A, uint8_t column = 0) {
+        Vector<R, T> output;
+
+        for(uint8_t i = 0; i < R; i++) {
+            output[i] = A(i, column);
+        }
+
+        return output;
+    }
+
+// ---------------- Checks ----------------
+/**
+ *  @brief Check if a matrix is singular (det = 0)
+ */
+template<uint8_t N, typename T = float>
+constexpr inline bool isSingular(const Matrix<N, N, T> &A) {
+    return (std::fabs(det(A)) < VECTOR_EQUAL_THRESHOLD);
+}
 
 } // cobalt::math::linear_algebra

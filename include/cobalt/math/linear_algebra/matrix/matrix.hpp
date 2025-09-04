@@ -5,15 +5,18 @@
 #include <array>
 #include <string>
 
+#include "../vector/vector.hpp"
+
 namespace cobalt::math::linear_algebra {
 
 constexpr uint8_t MATRIX_MAX_ROW_SIZE = 12;
 constexpr uint8_t MATRIX_MAX_COL_SIZE = 12;
 
-constexpr float   MATRIX_EQUAL_THRESHOLD = 1e-5;
+constexpr float   MATRIX_EQUAL_THRESHOLD = 1e-6;
 constexpr float   MATRIX_ZERO_THRESHOLD = 1e-12;
 
 constexpr uint8_t MATRIX_DEFAULT_PRECISION = 3;
+constexpr uint8_t MATRIX_DEFAULT_SVD_ITERATIONS = 100;
 
 // --------------------------------------
 //          NxM - Matrix    
@@ -87,6 +90,36 @@ struct Matrix {
 
             return out;
         }
+
+        /**
+         *  @brief Convert a vector into a diagonal matrix
+         * 
+         *  Puts the vector elements along the diagonal of a matrix. If all the diagonals are not filled up, they are set to zero.
+         * 
+         *  @tparam R Diagonal matrix row count
+         *  @tparam C Diagonal matrix column count
+         *  @tparam N Vector size
+         *  @tparam T Vector/Matrix element type
+         *  @param d Vector with the diagonal elements
+         * 
+         *  @note The output matrix should, at the minimum, be able to contain the vector diagonals. `N <= R` and `N <= C`.
+         * 
+         */
+        template<uint8_t N>
+            static constexpr Matrix<R, C, T> diagonal(const Vector<N, T> &d) {
+                static_assert(R >= N, "[MATRIX Error] : Matrix row count is too small to contain the diagonal vector.");
+                static_assert(C >= N, "[MATRIX Error] : Matrix column count is too small to contain the diagonal vector.");
+
+                Matrix<R, C, T> output;
+
+                uint8_t minLength = (R < C) ?R :C;
+
+                for(uint8_t i = 0; i < minLength; i++) {
+                    output(i,i) = (i < N) ?d[i] :static_cast<T>(0);
+                }
+
+                return output;
+            }
         
         // ---------------- Getters ----------------
         /**
@@ -202,6 +235,14 @@ struct Matrix {
 
             return *this;
         }
+
+        // ------------ Member Functions  ------------
+        template<uint8_t N, uint8_t M>
+            constexpr inline Matrix<N, M, T> block(uint8_t r0 = 0, uint8_t c0 = 0) const;
+
+        // ---------------- Utility  ----------------
+        
+        std::string toString(uint8_t percision = MATRIX_DEFAULT_PRECISION) const;
 };
 
 } // cobalt::math::linear_algebra

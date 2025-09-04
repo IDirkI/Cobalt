@@ -6,6 +6,8 @@
 
 #include "vector.hpp"
 
+#include "../matrix/matrix.hpp"
+
 namespace cobalt::math::linear_algebra {
 
 // ---------------- Member Utility ----------------
@@ -232,9 +234,28 @@ constexpr inline Vector<N, T> fromArray(const std::array<T, N> &arr) {
     return v;
 }
 
+/**
+ *  @brief Construct a skew-symmetric matrix(3x3)from a vector(3).
+ *  @param v Vector to turn into a skew-symmetric matrix.
+ */
+template<typename T = float>
+constexpr inline Matrix<3, 3, T> skew(const Vector<3, T> &v) {
+    Matrix<3, 3, T> output = Matrix<3, 3, T>::zero();
+
+    output(0, 1) = -v.z();
+    output(0, 2) =  v.y();
+    output(1, 2) = -v.x();
+
+    output(1, 0) =  v.z();
+    output(2, 0) = -v.y();
+    output(2, 1) =  v.x();
+
+    return output;
+}
+
 // ---------------- Checks ----------------
 /**
- *  @brief Convert a vector to std::array.
+ *  @brief Check if a vector is normalized (norm = 1)
  */
 template<uint8_t N, typename T = float>
 constexpr inline bool isNormalized(const Vector<N, T> &v) {
