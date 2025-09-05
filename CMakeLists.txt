@@ -5,14 +5,21 @@ project(Cobalt LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add libarary
-add_library( cobalt INTERFACE)
-target_include_directories( cobalt INTERFACE include)
+# Add sources
+file(GLOB_RECURSE COBALT_SOURCES
+    "src/*.cpp"
+)
 
-# Debug Files
+# Add libarary
+add_library(cobalt STATIC src/control/controller/pid.cpp) # TODO: Fix for later use, auto include src
+target_include_directories( cobalt 
+    PUBLIC include 
+)
+
+# Debug files
 add_executable(cobalt_sanity_check src/debug.cpp)
 target_include_directories(cobalt_sanity_check
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PRIVATE include
 )
 
 # Tests

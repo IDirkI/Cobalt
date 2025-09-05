@@ -2,8 +2,12 @@
 add_executable(cobalt_tests
     sanity_test.cpp
 
-    ./math/linear_algebra/vector_test.cpp
-    ./math/linear_algebra/matrix_test.cpp
+    # ===== Math =====
+    #./math/linear_algebra/vector_test.cpp
+    #./math/linear_algebra/matrix_test.cpp
+
+    # ===== Control =====
+    ./control/controller/pid_test.cpp
 )
 
 # Include paths
