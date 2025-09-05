@@ -8,6 +8,7 @@
 namespace cobalt::math::linear_algebra {
 
 constexpr uint8_t VECTOR_MAX_SIZE = 12;
+
 constexpr float   VECTOR_EQUAL_THRESHOLD = 1e-5;
 constexpr float   VECTOR_ZERO_THRESHOLD = 1e-12;
 

@@ -6,6 +6,7 @@
 #include <cobalt/math/linear_algebra/vector/vector_util.hpp>
 
 using cobalt::math::linear_algebra::Vector;
+using cobalt::math::linear_algebra::Matrix;
 
 TEST_CASE("Vector, default construction", "[vector]") {
     Vector<3> v;
@@ -34,7 +35,7 @@ TEST_CASE("Vector, brace construction", "[vector]") {
 TEST_CASE("Vector, from/to array", "[vector]") {
     std::array<float, 4> arr = {1.0f, 2.0f, 10.0f, -2.0f};
 
-    Vector<4> v = cobalt::math::linear_algebra::fromArray<4>(arr);  //! why?
+    Vector<4> v = cobalt::math::linear_algebra::fromArray<4>(arr);
 
     REQUIRE(v[0] == Catch::Approx(1.0f));
     REQUIRE(v[1] == Catch::Approx(2.0f));
@@ -47,6 +48,24 @@ TEST_CASE("Vector, from/to array", "[vector]") {
     REQUIRE(arr2[1] == Catch::Approx(2.0f));
     REQUIRE(arr2[2] == Catch::Approx(10.0f));
     REQUIRE(arr2[3] == Catch::Approx(-2.0f));
+}   
+
+TEST_CASE("Vector, skew-symmetric", "[vector]") {
+    Vector<3> v = {3.0f, -1.0f, 0.3f};
+
+    Matrix<3, 3> S = skew(v);
+
+    REQUIRE(S(0, 1) == Catch::Approx(-0.3f));
+    REQUIRE(S(0, 2) == Catch::Approx(-1.0f));
+    REQUIRE(S(1, 2) == Catch::Approx(-3.0f));
+
+    REQUIRE(S(1, 0) == Catch::Approx(0.3f));
+    REQUIRE(S(2, 0) == Catch::Approx(1.0f));
+    REQUIRE(S(2, 1) == Catch::Approx(3.0f));
+
+    REQUIRE(S(0, 0) == Catch::Approx(0.0f));
+    REQUIRE(S(1, 1) == Catch::Approx(0.0f));
+    REQUIRE(S(2, 2) == Catch::Approx(0.0f));
 }   
 
 TEST_CASE("Vector, x,y,z accessors", "[vector]") {

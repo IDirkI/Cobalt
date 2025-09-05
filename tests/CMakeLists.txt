@@ -3,6 +3,7 @@ add_executable(cobalt_tests
     sanity_test.cpp
 
     ./math/linear_algebra/vector_test.cpp
+    ./math/linear_algebra/matrix_test.cpp
 )
 
 # Include paths
