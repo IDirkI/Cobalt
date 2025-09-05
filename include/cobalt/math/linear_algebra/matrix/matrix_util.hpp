@@ -16,14 +16,14 @@ namespace cobalt::math::linear_algebra {
  *  @param percision Number of decimal places.
  *  @return String representation of the matrix.
  */
-template<uint8_t R, uint8_t C, typename T>
-    std::string Matrix<R, C, T>::toString(uint8_t percision) const {
+template<uint8_t N, uint8_t M, typename T>
+    std::string Matrix<N, M, T>::toString(uint8_t percision) const {
         std::ostringstream oss;
         
-        for(uint8_t i = 0; i < R; i++) {
+        for(uint8_t i = 0; i < N; i++) {
             oss << "| ";
-            for(uint8_t j = 0; j < C; j++) {
-                oss << std::fixed << std::setprecision(percision) << data_[i*C + j] << " ";
+            for(uint8_t j = 0; j < M; j++) {
+                oss << std::fixed << std::setprecision(percision) << data_[i*M + j] << " ";
             }
             oss << "|\n";
         }
@@ -39,7 +39,7 @@ template<uint8_t R, uint8_t C, typename T>
  * 
  *  @param A Matrix to extract eigenvalue and eigenvectors of.
  *  @param e Vector with eigenvalue elements in decreasing order.
- *  @param V Eigen vector V matrix(CxC) output.
+ *  @param V Eigen vector V matrix(NxN) output.
  *  @param maxIterations (optional) The maximum number of iterations to compute for.
  *  @return `iterations` The number of iterations it ran to converge.
  * 
@@ -127,46 +127,46 @@ template<uint8_t N, typename T>
  *  Decomposes A into U, Σ & V  matricies such that A = U*Σ*Vᵀ. 
  * 
  *  @param A Matrix to single value decompose.
- *  @param U Orthogonal U matrix(RxR) output
- *  @param S Diagonal eigenvalue Σ matrix(RxC) output
- *  @param V Eigen vector V matrix(CxC) output.
+ *  @param U Orthogonal U matrix(NxN) output
+ *  @param S Diagonal eigenvalue Σ matrix(NxM) output
+ *  @param V Eigen vector V matrix(MxM) output.
  *  @param maxIterations (optional) The maximum number of iterations to compute for
  * 
  *  @return `iterations` The number of iterations it ran to converge.
  *  @note SVD always converges so it cannot fail.
  */
-template<uint8_t R, uint8_t C, typename T = float>
-    size_t svd(const Matrix<R, C, T> &A, Matrix<R, R, T> &U, Matrix<R, C, T> &S, Matrix<C, C, T> &V, size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
-        static_assert(R >= C, "[MATRIX Error] : SVD only exists for matricies(NxM) with N >= M.");
+template<uint8_t N, uint8_t M, typename T = float>
+    size_t svd(const Matrix<N, M, T> &A, Matrix<N, N, T> &U, Matrix<N, M, T> &S, Matrix<M, M, T> &V, size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
+        static_assert(N >= M, "[MATRIX Error] : SVD only exists for matricies(NxM) with N >= M.");
 
-        Matrix<C, C, T> AtA = transpose(A)*A;
+        Matrix<M, M, T> AtA = transpose(A)*A;
 
-        for(uint8_t i = 0; i < R; i++) {
-            for(uint8_t j = 0; j < R; j++) {
-                U(i, j) = (j < C) ?A(i, j) :static_cast<T>(0);
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < N; j++) {
+                U(i, j) = (j < M) ?A(i, j) :static_cast<T>(0);
             }
         }
-        Vector<C> eigen{};
-        S = Matrix<R, C, T>::zero();
-        V = Matrix<C, C, T>::eye();
+        Vector<M> eigen{};
+        S = Matrix<N, M, T>::zero();
+        V = Matrix<M, M, T>::eye();
 
         size_t iterations = jacobi(AtA, eigen, V);
 
 
         // Compute S, singular values
-        Vector<C, T> sig{};
-        for(uint8_t i = 0; i < C; i++) {
+        Vector<M, T> sig{};
+        for(uint8_t i = 0; i < M; i++) {
             sig[i] = static_cast<T>(std::sqrt(std::max({eigen[i], static_cast<T>(0)})));
         }
-        S = Matrix<R, C, T>::diagonal(sig);
+        S = Matrix<N, M, T>::diagonal(sig);
 
 
         // Compute U, A*V*S_inv
-        Matrix<R, C, T> AV = A * V;
+        Matrix<N, M, T> AV = A * V;
 
-        for(uint8_t j = 0; j < C; j++) {
+        for(uint8_t j = 0; j < M; j++) {
             if(static_cast<float>(sig[j]) > MATRIX_ZERO_THRESHOLD) {
-                for(uint8_t i = 0; i < R; i++) {
+                for(uint8_t i = 0; i < N; i++) {
                     U(i, j) = AV(i, j) / sig[j];
                 }
             }
@@ -266,13 +266,13 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param Q Output matrix with orthonormal column vectors.
  *  @return `true` if input vectors were linearly independent, `false` otherwise. Returning false indicates `Q` has zero column(s)
  */
-template<uint8_t R, uint8_t C, typename T = float>
-    bool gramSchmidt(const Matrix<R, C, T> &A, Matrix<R, C, T> &Q) {
-        Q = Matrix<R, C, T>::zero();
+template<uint8_t N, uint8_t M, typename T = float>
+    bool gramSchmidt(const Matrix<N, M, T> &A, Matrix<N, M, T> &Q) {
+        Q = Matrix<N, M, T>::zero();
         bool isIndependent = true;
 
-        for(uint8_t j = 0; j < C; j++) {
-            Vector<R, T> vec = toVector(A, j);
+        for(uint8_t j = 0; j < M; j++) {
+            Vector<N, T> vec = toVector(A, j);
 
             for(uint8_t i = 0; i < j; i++) {
                 vec = rejectFrom(vec, toVector(Q, i));
@@ -282,7 +282,7 @@ template<uint8_t R, uint8_t C, typename T = float>
 
             if(norm(vec) < MATRIX_ZERO_THRESHOLD) { return isIndependent = false; } // Zero colummn
 
-            for(uint8_t i = 0; i < R; i++) { Q(i, j) = vec[i]; }
+            for(uint8_t i = 0; i < N; i++) { Q(i, j) = vec[i]; }
         }
 
         return isIndependent;
@@ -292,18 +292,18 @@ template<uint8_t R, uint8_t C, typename T = float>
 /**
  *  @brief Convert a matrix into a vector
  * 
- *  Creates a vector out of a matrix(Rx1) or the colummn of a matrix(RxC)
+ *  Creates a vector out of a matrix(Nx1) or the colummn of a matrix(NxM)
  * 
  *  @param A Matrix to convert to a vector
  *  @param d (optional) Matrix column to convert. Defaults to 0.
  *  @return Vector of size `R`
  * 
  */
-template<uint8_t R, uint8_t C, typename T = float>
-    constexpr inline Vector<R, T> toVector(const Matrix<R, C, T> &A, uint8_t column = 0) {
-        Vector<R, T> output;
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr inline Vector<N, T> toVector(const Matrix<N, M, T> &A, uint8_t column = 0) {
+        Vector<N, T> output;
 
-        for(uint8_t i = 0; i < R; i++) {
+        for(uint8_t i = 0; i < N; i++) {
             output[i] = A(i, column);
         }
 
