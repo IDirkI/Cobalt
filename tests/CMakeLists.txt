@@ -2,8 +2,12 @@
 add_executable(cobalt_tests
     sanity_test.cpp
 
+    # ===== Math =====
     ./math/linear_algebra/vector_test.cpp
     ./math/linear_algebra/matrix_test.cpp
+
+    # ===== Control =====
+    ./control/controller/pid_test.cpp
 )
 
 # Include paths
@@ -18,4 +22,7 @@ target_link_libraries(cobalt_tests PRIVATE cobalt Catch2::Catch2WithMain)
 enable_testing()
 include(CTEST)
 include(CATCH)
-catch_discover_tests(cobalt_tests)
+catch_discover_tests(cobalt_tests
+    REPORTER xml
+    OUTPUT_DIR ${CMAKE_BINARY_DIR}/Testing
+)
