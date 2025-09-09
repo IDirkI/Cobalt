@@ -5,6 +5,7 @@
 
 #include <cobalt/math/geometry/quaternion/quaternion.hpp>
 #include <cobalt/math/geometry/quaternion/quaternion_ops.hpp>
+#include <cobalt/math/geometry/quaternion/quaternion_util.hpp>
 
 using cobalt::math::linear_algebra::Vector;
 using cobalt::math::geometry::Quaternion;
@@ -35,4 +36,10 @@ TEST_CASE("Quaternion, vector construction", "[quaternion]") {
     REQUIRE(q.x() == Catch::Approx(0.3590833f).margin(1e-6));
     REQUIRE(q.y() == Catch::Approx(-0.4787777f).margin(1e-6));
     REQUIRE(q.z() == Catch::Approx(0.0f).margin(1e-6));
+
+    Vector<3> u = toVector(q);
+
+    REQUIRE(u.x() == Catch::Approx(3.0f).margin(1e-6));
+    REQUIRE(u.y() == Catch::Approx(-4.0f).margin(1e-6));
+    REQUIRE(u.z() == Catch::Approx(0.0f).margin(1e-6));
 }   
