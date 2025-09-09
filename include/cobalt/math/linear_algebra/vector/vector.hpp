@@ -93,6 +93,18 @@ struct Vector{
             static constexpr Vector unitZ() noexcept { return Vector{static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)}; }
         
 
+        /**
+         *  @brief Construct a vector from std::array.
+         */
+        static constexpr inline Vector fromArray(const std::array<T, N> &arr) {
+            Vector<N, T> v;
+            for(uint8_t i = 0; i < N; i++) {
+                v[i] = arr[i];
+            }
+
+            return v;
+        }
+
         // ---------------- Getters ----------------
         /**
          *  @brief Return the size of the vector.

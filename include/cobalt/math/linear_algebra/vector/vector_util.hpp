@@ -222,19 +222,6 @@ constexpr inline std::array<T, N> toArray(const Vector<N, T> &v) {
 }
 
 /**
- *  @brief Construct a vector from std::array.
- */
-template<uint8_t N, typename T = float>
-constexpr inline Vector<N, T> fromArray(const std::array<T, N> &arr) {  // TODO: Fix usage
-    Vector<N, T> v;
-    for(uint8_t i = 0; i < N; i++) {
-        v[i] = arr[i];
-    }
-
-    return v;
-}
-
-/**
  *  @brief Construct a skew-symmetric matrix(3x3)from a vector(3).
  *  @param v Vector to turn into a skew-symmetric matrix.
  */

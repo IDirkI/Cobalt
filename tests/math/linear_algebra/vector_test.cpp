@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
+#include <cmath>
+
 #include <cobalt/math/linear_algebra/vector/vector.hpp>
 #include <cobalt/math/linear_algebra/vector/vector_ops.hpp>
 #include <cobalt/math/linear_algebra/vector/vector_util.hpp>
@@ -35,7 +37,7 @@ TEST_CASE("Vector, brace construction", "[vector]") {
 TEST_CASE("Vector, from/to array", "[vector]") {
     std::array<float, 4> arr = {1.0f, 2.0f, 10.0f, -2.0f};
 
-    Vector<4> v = cobalt::math::linear_algebra::fromArray<4>(arr);
+    Vector<4> v = Vector<4>::fromArray(arr);
 
     REQUIRE(v[0] == Catch::Approx(1.0f));
     REQUIRE(v[1] == Catch::Approx(2.0f));
