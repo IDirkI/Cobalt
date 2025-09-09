@@ -1,6 +1,18 @@
 # Build tests
 add_executable(cobalt_tests
-    test_sanity.cpp
+    sanity_test.cpp
+
+    # ===== Math =====
+    ./math/linear_algebra/vector_test.cpp
+    ./math/linear_algebra/matrix_test.cpp
+    ./math/linear_algebra/complex_vector_test.cpp
+
+    ./math/algebra/complex_test.cpp
+
+    ./math/geometry/quaternion_test.cpp
+
+    # ===== Control =====
+    ./control/controller/pid_test.cpp
 )
 
 # Include paths
