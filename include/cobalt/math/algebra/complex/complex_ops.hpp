@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include "complex.hpp"
 
 namespace cobalt::math::algebra {

@@ -127,7 +127,7 @@ struct Complex {
          */
         constexpr Complex &operator*=(const Complex &rhs) {
             re_ = re_*rhs.re_ - im_*rhs.im_;
-            im_ = re_*rhs.im_ - im_*rhs.re_;
+            im_ = re_*rhs.im_ + im_*rhs.re_;
 
             return *this;
         }
@@ -170,6 +170,16 @@ struct Complex {
         constexpr Complex &operator-() {
             re_ *= -1.0f;
             im_ *= -1.0f;
+
+            return *this;
+        }
+
+        /**
+         *  @brief Set the complex number to the given complex number
+         */
+        constexpr Complex &operator=(const Complex &rhs) {
+            re_ = rhs.re_;
+            im_ = rhs.im_;
 
             return *this;
         }
