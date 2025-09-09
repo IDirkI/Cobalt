@@ -7,3 +7,5 @@
 
 // ----- Matrix -----
 #include "matrix/matrix.hpp"        // Core matrix definition
+#include "matrix/matrix_ops.hpp"    // -- Maxtrix arithmetic & math operation defintions
+#include "matrix/matrix_util.hpp"   // -- Maxtrix utility tool & algorithm defintions
