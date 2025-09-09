@@ -11,15 +11,9 @@ file(GLOB_RECURSE COBALT_SOURCES
 )
 
 # Add libarary
-add_library(cobalt STATIC src/control/controller/pid.cpp) # TODO: Fix for later use, auto include src
+add_library(cobalt STATIC ${COBALT_SOURCES}) # TODO: Fix for later use, auto include src
 target_include_directories( cobalt 
     PUBLIC include 
-)
-
-# Debug files
-add_executable(cobalt_sanity_check src/debug.cpp)
-target_include_directories(cobalt_sanity_check
-    PRIVATE include
 )
 
 # Tests

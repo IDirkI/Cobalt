@@ -20,10 +20,10 @@ float cobalt::control::PID::getKi() const { return Ki_; }
 float cobalt::control::PID::getKd() const { return Kd_; }
 
 /**
- *  @brief Get the differential paths LPF 3dB cutoff frequency. 
- *  @return `tau` 3dB cutoff frequency. [ rad/s ]
+ *  @brief Get the differential paths LPF time constant
+ *  @return `tau` time constant. [ rad/s ]
  */
-float cobalt::control::PID::getCutoff() const { return tau_; }
+float cobalt::control::PID::getTau() const { return tau_; }
 
 /**
  *  @brief Get the discrete-time sampling period.
@@ -39,9 +39,24 @@ float cobalt::control::PID::getOutMin() const { return outMin_; }
 
 /**
  *  @brief Get the maximum output the controller can output.
- *  @return `outMin` Maximum value controller is configured to be able to output.
+ *  @return `outMax` Maximum value controller is configured to be able to output.
  */
 float cobalt::control::PID::getOutMax() const { return outMax_; }
+
+/**
+ *  @brief Get the current proportional output contribution.
+ */
+float cobalt::control::PID::getPPath() const { return state_.pathP; }
+
+/**
+ *  @brief Get the current proportional output contribution.
+ */
+float cobalt::control::PID::getIPath() const { return state_.pathI; }
+
+/**
+ *  @brief Get the current proportional output contribution.
+ */
+float cobalt::control::PID::getDPath() const { return state_.pathD; }
 
 /**
  *  @brief Get the reference point/value the controller is set to.
@@ -144,13 +159,30 @@ bool cobalt::control::PID::setGains(float Kp, float Ki, float Kd) {
 }
 
 /**
- *  @brief Set the differential paths LPF 3dB cutoff frequency. 
+ *  @brief Set the differential paths LPF time constant. 
  *  
- *  @param tau 3dB cutoff frequency.
+ *  @param tau LPF time constant.
  *  @return If the new value was valid or not.
- *  @note The value will not be set if the input is not considered valid.
+ *  @note `tau` should ideally be at least double the sample period. 
  */
-bool cobalt::control::PID::setCutoff(float tau) {
+bool cobalt::control::PID::setTau(float tau) {
+    if(tau >= 2*Ts_) {
+        tau_ = tau;
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+/**
+ *  @brief Set the controller sample period. 
+ *  
+ *  @param Ts sample period the controller will run at.
+ *  @return If the new value was valid or not.
+ *  @note `Ts` should ideally be at least 10 time smaller than the plants/ADCs sampling time.
+ */
+bool cobalt::control::PID::setSampleTime(float tau) {
     if(tau >= 0.0f) {
         tau_ = tau;
         return true;
@@ -204,15 +236,16 @@ bool cobalt::control::PID::setName(const std::string &name) {
  *  @brief Reset the memory/state of the controller.
  * 
  *  This will reset the proportional, integral & derivative calculation paths; previous errors & measurements; and last measurement & output down to 0
- * 
+ *  
+ *  @param initialMeasure Set the initial condition/measurement of the output for t = 0. Set this to prevent controller jerks.
  */
-bool cobalt::control::PID::reset() {
+bool cobalt::control::PID::reset(float initialMeasure) {
     state_.pathP = 0.0f;
     state_.pathI = 0.0f;
     state_.pathD = 0.0f;
 
     state_.prevErr = 0.0f;
-    state_.prevMeasure = 0.0f;
+    state_.prevMeasure = initialMeasure;
 
     measure_ = 0.0f;
     output_ = 0.0f;
@@ -227,6 +260,40 @@ bool cobalt::control::PID::reset() {
  *  @return `output` The latest controller output aka. input to the plant
  */
 float cobalt::control::PID::update(float measurement) {
-    // TODO: TDB
-    return 0.0f;
+    measure_ = measurement;
+    float err = ref_ - measure_;    // e[n]
+
+
+    /* --- Proportional Path --- */
+    state_.pathP = Kp_ * err;
+
+
+    /* --- Integral Path --- */
+    state_.pathI += Ki_*(Ts_/2.0f)*(err + state_.prevErr);
+
+        
+        // Anti-wind up with clamp
+        float integralMin = (state_.pathP > outMin_) ?(outMin_ - state_.pathP) :0.0f;
+        float integralMax = (state_.pathP < outMax_) ?(outMax_ - state_.pathP) :0.0f;
+
+        if(state_.pathI < integralMin) { state_.pathI = integralMin; }
+        if(state_.pathI > integralMax) { state_.pathI = integralMax; }
+        
+
+    /* --- Derivative Path --- */
+    state_.pathD = -(Kd_*(2.0f/(2*tau_ + Ts_))*(measure_ - state_.prevMeasure) + ((2*tau_ - Ts_)/(2*tau_ + Ts_))*state_.pathD);
+
+
+    /* --- Output --- */
+    output_ = state_.pathP + state_.pathI + state_.pathD;
+
+        // Output Clamp
+        if(output_ < outMin_) { output_ = outMin_; }
+        if(output_ > outMax_) { output_ = outMax_; }
+
+    /* --- State Update --- */
+    state_.prevErr = err;
+    state_.prevMeasure = measure_;
+
+    return output_;
 }
