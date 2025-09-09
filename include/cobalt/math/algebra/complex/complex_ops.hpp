@@ -95,7 +95,7 @@ inline Complex log(const Complex &z) {
  *  @return `zⁿ` The n-th power of the complex number
  */
 inline Complex pow(const Complex &z, float n) {
-    return Complex(static_cast<float>(std::pow(abs(z), n)), arg(z)*n);
+    return Complex::polar(static_cast<float>(std::pow(abs(z), n)), arg(z)*n);
 }
 
 } // cobalt::math::algebra

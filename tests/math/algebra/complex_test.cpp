@@ -36,6 +36,12 @@ TEST_CASE("Complex, construction & operations", "[complex]") {
     REQUIRE(z.real() == Catch::Approx(5.0f));
     REQUIRE(z.imag() == Catch::Approx(0.0f));
 
+    z += Complex::oneIm();
+    z = -z;
+
+    REQUIRE(z.real() == Catch::Approx(-5.0f));
+    REQUIRE(z.imag() == Catch::Approx(-1.0f));
+
 }   
 
 TEST_CASE("Complex, arg/abs/conj", "[complex]") {
@@ -52,6 +58,24 @@ TEST_CASE("Complex, arg/abs/conj", "[complex]") {
 
     REQUIRE(abs(z) == Catch::Approx(std::sqrt(2)));
     REQUIRE(arg(z) == Catch::Approx(-M_PI_4));
+}   
+
+TEST_CASE("Complex, exp, log, pow", "[complex]") {
+    Complex z(1, 1);
+    Complex w(0, 1);
+
+    REQUIRE(exp(z).real() == Catch::Approx(1.4686939f).margin(1e-6));
+    REQUIRE(exp(z).imag() == Catch::Approx(2.28735528f).margin(1e-6));
+
+    REQUIRE(log(z).real() == Catch::Approx(0.346573f).margin(1e-6));
+    REQUIRE(log(z).imag() == Catch::Approx(0.7853981f).margin(1e-6));
+
+    REQUIRE(pow(w, 2).real() == Catch::Approx(-1.0f).margin(1e-6));
+    REQUIRE(pow(w, 2).imag() == Catch::Approx(0.0f).margin(1e-6));
+    REQUIRE(pow(w, 3).real() == Catch::Approx(0.0f).margin(1e-6));
+    REQUIRE(pow(w, 3).imag() == Catch::Approx(-1.0f).margin(1e-6));
+    REQUIRE(pow(w, 4).real() == Catch::Approx(1.0f).margin(1e-6));
+    REQUIRE(pow(w, 4).imag() == Catch::Approx(0.0f).margin(1e-6));
 }   
 
 TEST_CASE("Complex, toString", "[complex]") {
