@@ -15,7 +15,7 @@ inline const Quaternion operator*(float c, Quaternion lhs) { lhs *= c; return lh
 inline const Quaternion operator/(Quaternion lhs, float c) { lhs /= c; return lhs; }
 inline const Quaternion operator/(float c, Quaternion lhs) { lhs /= c; return lhs; }
 
-inline const bool operator==(const Quaternion &lhs, const Quaternion &rhs) { 
+inline bool operator==(const Quaternion &lhs, const Quaternion &rhs) { 
     if(fabsf(lhs.w() - rhs.w()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
     if(fabsf(lhs.x() - rhs.x()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
     if(fabsf(lhs.y() - rhs.y()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
@@ -23,7 +23,7 @@ inline const bool operator==(const Quaternion &lhs, const Quaternion &rhs) {
     return true;
 }
 
-inline const bool operator!=(const Quaternion &lhs, const Quaternion &rhs) { return !(lhs == rhs); }
+inline bool operator!=(const Quaternion &lhs, const Quaternion &rhs) { return !(lhs == rhs); }
 
 // ---------------- Non-member Functions ----------------
 /**

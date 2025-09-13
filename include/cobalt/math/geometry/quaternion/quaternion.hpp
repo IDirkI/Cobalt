@@ -60,22 +60,22 @@ struct Quaternion {
         /**
          * @brief Const access to w element
          */
-        const inline float w() const { return w_; }
+        inline float w() const { return w_; }
 
         /**
          * @brief Const access to x element
          */
-        const inline float x() const { return x_; }
+        inline float x() const { return x_; }
 
         /**
          * @brief Const access to y element
          */
-        const inline float y() const { return y_; }
+        inline float y() const { return y_; }
 
         /**
          * @brief Const access to z element
          */
-        const inline float z() const { return z_; }
+        inline float z() const { return z_; }
 
 
         /**
