@@ -10,9 +10,9 @@ enum class GPIOMode {
     InputPullUp,
 };
 
-enum class GPIOLevel : bool {
-    High = true,
-    Low = false,
+enum class GPIOLevel : uint8_t {
+    High = 1,
+    Low = 0,
 };
 
 class GPIOBase {

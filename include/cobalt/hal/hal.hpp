@@ -5,7 +5,9 @@
 
 
 namespace cobalt::hal {
-    #if ARDUINO
+    #ifdef ARDUINO
         using GPIO = GPIOArduino;
+    #elifdef IDF_VER
+        using GPIO = GPIOESP32;
     #endif
 }
