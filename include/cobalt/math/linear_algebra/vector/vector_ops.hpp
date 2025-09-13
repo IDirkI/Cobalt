@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #include "vector.hpp"
 
 namespace cobalt::math::linear_algebra {
@@ -41,7 +43,7 @@ template<uint8_t N, typename T = float>
 template<uint8_t N, typename T = float>
     constexpr bool operator==(const Vector<N, T> &lhs, const Vector<N, T> &rhs) {
         for(uint8_t i = 0; i < N; i++) {
-            if(std::abs(lhs[i] - rhs[i]) > static_cast<T>(VECTOR_EQUAL_THRESHOLD)) return false;
+            if(fabsf(lhs[i] - rhs[i]) > static_cast<T>(VECTOR_EQUAL_THRESHOLD)) return false;
         }
         return true;
     }
@@ -99,7 +101,7 @@ template<uint8_t N, typename T = float>
  *  @return Norm/Magnitude of vector.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline float norm(const Vector<N, T> &v) { return static_cast<float>(std::sqrt(dot(v, v))); }
+    constexpr inline float norm(const Vector<N, T> &v) { return sqrtf(dot(v, v)); }
 
 /**
  *  @brief Compute normalized vector.
@@ -132,7 +134,7 @@ template<uint8_t N, typename T = float>
  *  @return Angle between two vectors in their shared plane (radians)
  */
 template<uint8_t N, typename T = float>
-    constexpr inline float getAngle(const Vector<N, T> &v, const Vector<N, T> &u) { return static_cast<T>(std::acos(dot(v, u)/(norm(v)*norm(u)))); }
+    constexpr inline float getAngle(const Vector<N, T> &v, const Vector<N, T> &u) { return static_cast<T>(acosf(dot(v, u)/(norm(v)*norm(u)))); }
 
 /**
  *  @brief Compute projection of one vector onto another.

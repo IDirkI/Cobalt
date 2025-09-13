@@ -56,7 +56,7 @@ struct Complex {
          *  @param r The norm/magnitude of the complex number
          *  @param theta The argument/angle of the complex number
          */
-        static Complex polar(float r, float theta) noexcept { return Complex(r*static_cast<float>(std::cos(theta)), r*static_cast<float>(std::sin(theta))); }
+        static Complex polar(float r, float theta) noexcept { return Complex(r*cosf(theta), r*sinf(theta)); }
 
 
         // ---------------- Accessors ----------------
@@ -173,17 +173,6 @@ struct Complex {
 
             return *this;
         }
-
-        /**
-         *  @brief Set the complex number to the given complex number
-         */
-        constexpr Complex &operator=(const Complex &rhs) {
-            re_ = rhs.re_;
-            im_ = rhs.im_;
-
-            return *this;
-        }
-
 
         // ---------------- Utility  ----------------
         std::string toString(uint8_t percision = COMPLEX_DEFAULT_PRECISION) const;

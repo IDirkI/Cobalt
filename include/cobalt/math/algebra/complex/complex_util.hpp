@@ -9,9 +9,9 @@
 
 namespace cobalt::math::algebra {
 
-constexpr bool isZero(const Complex &z);
-constexpr bool isReal(const Complex &z);
-constexpr bool isImag(const Complex &z);
+bool isZero(const Complex &z);
+bool isReal(const Complex &z);
+bool isImag(const Complex &z);
 
 
 // ---------------- Member Utility ----------------
@@ -34,27 +34,27 @@ std::string Complex::toString(uint8_t percision) const {
 /**
  *  @brief Check if a complex number is zero (0 + 0j)
  */
-constexpr bool isZero(const Complex &z) { 
-    if(static_cast<float>(std::abs(z.real())) > COMPLEX_ZERO_THRESHOLD) { return false; }
-    if(static_cast<float>(std::abs(z.imag())) > COMPLEX_ZERO_THRESHOLD) { return false; }
+bool isZero(const Complex &z) { 
+    if(fabsf(z.real()) > COMPLEX_ZERO_THRESHOLD) { return false; }
+    if(fabsf(z.imag()) > COMPLEX_ZERO_THRESHOLD) { return false; }
     return true;
 }
 
 /**
  *  @brief Check if a complex number is purely real
  */
-constexpr bool isReal(const Complex &z) { 
-    if(static_cast<float>(std::abs(z.real())) < COMPLEX_ZERO_THRESHOLD) { return false; }
-    if(static_cast<float>(std::abs(z.imag())) > COMPLEX_ZERO_THRESHOLD) { return false; }
+bool isReal(const Complex &z) { 
+    if(fabsf(z.real()) < COMPLEX_ZERO_THRESHOLD) { return false; }
+    if(fabsf(z.imag()) > COMPLEX_ZERO_THRESHOLD) { return false; }
     return true;
 }
 
 /**
  *  @brief Check if a complex number is purely imaginary
  */
-constexpr bool isImag(const Complex &z) { 
-    if(static_cast<float>(std::abs(z.real())) > COMPLEX_ZERO_THRESHOLD) { return false; }
-    if(static_cast<float>(std::abs(z.imag())) < COMPLEX_ZERO_THRESHOLD) { return false; }
+bool isImag(const Complex &z) { 
+    if(fabsf(z.real()) > COMPLEX_ZERO_THRESHOLD) { return false; }
+    if(fabsf(z.imag()) < COMPLEX_ZERO_THRESHOLD) { return false; }
     return true;
 }
     
