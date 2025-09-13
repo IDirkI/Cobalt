@@ -45,7 +45,7 @@ inline bool operator!=(float c, Complex lhs) { return (lhs != c); }
  *  @brief Get the norm/absolute value of a complex number
  *  @return `|z|` The norm of the complex number
  */
-constexpr inline float abs(const Complex &z) { return static_cast<float>(std::sqrt(z.real()*z.real() + z.imag()*z.imag())); }
+constexpr inline float abs(const Complex &z) { return sqrtf(z.real()*z.real() + z.imag()*z.imag()); }
 
 /**
  *  @brief Get the square of the norm/absolute value of a complex number
@@ -57,7 +57,7 @@ constexpr inline float normSqr(const Complex &z) { return (z.real()*z.real() + z
  *  @brief Get the argument/angle of a complex number
  *  @return `∠z` The argument of the complex number
  */
-constexpr inline float arg(const Complex &z) { return static_cast<float>(std::atan2(z.imag(), z.real())); }
+constexpr inline float arg(const Complex &z) { return atan2f(z.imag(), z.real()); }
 
 /**
  *  @brief Get the conjugate of a complex number
@@ -79,7 +79,7 @@ inline Complex inv(const Complex &z) {
  *  @return `eᶻ` The exponentited complex number
  */
 inline Complex exp(const Complex &z) {
-    return Complex::polar(static_cast<float>(std::pow(M_E, z.real())), z.imag());
+    return Complex::polar(powf(M_E, z.real()), z.imag());
  }
 
   /**
@@ -87,7 +87,7 @@ inline Complex exp(const Complex &z) {
  *  @return `ln(z)` The natural log of the complex number
  */
 inline Complex log(const Complex &z) {
-    return Complex(static_cast<float>(std::log(abs(z))), arg(z));
+    return Complex(logf(abs(z)), arg(z));
 
 } // cobalt::math::algebra
 
@@ -97,7 +97,7 @@ inline Complex log(const Complex &z) {
  *  @return `zⁿ` The n-th power of the complex number
  */
 inline Complex pow(const Complex &z, float n) {
-    return Complex::polar(static_cast<float>(std::pow(abs(z), n)), arg(z)*n);
+    return Complex::polar(powf(abs(z), n), arg(z)*n);
 }
 
 } // cobalt::math::algebra

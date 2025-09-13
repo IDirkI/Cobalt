@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cmath>
+#include <math.h>
 
 #include "../../linear_algebra/vector/vector.hpp"
 #include "../../linear_algebra/vector/vector_ops.hpp"
@@ -52,8 +52,8 @@ struct Quaternion {
         static inline Quaternion fromVector(const cobalt::math::linear_algebra::Vector<3> &v) {
             cobalt::math::linear_algebra::Vector<3> u = normalize(v);
             float half = norm(v) * 0.5f;
-            float s = std::sin(half);
-            return Quaternion(std::cos(half), u.x() * s, u.y() * s, u.z() * s);
+            float s = sinf(half);
+            return Quaternion(cosf(half), u.x() * s, u.y() * s, u.z() * s);
         }
 
         // ---------------- Accessors ----------------

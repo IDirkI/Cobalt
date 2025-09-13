@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <cmath>
 #include <array>
 #include <string>
 

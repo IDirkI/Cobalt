@@ -200,11 +200,11 @@ constexpr inline Vector<N, T> slerp(Vector<N, T> v, Vector<N, T> u, float t) {
     float dotVU = dot(v, u);
     dotVU = std::clamp(dotVU, -1.0f, 1.0f);
 
-    float theta = static_cast<float>(std::acos(dotVU)) * t;
+    float theta = acosf(dotVU) * t;
 
     Vector<N, T> relative = normalize(u - v*dotVU);
 
-    return v*static_cast<float>(std::cos(theta)) + relative*static_cast<float>(std::sin(theta));
+    return v*cosf(theta) + relative*sinf(theta);
 }
 
 // ---------------- Conversions ----------------
@@ -246,7 +246,7 @@ constexpr inline Matrix<3, 3, T> skew(const Vector<3, T> &v) {
  */
 template<uint8_t N, typename T = float>
 constexpr inline bool isNormalized(const Vector<N, T> &v) {
-    return (static_cast<float>(std::abs(norm(v) - 1.0f)) < VECTOR_EQUAL_THRESHOLD);
+    return (fabsf(norm(v) - 1.0f) < VECTOR_EQUAL_THRESHOLD);
 }
 
 } // cobalt::math::linear_algebra

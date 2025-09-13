@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #include "quaternion.hpp"
 
 namespace cobalt::math::geometry {
@@ -14,10 +16,10 @@ inline const Quaternion operator/(Quaternion lhs, float c) { lhs /= c; return lh
 inline const Quaternion operator/(float c, Quaternion lhs) { lhs /= c; return lhs; }
 
 inline const bool operator==(const Quaternion &lhs, const Quaternion &rhs) { 
-    if(static_cast<float>(std::abs(lhs.w() - rhs.w())) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(static_cast<float>(std::abs(lhs.x() - rhs.x())) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(static_cast<float>(std::abs(lhs.y() - rhs.y())) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(static_cast<float>(std::abs(lhs.z() - rhs.z())) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+    if(fabsf(lhs.w() - rhs.w()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+    if(fabsf(lhs.x() - rhs.x()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+    if(fabsf(lhs.y() - rhs.y()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+    if(fabsf(lhs.z() - rhs.z()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
     return true;
 }
 
@@ -35,7 +37,7 @@ inline Quaternion conj(const Quaternion &q) {
  * @brief Norm of the quaternion
  */
 inline float norm(const Quaternion &q) {
-    return static_cast<float>(std::sqrt(q.w()*q.w() + q.x()*q.x() + q.y()*q.y() + q.z()*q.z()));
+    return sqrtf(q.w()*q.w() + q.x()*q.x() + q.y()*q.y() + q.z()*q.z());
 }
 
 /**
