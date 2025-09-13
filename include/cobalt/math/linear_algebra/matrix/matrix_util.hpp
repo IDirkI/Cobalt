@@ -1,7 +1,8 @@
 #pragma once
 
+#include <math.h>
 #include <sstream>
-#include<iomanip>
+#include <iomanip>
 
 #include "matrix.hpp"
 
@@ -60,12 +61,12 @@ template<uint8_t N, typename T>
                     T A_pq = A(p, q);
                     T A_qq = A(q, q);
 
-                    if(std::fabs(A_pq) > MATRIX_EQUAL_THRESHOLD) {
+                    if(fabsf(A_pq) > MATRIX_EQUAL_THRESHOLD) {
                         converged = false;
 
-                        T phi = static_cast<T>( 0.5f * std::atan2(static_cast<T>(2)*A_pq, A_qq - A_pp));
-                        T c = static_cast<T>(std::cos(phi));
-                        T s = static_cast<T>(std::sin(phi));
+                        T phi = static_cast<T>( 0.5f * atan2f(static_cast<T>(2)*A_pq, A_qq - A_pp));
+                        T c = static_cast<T>(cosf(phi));
+                        T s = static_cast<T>(sinf(phi));
 
                         for(uint8_t k = 0; k < N; k++) {
                             T V_kp = V(k, p);
@@ -156,7 +157,7 @@ template<uint8_t N, uint8_t M, typename T = float>
         // Compute S, singular values
         Vector<M, T> sig{};
         for(uint8_t i = 0; i < M; i++) {
-            sig[i] = static_cast<T>(std::sqrt(std::max({eigen[i], static_cast<T>(0)})));
+            sig[i] = static_cast<T>(sqrtf(fmaxf(eigen[i], static_cast<T>(0))));
         }
         S = Matrix<N, M, T>::diagonal(sig);
 
@@ -195,11 +196,11 @@ template<uint8_t N, typename T = float>
         
         for(uint8_t k = 0; k < N; k++) {
             // Get pivot
-            T maxVal = static_cast<T>(std::fabs(U(k, k)));
+            T maxVal = static_cast<T>(fabsf(U(k, k)));
             uint8_t pivot = k;
 
             for(uint8_t i = k+1; i < N; i++) {
-                T val = static_cast<T>(std::fabs(U(i, k)));
+                T val = static_cast<T>(fabsf(U(i, k)));
                 if(val > maxVal) {
                     maxVal = val;
                     pivot = i;
@@ -316,7 +317,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  */
 template<uint8_t N, typename T = float>
 constexpr inline bool isSingular(const Matrix<N, N, T> &A) {
-    return (std::fabs(det(A)) < VECTOR_EQUAL_THRESHOLD);
+    return (fabsf(det(A)) < VECTOR_EQUAL_THRESHOLD);
 }
 
 } // cobalt::math::linear_algebra
