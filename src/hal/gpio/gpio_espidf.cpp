@@ -110,7 +110,7 @@ void cobalt::hal::GPIOESPIDF::write(GPIOLevel level) {
 }
 
 /**
-* @brief Set the GPIO pin to output a pwm with a +duty cycle of `duty` at 1kHz
+* @brief Set the GPIO pin to output a pwm with a +duty cycle of `duty`
 * @param duty +Duty-cycle of the PWM signal, [0.0, 1.0]
 * @note Only works if the hardwares pin support it
 */
