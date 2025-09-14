@@ -1,64 +1,61 @@
 #pragma once
 
-#pragma once
+#include <array>
 
 #include "gpio_base.hpp"
 
-
 #ifdef IDF_VER
 #include <driver/gpio.h>
+#include <driver/ledc.h>
 
 namespace cobalt::hal {
 
-class GPIOESP32 : public GPIOBase {
+constexpr float GPIO_ESPIDF_DEFAULT_FREQUENCY = 50.0f;
+
+struct TimerAllocation {
+    bool isUsed;
+    float frequency;
+};
+
+// --------------------------------------
+//      ESPIDF GPIO Implementation    
+// --------------------------------------
+
+class GPIOESPIDF : public GPIOBase {
     private:
         gpio_num_t pin_;
+        float frequency_;
+
+        ledc_channel_t channel_;
+        ledc_timer_t timer_;
+
+
+        static inline std::array<TimerAllocation, LEDC_TIMER_MAX> timerAllocationCounts_{};
+        static inline std::array<uint8_t, LEDC_CHANNEL_MAX> channelAllocationCounts_{};
+
+        // ---------------- ESPIDF GPIO Private Helper Functions ----------------
+        inline ledc_timer_t allocateTimer();
+        inline ledc_channel_t allocateChannel();
 
     public: 
-        /**
-         * @brief Constructor for Arduino GPIO implementation layer
-         */
-        explicit GPIOESP32(gpio_num_t pin) :  pin_(pin) {}
+        // ---------------- Constructors ----------------
 
-        /**
-        * @brief Set the GPIO pins mode/type
-        * @param mode  `Input`, `Output` or `InnputPullUp`
-        */
-        void setMode(GPIOMode mode) override {
-            switch(mode) {
-                case(GPIOMode::Input): { gpio_set_direction(pin_, GPIO_MODE_INPUT); break; }
-                case(GPIOMode::Output): { gpio_set_direction(pin_, GPIO_MODE_OUTPUT); break; }
-                case(GPIOMode::InputPullUp): { gpio_set_direction(pin_, GPIO_MODE_INPUT); break; }
-                default: { gpio_set_direction(pin_, GPIO_MODE_DISABLE); break; }
-            }
-        }
+        explicit GPIOESPIDF(gpio_num_t pin, float frequency = GPIO_ESPIDF_DEFAULT_FREQUENCY);
 
-        /**
-        * @brief Set the state of the GPIO pin
-        * @param level  `High` or `Low`
-        * @note Only available when the pin is in `Output` mode
-        */
-        void write(GPIOLevel level) override {
-            gpio_set_level(pin_, static_cast<uint8_t>(level));
-        }
 
-        /**
-        * @brief Set the GPIO pin to output a pwm with a +duty cycle of `duty` at 1kHz
-        * @param duty +Duty-cycle of the PWM signal, [0.0, 1.0]
-        * @note Only works if the hardwares pin support it
-        */
-        void pwm(float duty) override {
-            
-        }
+        // ---------------- ESPIDF GPIO Getters/Setters ----------------
 
-        /**
-        * @brief Read the state of the GPIO pin
-        * @return `High` or `Low`
-        */
-        [[nodiscard]] GPIOLevel read() const override {
-            return ((gpio_get_level(pin_)) ?GPIOLevel::High :GPIOLevel::Low);
-        }
-}; 
+        uint8_t getChannelNum();
+        uint8_t getTimerNum();
 
+
+        // ---------------- ESPIDF GPIO Member Functions ----------------
+
+        void setMode(GPIOMode mode) override;
+        void write(GPIOLevel level) override;
+        void pwm(float duty) override;
+        [[nodiscard]] GPIOLevel read() const override;
+    };
 } // cobalt::hal
+
 #endif

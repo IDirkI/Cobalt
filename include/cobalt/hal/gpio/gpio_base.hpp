@@ -8,12 +8,17 @@ enum class GPIOMode {
     Input,
     Output,
     InputPullUp,
+    PWM,
 };
 
 enum class GPIOLevel : uint8_t {
     High = 1,
     Low = 0,
 };
+
+// --------------------------------------
+//      Base GPIO Implementation    
+// --------------------------------------
 
 class GPIOBase {
     protected:
