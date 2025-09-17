@@ -5,13 +5,12 @@
 
 /**
 * @brief Initialize to start communication with the I2C Interface
-* @param address I2C Address of the device
 * @param bus I2C Bus to access. 0 for Arduino UNO boards and 0 or 1 for ESP boards.
 * @param mod I2C mode to operate in. Master or Slave
 * @param frequency I2C frequency to communicate
 * @return `true` if the initialization was successful, `false` otherwise
 */
-bool cobalt::hal::I2CArduino::init(uint8_t address, uint8_t bus = I2C_ARDUINO_DEFAULT_BUS, cobalt::hal::I2CMode mode = I2C_ARDUINO_DEFAULT_MODE, uint32_t frequency = I2C_ARDUINO_DEFAULT_FREQUENCY) {
+bool cobalt::hal::I2CArduino::init(uint8_t bus, cobalt::hal::I2CMode mode, uint32_t frequency) {
     #if defined(ESP32)
         switch(bus) {
             case(0): {
@@ -48,7 +47,7 @@ bool cobalt::hal::I2CArduino::init(uint8_t address, uint8_t bus = I2C_ARDUINO_DE
 * @param len Length of `wBuff` to write. (defaults to 1 byte)
 * @return `true` if the write was successful, `false` otherwise
 */
-bool cobalt::hal::I2CArduino::write(uint8_t address, const uint8_t *wBuff, size_t len = 1) {
+bool cobalt::hal::I2CArduino::write(uint8_t address, const uint8_t *wBuff, size_t len) {
     wire_->beginTransmission(address);
     size_t writtenBytes = wire_->write(wBuff, len);
     uint8_t result = wire_->endTransmission();
@@ -63,7 +62,7 @@ bool cobalt::hal::I2CArduino::write(uint8_t address, const uint8_t *wBuff, size_
 * @param len Length of data to read into `rBuff`. (defaults to 1 byte)
 * @return `true` if the read was successful, `false` otherwise
 */
-bool cobalt::hal::I2CArduino::read(uint8_t address, uint8_t *rBuff, size_t len = 1) {
+bool cobalt::hal::I2CArduino::read(uint8_t address, uint8_t *rBuff, size_t len) {
     size_t readBytes = wire_->requestFrom(address, len);
     if(readBytes != len) { return false; }
 

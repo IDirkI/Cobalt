@@ -4,7 +4,7 @@
 
 #include "i2c_base.hpp"
 
-#if defined ARDUINO
+#if defined(ARDUINO)
 #include <Wire.h>
 
 namespace cobalt::hal {
@@ -31,8 +31,8 @@ class I2CArduino : public I2CBase {
         // ---------------- Constructors ----------------
         /**
          * @brief Constructor for Arduino I2C implementation layer
-         * @param sdaPin SDA pin number of the arduino board
-         * @param sclPin SCL pin number of the arduino baord
+         * @param sdaPin SDA pin number
+         * @param sclPin SCL pin number
          * 
          * @note Leave pin definitions empty if on an Arduino UNO board.
          */
@@ -40,9 +40,9 @@ class I2CArduino : public I2CBase {
 
         // ----------------  Arduino I2C Member Functions ----------------
 
-        bool init(uint8_t address, uint8_t bus, I2CMode mode, uint32_t frequency) override;
-        bool write(uint8_t address, const uint8_t *wBuff, size_t len) override;
-        bool read(uint8_t address, uint8_t *rBuff, size_t len) override;
+        bool init(uint8_t bus = I2C_ARDUINO_DEFAULT_BUS, I2CMode mode = I2C_ARDUINO_DEFAULT_MODE, uint32_t frequency = I2C_ARDUINO_DEFAULT_FREQUENCY) override;
+        bool write(uint8_t address, const uint8_t *wBuff, size_t len = 1) override;
+        bool read(uint8_t address, uint8_t *rBuff, size_t len = 1) override;
         bool writeRead(uint8_t address, const uint8_t *wBuff, size_t writeLen, uint8_t *rBuff, size_t readLen) override;
         bool writeReg(uint8_t address, uint8_t regAddr, uint8_t wBuff) override;
         bool readReg(uint8_t address, uint8_t regAddr, uint8_t *rBuff) override;
