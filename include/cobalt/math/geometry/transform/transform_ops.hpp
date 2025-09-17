@@ -49,9 +49,8 @@ template<typename T = float>
 
 template<typename T = float>
     constexpr Transform<T> inv(const Transform<T> &H) {
-        cobalt::math::linear_algebra::Matrix<3, 3, T> RT = cobalt::math::linear_algebra::transpose(toMatrix(H). template block<3,3>());
-        cobalt::math::linear_algebra::Vector<4, T> tHomo = cobalt::math::linear_algebra::toVector(toMatrix(H), 3);
-        cobalt::math::linear_algebra::Vector<3, T> RTt{tHomo[0], tHomo[1], tHomo[2]};
+        cobalt::math::linear_algebra::Matrix<3, 3, T> RT = cobalt::math::linear_algebra::transpose(H.rotation());
+        cobalt::math::linear_algebra::Vector<3, T> RTt = H.translation();
         RTt = -RT*RTt;
 
         Transform<T> output(RT, RTt);

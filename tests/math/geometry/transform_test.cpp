@@ -91,3 +91,25 @@ TEST_CASE("Transform, transform inverse", "[transform]") {
         }
     }
 }   
+
+TEST_CASE("Transform, rotation & translation accessors", "[transform]") {
+    Matrix<3,3> R{{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}};
+    Vector<3> t{3.0f, -2.0f, 9.74f};
+
+    Transform H(R, t);
+
+    Matrix<3,3> R_accessor = H.rotation();
+    Vector<3> t_accessor = H.translation();
+
+    for(int i = 0; i < 3; i++) {
+        for(int j = 0; j < 3; j++) {
+            REQUIRE(R_accessor(i, j) == R(i, j));
+        }
+    }
+
+    for(int i = 0; i < 3; i++) {
+            REQUIRE(t_accessor[i] == t[i]);
+        }
+
+}   
+
