@@ -212,8 +212,6 @@ struct Transform {
 
             return v;
         }
-
-
 };
 
 } // cobalt::math::geometry
