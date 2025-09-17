@@ -23,6 +23,8 @@ inline Complex operator/(Complex lhs, const Complex &rhs) { lhs /= rhs; return l
 inline Complex operator/(Complex lhs, float c) { lhs /= c; return lhs; }
 inline Complex operator/(float c, Complex lhs) { lhs = (Complex::one() / lhs)*c; return lhs; }
 
+inline Complex operator-(Complex z) { z *= -1; return z; }
+
 inline bool operator==(Complex lhs, const Complex &rhs) { 
     if(static_cast<float>(lhs.real() - rhs.real()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
     if(static_cast<float>(lhs.real() - rhs.real()) > COMPLEX_EQUAL_THRESHOLD) { return false; }

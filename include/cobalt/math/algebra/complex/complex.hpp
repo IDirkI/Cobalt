@@ -164,16 +164,6 @@ struct Complex {
             return *this;
         }
 
-        /**
-         *  @brief Negate this complex number
-         */
-        constexpr Complex &operator-() {
-            re_ *= -1.0f;
-            im_ *= -1.0f;
-
-            return *this;
-        }
-
         // ---------------- Utility  ----------------
         std::string toString(uint8_t percision = COMPLEX_DEFAULT_PRECISION) const;
 };
