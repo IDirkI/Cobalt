@@ -11,8 +11,6 @@ constexpr uint8_t VECTOR_MAX_SIZE = 12;
 constexpr float   VECTOR_EQUAL_THRESHOLD = 1e-5;
 constexpr float   VECTOR_ZERO_THRESHOLD = 1e-12;
 
-constexpr uint8_t   VECTOR_DEFAULT_PRECISION = 3;
-
 // --------------------------------------
 //          N-Dimentional Vector    
 // --------------------------------------
@@ -184,10 +182,6 @@ struct Vector{
             for(T &e : data_) { e /= c; }
             return *this;
         }
-
-        // ---------------- Utility  ----------------
-        
-        std::string toString(uint8_t percision = VECTOR_DEFAULT_PRECISION) const;
 };
 
 } // cobalt::math::linear_algebra
