@@ -38,6 +38,12 @@ template<uint8_t N, typename T = float>
     constexpr inline Vector<N, T> operator/(Vector<N, T> v, float c) { v /= c; return v; }
 
 /**
+ *  @brief Flip the vector. Element wise negation.
+ */
+template<uint8_t N, typename T = float>
+    constexpr Vector<N, T> operator-(Vector<N, T> v) { v *= -1; return v; }
+
+/**
  *  @brief Check vector equality within a threshold (default 1e-5)
  */
 template<uint8_t N, typename T = float>

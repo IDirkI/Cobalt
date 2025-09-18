@@ -185,14 +185,6 @@ struct Vector{
             return *this;
         }
 
-        /**
-         *  @brief Flip the vector. Element wise negation.
-         */
-        constexpr Vector &operator-() {
-            *this *= -1;
-            return *this;
-        }
-
         // ---------------- Utility  ----------------
         
         std::string toString(uint8_t percision = VECTOR_DEFAULT_PRECISION) const;

@@ -8,12 +8,17 @@ namespace cobalt::math::geometry {
 
 // ---------------- Non-member Overloads ----------------
 inline const Quaternion operator+(Quaternion lhs, const Quaternion &rhs) { lhs += rhs; return lhs; }
+
 inline const Quaternion operator-(Quaternion lhs, const Quaternion &rhs) { lhs -= rhs; return lhs; }
+
 inline const Quaternion operator*(Quaternion lhs, const Quaternion &rhs) { lhs *= rhs; return lhs; }
 inline const Quaternion operator*(Quaternion lhs, float c) { lhs *= c; return lhs; }
 inline const Quaternion operator*(float c, Quaternion lhs) { lhs *= c; return lhs; }
+
 inline const Quaternion operator/(Quaternion lhs, float c) { lhs /= c; return lhs; }
 inline const Quaternion operator/(float c, Quaternion lhs) { lhs /= c; return lhs; }
+
+inline const Quaternion operator-(Quaternion q) { q *= -1; return q; } 
 
 inline bool operator==(const Quaternion &lhs, const Quaternion &rhs) { 
     if(fabsf(lhs.w() - rhs.w()) > QUATERNION_EQUAL_THRESHOLD) { return false; }

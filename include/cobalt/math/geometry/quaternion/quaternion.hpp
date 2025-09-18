@@ -140,14 +140,6 @@ struct Quaternion {
             z_ /= c;
             return *this;
         }
-
-        inline Quaternion &operator-() {
-            w_ *= -1.0f;
-            x_ *= -1.0f;
-            y_ *= -1.0f;
-            z_ *= -1.0f;
-            return *this;
-        }
         
 };
 } // cobalt::math::geometry

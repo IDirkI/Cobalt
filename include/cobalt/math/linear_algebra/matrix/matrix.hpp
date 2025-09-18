@@ -222,19 +222,6 @@ struct Matrix {
             return *this;
         }
 
-        /**
-         *  @brief Element wise negative to this matrix
-         */
-        constexpr Matrix &operator-() {
-            for(uint8_t i = 0; i < N; i++) {
-                for(uint8_t j = 0; j < M; j++) {
-                    data_[i*M + j] *= -1.0f;
-                }
-            }
-
-            return *this;
-        }
-
         // ------------ Member Functions  ------------
         template<uint8_t R, uint8_t C>
             constexpr inline Matrix<R, C, T> block(uint8_t r0 = 0, uint8_t c0 = 0) const;

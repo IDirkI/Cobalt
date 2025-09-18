@@ -82,6 +82,12 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
+ *  @brief Element wise negative to this matrix
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> A) { A *= -1; return A; }
+
+/**
  *  @brief Scalar matrix divison.
  */
 template<uint8_t N, uint8_t M, typename T = float>
