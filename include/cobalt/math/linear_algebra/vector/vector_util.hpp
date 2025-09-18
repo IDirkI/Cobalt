@@ -10,25 +10,6 @@
 
 namespace cobalt::math::linear_algebra {
 
-// ---------------- Member Utility ----------------
-/**
- *  @brief Convert the vector to a string representation.
- *  @param percision Number of decimal places.
- *  @return String representation of the vector.
- */
-template<uint8_t N, typename T>
-    std::string Vector<N, T>::toString(uint8_t percision) const {
-        std::ostringstream oss;
-        oss << "[ ";
-        for(uint8_t i = 0; i < N; i++) {
-            oss << std::fixed << std::setprecision(percision) << data_[i];
-            if(i != N-1) { oss << ", "; }
-        }
-        oss << " ]ᵀ";
-
-        return oss.str();
-    }
-
 // ---------------- Non-member Utility ----------------
 /**
  *  @brief Clamp the elements of a vector between an interval

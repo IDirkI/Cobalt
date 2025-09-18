@@ -284,9 +284,7 @@ TEST_CASE("Matrix, jacobi", "[matrix]") {
     Matrix<3,3> V;
     Vector<3> e;
 
-    CAPTURE(jacobi(A, e, V));
-
-    CAPTURE(A.toString());
+    jacobi(A, e, V);
 
     REQUIRE(e[0] == Catch::Approx(6.10502).margin(1e-6));
     REQUIRE(e[1] == Catch::Approx(4.42284).margin(1e-6));

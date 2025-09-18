@@ -163,9 +163,6 @@ struct Complex {
 
             return *this;
         }
-
-        // ---------------- Utility  ----------------
-        std::string toString(uint8_t percision = COMPLEX_DEFAULT_PRECISION) const;
 };
 
 } // cobalt::math::algebra

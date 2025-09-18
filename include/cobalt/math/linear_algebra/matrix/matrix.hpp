@@ -225,9 +225,6 @@ struct Matrix {
         // ------------ Member Functions  ------------
         template<uint8_t R, uint8_t C>
             constexpr inline Matrix<R, C, T> block(uint8_t r0 = 0, uint8_t c0 = 0) const;
-
-        // ---------------- Utility  ----------------
-        std::string toString(uint8_t percision = MATRIX_DEFAULT_PRECISION) const;
 };
 
 } // cobalt::math::linear_algebra

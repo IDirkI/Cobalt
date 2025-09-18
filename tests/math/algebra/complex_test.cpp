@@ -77,16 +77,3 @@ TEST_CASE("Complex, exp, log, pow", "[complex]") {
     REQUIRE(pow(w, 4).real() == Catch::Approx(1.0f).margin(1e-6));
     REQUIRE(pow(w, 4).imag() == Catch::Approx(0.0f).margin(1e-6));
 }   
-
-TEST_CASE("Complex, toString", "[complex]") {
-    Complex z(12, -3);
-    Complex x(0, -1.5);
-    Complex w(3, 0);
-    Complex y(0, 0);
-
-    REQUIRE(z.toString() == "12.000 - 3.000j");
-    REQUIRE(x.toString() == "-1.500j");
-    REQUIRE(w.toString() == "3.000");
-    REQUIRE(y.toString() == "0");
-
-}   

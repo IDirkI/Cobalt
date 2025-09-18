@@ -11,28 +11,6 @@
 
 namespace cobalt::math::linear_algebra {
 
-// ---------------- Member Utility ----------------
-/**
- *  @brief Convert the matrix to a string representation.
- *  @param percision Number of decimal places.
- *  @return String representation of the matrix.
- */
-template<uint8_t N, uint8_t M, typename T>
-    std::string Matrix<N, M, T>::toString(uint8_t percision) const {
-        std::ostringstream oss;
-        
-        for(uint8_t i = 0; i < N; i++) {
-            oss << "| ";
-            for(uint8_t j = 0; j < M; j++) {
-                oss << std::fixed << std::setprecision(percision) << data_[i*M + j] << " ";
-            }
-            oss << "|\n";
-        }
-        oss << "\n";
-
-        return oss.str();
-    }
-
 // ---------------- Non-member Utility ----------------
 /**
  *  @brief Extract eigenvalue and eigenvectors of a symmetric matrix
