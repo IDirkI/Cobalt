@@ -82,6 +82,12 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
+ *  @brief Element wise negative to this matrix
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> A) { A *= -1; return A; }
+
+/**
  *  @brief Scalar matrix divison.
  */
 template<uint8_t N, uint8_t M, typename T = float>
@@ -94,7 +100,7 @@ template<uint8_t N, uint8_t M, typename T = float>
     constexpr inline bool operator==(const Matrix<N, M, T> &lhs, const Matrix<N, M, T> &rhs) { 
         for(uint8_t i = 0; i < N; i++) {
             for(uint8_t j = 0; j < M; j++) {
-                if(std::abs(lhs(i, j) - rhs(i, j)) > static_cast<T>(MATRIX_EQUAL_THRESHOLD)) return false;
+                if(fabsf(lhs(i, j) - rhs(i, j)) > static_cast<T>(MATRIX_EQUAL_THRESHOLD)) return false;
             }
         }
 
@@ -188,14 +194,14 @@ template<uint8_t N, typename T = float>
     [[nodiscard]] constexpr inline bool inv(const Matrix<N, N, T> &A, Matrix<N, N, T> &Ainv) {
         switch(N) {
             case 1: { 
-                if(std::fabs(A(0, 0)) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                if(fabsf(A(0, 0)) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
                 Ainv(0, 0) = 1.0f / A(0, 0); 
 
                 return true; 
             }
             case 2: { 
                 float denom = static_cast<float>(det(A));
-                if(std::fabs(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                if(fabsf(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
                 Ainv(0, 0) = A(1, 1) / denom;
                 Ainv(0, 1) = -A(0, 1) / denom;
                 Ainv(1, 0) = -A(1, 0) / denom;
@@ -205,7 +211,7 @@ template<uint8_t N, typename T = float>
             }
             case 3: { 
                 float denom = static_cast<float>(det(A));
-                if(std::fabs(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                if(fabsf(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
 
                 Ainv(0, 0) =  (A(1,1)*A(2,2) - A(1,2)*A(2,1)) / denom;
                 Ainv(0, 1) = -(A(0,1)*A(2,2) - A(0,2)*A(2,1)) / denom;
@@ -331,7 +337,7 @@ template<uint8_t N, typename T = float>
                 sum -= U(i,j) * x[j];
             }
 
-            if(static_cast<T>(std::fabs(U(i, i))) < static_cast<T>(MATRIX_EQUAL_THRESHOLD)) { return false; } // Singular
+            if(static_cast<T>(fabsf(U(i, i))) < static_cast<T>(MATRIX_EQUAL_THRESHOLD)) { return false; } // Singular
 
             x[i] = sum / U(i, i);
         }

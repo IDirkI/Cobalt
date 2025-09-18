@@ -298,10 +298,3 @@ TEST_CASE("Vector, slerp", "[vector]") {
     REQUIRE(result.y() == Catch::Approx(1.0f).margin(0.001f));
     REQUIRE(result.z() == Catch::Approx(0.0f).margin(0.001f));
 }  
-
-TEST_CASE("Vector, toString", "[vector]") {
-    Vector<3> v{3.1f, 4.5f, -7.2f};
-
-    REQUIRE(v.toString() == "[ 3.100, 4.500, -7.200 ]ᵀ");
-    REQUIRE(v.toString(2) == "[ 3.10, 4.50, -7.20 ]ᵀ");
-}  

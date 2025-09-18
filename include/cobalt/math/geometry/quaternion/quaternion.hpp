@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cmath>
+#include <math.h>
 
 #include "../../linear_algebra/vector/vector.hpp"
 #include "../../linear_algebra/vector/vector_ops.hpp"
@@ -52,30 +52,30 @@ struct Quaternion {
         static inline Quaternion fromVector(const cobalt::math::linear_algebra::Vector<3> &v) {
             cobalt::math::linear_algebra::Vector<3> u = normalize(v);
             float half = norm(v) * 0.5f;
-            float s = std::sin(half);
-            return Quaternion(std::cos(half), u.x() * s, u.y() * s, u.z() * s);
+            float s = sinf(half);
+            return Quaternion(cosf(half), u.x() * s, u.y() * s, u.z() * s);
         }
 
         // ---------------- Accessors ----------------
         /**
          * @brief Const access to w element
          */
-        const inline float w() const { return w_; }
+        inline float w() const { return w_; }
 
         /**
          * @brief Const access to x element
          */
-        const inline float x() const { return x_; }
+        inline float x() const { return x_; }
 
         /**
          * @brief Const access to y element
          */
-        const inline float y() const { return y_; }
+        inline float y() const { return y_; }
 
         /**
          * @brief Const access to z element
          */
-        const inline float z() const { return z_; }
+        inline float z() const { return z_; }
 
 
         /**
@@ -138,14 +138,6 @@ struct Quaternion {
             x_ /= c;
             y_ /= c;
             z_ /= c;
-            return *this;
-        }
-
-        inline Quaternion &operator-() {
-            w_ *= -1.0f;
-            x_ *= -1.0f;
-            y_ *= -1.0f;
-            z_ *= -1.0f;
             return *this;
         }
         

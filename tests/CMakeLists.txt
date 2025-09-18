@@ -10,6 +10,7 @@ add_executable(cobalt_tests
     ./math/algebra/complex_test.cpp
 
     ./math/geometry/quaternion_test.cpp
+    ./math/geometry/transform_test.cpp
 
     # ===== Control =====
     ./control/controller/pid_test.cpp
