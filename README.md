@@ -4,11 +4,11 @@ Cobalt is a C++17 library for **math** and **control systems** intended to run o
 
 ---
 
-## ✨ Features v1.0.0
+## ✨ Features v2.0.0
 - **Math**
-    - Fixed size vector & matricies (`cobalt::math::linear_algebra`)
+    - Fixed size Vector & Matricies (`cobalt::math::linear_algebra`)
+    - Transforms & Quaternions (`cobalt::math::geometry`) 
     - Complex numbers (`cobalt::math::algebra`)
-    - Quaternions (`cobalt::math::geometry`)
 - **Control**
     - Discrete-time PID controller (`cobalt::control`):
         - Bilinear rtasform (Tustin) discretization
@@ -16,6 +16,13 @@ Cobalt is a C++17 library for **math** and **control systems** intended to run o
         - Integral path anti-windup via clamping
         - Output clamping
         - System state/memory read & write utility
+- **Hardware Abstraction Layer (HAL)**
+    - GPIO abstraction layer for
+        - Arduino
+        - ESP-IDF
+    - I2C abstraction layer for
+        - Arduino
+        - ESP-IDF
 - **Tests**
     - Catch2 Unit test implementation
     - CSV data logging + python script for visualization in PID unit tests
@@ -36,11 +43,17 @@ cmake ..
 make -j
 ```
 
-## 🎯 Roadmap for v2.0.0
-- [ ] Full HAL support starting with ESP32/Arduino systems
+> #### 🐜 Note:  Platoform.io
+> Use given flags & unflags in the `platform.ini` file:\
+> `build-flags` = `-I lib/Cobalt/include -std=gnu++17`\
+> `build-unflags` = `-std=gnu++11`
+
+
+## 🎯 Roadmap for v2.0.0 life-span
+- [x] HAL support starting with ESP32/Arduino systems
+- [ ] Inverse-kinematics(IK) calculator
 - [ ] ROS-like light weight middle-ware for simple communication
 - [ ] Save/load options on system EEPROM for controller configs
 - [ ] Expanded math module with:
-    - [ ] `Dual`, dual vectors for completeness
-    - [ ] `Transform`, Homogeneous transforms & rotations
+    - [x] `Transform`, Homogeneous transforms & rotations
     - [ ]  `Tf` & `ZTf`, Continious-time and discrete-time transfer functions  
