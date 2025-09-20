@@ -12,7 +12,6 @@ namespace cobalt::kinematics {
 constexpr float JOINT_DEFAULT_MIN_VALUE = M_PI;
 constexpr float JOINT_DEFAULT_MIN_VALUE = -M_PI;
 constexpr float JOINT_DEFAULT_INITIAL_VALUE = 0.0f;
-constexpr float JOINT_DEFAULT_HOME_VALUE = 0.0f;
 
 enum class JointType {
     Revolute,
@@ -38,8 +37,6 @@ struct Joint  {
         float valueMin_;
         float valueMax_;
 
-        float homeVal_;
-
         // ---------------- Helpers  ----------------
         bool clampVal() {
             bool notSaturated = true;
@@ -57,13 +54,39 @@ struct Joint  {
          *  @param minValue Minimum joint value (angle or length) allowed
          *  @param amxValue Maximum joint value (angle or length) allowed
          *  @param initialVal Initial value the joint will be at
-         *  @param homeVal Home or "zero" of the joints
          *  @param localTransform Local position + orientation of the joint relative to its parent
          */
         Joint(JointType jointType, float minValue = JOINT_DEFAULT_MIN_VALUE, float maxValue = JOINT_DEFAULT_MIN_VALUE,
-              float initialVal = JOINT_DEFAULT_INITIAL_VALUE, float homeVal = JOINT_DEFAULT_HOME_VALUE,
+              float initialVal = JOINT_DEFAULT_INITIAL_VALUE,
               cobalt::math::geometry::Transform<float> localTransform = cobalt::math::geometry::Transform<float>::eye())
-         : type_(jointType), valueMin_(minValue), valueMax_(maxValue), name_(""), localTransform_(localTransform), worldTransform_(localTransform) {}
+         : type_(jointType), value_(initialVal), valueMin_(minValue), valueMax_(maxValue), name_(""), localTransform_(localTransform), worldTransform_(localTransform) {
+            clampVal();
+         }
+        
+        // ---------------- Accessors ----------------
+        template<typename T = float>
+            constexpr cobalt::math::geometry::Transform<T> &frame() {
+                return localTransform_;
+            }
+
+        template<typename T = float>
+            const cobalt::math::geometry::Transform<T> &frame() const {
+                return localTransform_;
+            }
+
+         template<typename T = float>
+            constexpr cobalt::math::geometry::Transform<T> &worldFrame() {
+                return worldTransform_;
+            }
+
+        template<typename T = float>
+            const cobalt::math::geometry::Transform<T> &worldFrame() const {
+                return worldTransform_;
+            }
+        
+
+        // ---------------- Getters ----------------
+        constexpr JointType getType() const { return type_; }
 
 
         // ---------------- Member Functions ----------------
@@ -130,7 +153,16 @@ struct JointChain  {
 
 
         // ---------------- Getters ----------------
+        /**
+         * @brief Return the number of joints in the chain
+         */
         constexpr uint8_t size() const { return N; }
+
+        /**
+         * @brief Return the world frame of the endeffector(always the last 'joint')
+         */
+        template<typename T = float>
+            constexpr cobalt::math::geometry::Transform<T> endEffector() const { return joints_[N-1].getWorldFrame(); }
 
 
         // ---------------- Member Functions ----------------
@@ -145,6 +177,18 @@ struct JointChain  {
             }
 
             return clampVal();
+        }
+
+        /**
+         *  @brief Updates the world frames of each join
+         */
+        bool updateWorld() {
+            cobalt::math::geometry::Transform T_prev = cobalt::math::geometry::Transform::eye();
+
+            for(Joint &j : joints_) {
+                j.worldFrame *= T_prev;
+                T_prev =  j.worldFrame;
+            }
         }
 };
 
