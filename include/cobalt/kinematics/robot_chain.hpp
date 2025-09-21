@@ -27,8 +27,8 @@ struct RobotChain {
         // ---------------- Helper ----------------
         cobalt::math::geometry::Transform<> getJointMotion(const Joint &j) const {
             switch(j.getType()) {
-                case (JointType::Revolute):     { return cobalt::math::geometry::Transform<>::rotationZ(j.getValue()); }
-                case (JointType::Prismatic):    { return cobalt::math::geometry::Transform<>::fromTranslation(cobalt::math::linear_algebra::Vector<3>(0.0f, 0.0f, j.getValue())); }
+                case (JointType::Revolute):     { return cobalt::math::geometry::Transform<>::fromAxisAngle(j.getAxis()*j.getValue()); }
+                case (JointType::Prismatic):    { return cobalt::math::geometry::Transform<>::fromTranslation(j.getAxis()*j.getValue()); }
                 default:                        { return cobalt::math::geometry::Transform<>::eye(); }
             }
         }
