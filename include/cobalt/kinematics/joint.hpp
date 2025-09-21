@@ -9,9 +9,15 @@
 
 namespace cobalt::kinematics {
 
-constexpr float JOINT_DEFAULT_MIN_VALUE = M_PI;
+constexpr uint8_t JOINT_DEFAULT_PARENT_INDEX = -1;
+constexpr uint8_t JOINT_DEFAULT_CHILD_INDEX = -1;
+
 constexpr float JOINT_DEFAULT_MIN_VALUE = -M_PI;
+constexpr float JOINT_DEFAULT_MAX_VALUE = M_PI;
 constexpr float JOINT_DEFAULT_INITIAL_VALUE = 0.0f;
+constexpr float JOINT_DEFAULT_HOME_VALUE = 0.0f;
+
+const std::string JOINT_DEFAULT_NAME = "";
 
 enum class JointType {
     Revolute,
@@ -22,23 +28,24 @@ enum class JointType {
 //              Robot Joint    
 // --------------------------------------
 /**
- *  @brief Single joint of a robot in a kinematic chain
+ *  @brief Single joint of a robot in a robot chain
  */
 struct Joint  {
     private:
         std::string name_; 
-
         JointType type_;
+
         float value_;
-
-        cobalt::math::geometry::Transform<float> localTransform_{};
-        cobalt::math::geometry::Transform<float> worldTransform_{};
-
         float valueMin_;
         float valueMax_;
 
+        float homeValue_;
+
+        uint8_t parentLinkIndex_;
+        uint8_t childLinkIndex_;
+
         // ---------------- Helpers  ----------------
-        bool clampVal() {
+        constexpr bool clampVal() {
             bool notSaturated = true;
             if(value_ > valueMax_) { value_ = valueMax_; notSaturated = false; }
             if(value_ < valueMin_) { value_ = valueMin_; notSaturated = false; }
@@ -56,139 +63,57 @@ struct Joint  {
          *  @param initialVal Initial value the joint will be at
          *  @param localTransform Local position + orientation of the joint relative to its parent
          */
-        Joint(JointType jointType, float minValue = JOINT_DEFAULT_MIN_VALUE, float maxValue = JOINT_DEFAULT_MIN_VALUE,
-              float initialVal = JOINT_DEFAULT_INITIAL_VALUE,
-              cobalt::math::geometry::Transform<float> localTransform = cobalt::math::geometry::Transform<float>::eye())
-         : type_(jointType), value_(initialVal), valueMin_(minValue), valueMax_(maxValue), name_(""), localTransform_(localTransform), worldTransform_(localTransform) {
+        Joint(JointType jointType, uint8_t parentIndex = JOINT_DEFAULT_PARENT_INDEX, uint8_t childIndex = JOINT_DEFAULT_CHILD_INDEX,
+              float minValue = JOINT_DEFAULT_MIN_VALUE, float maxValue = JOINT_DEFAULT_MAX_VALUE,
+              float initialVal = JOINT_DEFAULT_INITIAL_VALUE, float homeVal = JOINT_DEFAULT_HOME_VALUE, std::string name = JOINT_DEFAULT_NAME)
+         : type_(jointType), parentLinkIndex_(parentIndex), childLinkIndex_(childIndex), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal), name_(name) {
             clampVal();
          }
-        
-        // ---------------- Accessors ----------------
-        template<typename T = float>
-            constexpr cobalt::math::geometry::Transform<T> &frame() {
-                return localTransform_;
-            }
 
-        template<typename T = float>
-            const cobalt::math::geometry::Transform<T> &frame() const {
-                return localTransform_;
-            }
-
-         template<typename T = float>
-            constexpr cobalt::math::geometry::Transform<T> &worldFrame() {
-                return worldTransform_;
-            }
-
-        template<typename T = float>
-            const cobalt::math::geometry::Transform<T> &worldFrame() const {
-                return worldTransform_;
-            }
-        
 
         // ---------------- Getters ----------------
+        /**
+         *  @brief Get the name of the joint
+         */
+        std::string getName() const { return name_; }
+
+        /**
+         *  @brief Get the type of the joint. 
+         *  @return `Revolute` or `Prismatic`
+         */
         constexpr JointType getType() const { return type_; }
 
+        /**
+         *  @brief Get the value of the joint.
+         *  @return `rotation` or `length`
+         */
+        constexpr float getValue() const { return value_; }
 
-        // ---------------- Member Functions ----------------
+        /**
+         *  @brief Get the parent link index of the joint.
+         */
+        constexpr uint8_t getParentIndex() const { return parentLinkIndex_; }
+
+        /**
+         *  @brief Get the child link index of the joint.
+         */
+        constexpr uint8_t getChildIndex() const { return childLinkIndex_; }
+
+        // ---------------- Setters ----------------
+        /**
+         *  @brief Set the joint name.
+         */
+        void setName(std::string name) { name_ = name; }
+
         /**
          *  @brief Set the value(angle or length) of the joint safely
          *  @param val Value to set the joint value(angle or length) to
          *  @return `true` if the value was valid, `false` if the value saturated the joint (exceeds min or max)
          */
-        bool setValue(float val) {
+        constexpr bool setValue(float val) {
             value_ = val;
 
             return clampVal();
-        }
-};
-
-
-
-// --------------------------------------
-//         Robot Joint Chain  
-// --------------------------------------
-/**
- *  @brief Kinematic chain representation in a robot
- *  @tparam N Number of joints in the chain
- */
-template<uint8_t N>
-struct JointChain  {
-    private:
-        std::array<Joint, N> joints_{};
-
-        // ---------------- Helpers  ----------------
-        bool clampVal() {
-            bool notSaturated = true;
-
-            for(Joint &j : joints_) {
-                if(!j.clampVal()) { notSaturated = false; }
-            }
-
-            return notSaturated;
-        }
-
-
-    public: 
-        // ---------------- Constructors ----------------
-        /**
-         *  @brief Construct a kinematic chain of joints
-         */
-        JointChain() {}
-
-
-        // ---------------- Accessors ----------------
-        /**
-         *  @brief Access joint at the given index.
-         *  @param n Index of the accessed joint.
-         *  @return Reference to the joint.
-         */
-        Joint &operator[](uint8_t n) { if(n >= N) n = N-1; return data_[n]; }
-
-        /**
-         *  @brief Const access to joint at the given index.
-         *  @param n Index of the accessed joint.
-         *  @return Const reference to the joint.
-         */
-        const Joint &operator[](uint8_t n) const { if(n >= N) n = N-1; return data_[n]; }
-
-
-        // ---------------- Getters ----------------
-        /**
-         * @brief Return the number of joints in the chain
-         */
-        constexpr uint8_t size() const { return N; }
-
-        /**
-         * @brief Return the world frame of the endeffector(always the last 'joint')
-         */
-        template<typename T = float>
-            constexpr cobalt::math::geometry::Transform<T> endEffector() const { return joints_[N-1].getWorldFrame(); }
-
-
-        // ---------------- Member Functions ----------------
-        /**
-         *  @brief Set the values(angle or length) of the joints in the joint-chain safely
-         *  @param vals Values(angle or length) to set the joints to
-         *  @return `true` if the values were valid, `false` if the a value saturated a joint (exceeded min or max)
-         */
-        bool setValue(const std::array<Joint, N> &vals) {
-            for(uint8_t i = 0; i < N; i++) {
-                joints_[i].setValue(values[i]);
-            }
-
-            return clampVal();
-        }
-
-        /**
-         *  @brief Updates the world frames of each join
-         */
-        bool updateWorld() {
-            cobalt::math::geometry::Transform T_prev = cobalt::math::geometry::Transform::eye();
-
-            for(Joint &j : joints_) {
-                j.worldFrame *= T_prev;
-                T_prev =  j.worldFrame;
-            }
         }
 };
 

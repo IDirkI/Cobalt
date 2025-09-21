@@ -21,10 +21,10 @@ target_include_directories( cobalt
 )
 
 # Tests
-if(EXISTS "extern/Catch2/CMakeLists.txt")
+if(EXISTS "../extern/Catch2/CMakeLists.txt")
     add_subdirectory(extern/Catch2)
 endif()
 
-if(EXISTS "tests/CMakeLists.txt")
+if(EXISTS "../tests/CMakeLists.txt")
     add_subdirectory(tests)
 endif()
