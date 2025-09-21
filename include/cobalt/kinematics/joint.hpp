@@ -9,20 +9,19 @@
 
 namespace cobalt::kinematics {
 
-constexpr uint8_t JOINT_DEFAULT_PARENT_INDEX = -1;
-constexpr uint8_t JOINT_DEFAULT_CHILD_INDEX = -1;
-
-constexpr float JOINT_DEFAULT_MIN_VALUE = -M_PI;
-constexpr float JOINT_DEFAULT_MAX_VALUE = M_PI;
-constexpr float JOINT_DEFAULT_INITIAL_VALUE = 0.0f;
-constexpr float JOINT_DEFAULT_HOME_VALUE = 0.0f;
-
-const std::string JOINT_DEFAULT_NAME = "";
-
 enum class JointType {
     Revolute,
     Prismatic
 };
+
+constexpr JointType JOINT_DEFAULT_TYPE = JointType::Revolute;
+constexpr uint8_t JOINT_DEFAULT_PARENT_INDEX = -1;
+constexpr uint8_t JOINT_DEFAULT_CHILD_INDEX = -1;
+constexpr float JOINT_DEFAULT_MIN_VALUE = -M_PI;
+constexpr float JOINT_DEFAULT_MAX_VALUE = M_PI;
+constexpr float JOINT_DEFAULT_INITIAL_VALUE = 0.0f;
+constexpr float JOINT_DEFAULT_HOME_VALUE = 0.0f;
+const std::string JOINT_DEFAULT_NAME = "";
 
 // --------------------------------------
 //              Robot Joint    
@@ -63,7 +62,7 @@ struct Joint  {
          *  @param initialVal Initial value the joint will be at
          *  @param localTransform Local position + orientation of the joint relative to its parent
          */
-        Joint(JointType jointType, uint8_t parentIndex = JOINT_DEFAULT_PARENT_INDEX, uint8_t childIndex = JOINT_DEFAULT_CHILD_INDEX,
+        Joint(JointType jointType = JOINT_DEFAULT_TYPE, uint8_t parentIndex = JOINT_DEFAULT_PARENT_INDEX, uint8_t childIndex = JOINT_DEFAULT_CHILD_INDEX,
               float minValue = JOINT_DEFAULT_MIN_VALUE, float maxValue = JOINT_DEFAULT_MAX_VALUE,
               float initialVal = JOINT_DEFAULT_INITIAL_VALUE, float homeVal = JOINT_DEFAULT_HOME_VALUE, std::string name = JOINT_DEFAULT_NAME)
          : type_(jointType), parentLinkIndex_(parentIndex), childLinkIndex_(childIndex), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal), name_(name) {
@@ -89,15 +88,27 @@ struct Joint  {
          */
         constexpr float getValue() const { return value_; }
 
-        /**
-         *  @brief Get the parent link index of the joint.
-         */
-        constexpr uint8_t getParentIndex() const { return parentLinkIndex_; }
+        // ---------------- Accessors ---------------- 
 
         /**
-         *  @brief Get the child link index of the joint.
+         *  @brief Get the refrence to parent link index of the joint.
          */
-        constexpr uint8_t getChildIndex() const { return childLinkIndex_; }
+        constexpr uint8_t &parentIndex() { return parentLinkIndex_; }
+
+        /**
+         *  @brief Get the const parent link index of the joint.
+         */
+        const uint8_t &parentIndex() const { return parentLinkIndex_; }
+
+        /**
+         *  @brief Get the reference to child link index of the joint.
+         */
+        constexpr uint8_t &childIndex() { return childLinkIndex_; }
+
+        /**
+         *  @brief Get the const child link index of the joint.
+         */
+        const uint8_t &childIndex() const { return childLinkIndex_; }
 
         // ---------------- Setters ----------------
         /**

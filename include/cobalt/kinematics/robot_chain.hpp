@@ -6,6 +6,8 @@
 #include "joint.hpp"
 #include "link.hpp"
 
+#include "../math/geometry/transform/transform_ops.hpp"
+
 namespace cobalt::kinematics {
 
 // --------------------------------------
@@ -24,7 +26,11 @@ struct RobotChain {
 
         // ---------------- Helper ----------------
         cobalt::math::geometry::Transform<> getJointMotion(const Joint &j) const {
-            
+            switch(j.getType()) {
+                case (JointType::Revolute):     { return cobalt::math::geometry::Transform<>::rotationZ(j.getValue()); }
+                case (JointType::Prismatic):    { return cobalt::math::geometry::Transform<>::fromTranslation(cobalt::math::linear_algebra::Vector<3>(0.0f, 0.0f, j.getValue())); }
+                default:                        { return cobalt::math::geometry::Transform<>::eye(); }
+            }
         }
 
     public: 
@@ -50,6 +56,52 @@ struct RobotChain {
             return links_[L-1].worldFrame(); 
         }
 
+        // ---------------- Accessors Functions ----------------
+
+        /**
+         *  @brief Get the reference to frame/pose of an intermediary joint
+         */
+        constexpr Joint &joint(uint8_t index) {
+            if(index <= J) {
+                return joints_[index]; 
+            }
+
+            return joints_[J-1];
+        }
+
+        /**
+         *  @brief Get a const intermediary link value
+         */
+        const Joint joint(uint8_t index) const {
+            if(index <= J) {
+                return joints_[index]; 
+            }
+
+            return joints_[J-1];
+        }
+
+        /**
+         *  @brief Get the reference to frame/pose of an intermediary link
+         */
+        constexpr Link &link(uint8_t index) {
+            if(index <= L) {
+                return links_[index]; 
+            }
+
+            return links_[L-1];
+        }
+
+        /**
+         *  @brief Get a const intermediary link value
+         */
+        const Link link(uint8_t index) const {
+            if(index <= L) {
+                return links_[index]; 
+            }
+
+            return links_[L-1];
+        }
+
         // ---------------- Member Functions ----------------
         /**
          *  @brief Set the frame/pose of the end-effector
@@ -65,14 +117,14 @@ struct RobotChain {
         /**
          *  @brief Update the world frames of all links
          */
-        void updateWorld(uint8_t index, float value) {
-            links_[0].worldFrame() = links_[0].localFrame();    // Set base frame
-
+        void forwardKinematics() {
             for(Joint &j : joints_) {
-                if(j.getParentIndex() < 0) { continue; }
-                if(j.getChildIndex() < 0)  { continue; }
+                if(j.parentIndex() < 0) { continue; }
+                if(j.childIndex() < 0)  { continue; }
 
+                cobalt::math::geometry::Transform<> motion = getJointMotion(j);
                 
+                links_[j.childIndex()].worldFrame() = links_[j.parentIndex()].worldFrame() * (motion * links_[j.childIndex()].frame());
             }
         }
         
