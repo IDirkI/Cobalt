@@ -1,0 +1,7 @@
+> Robot Dog
+
+.link base 
+.link dog_leg1 1
+.link dog_leg2 6 
+
+.joint revolute base dog_leg1 -0.5 0.5 0 0 1

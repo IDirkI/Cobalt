@@ -38,7 +38,6 @@ const std::string JOINT_DEFAULT_NAME = "";
  */
 struct Joint  {
     private:
-        std::string name_; 
         JointType type_;
 
         cobalt::math::linear_algebra::Vector<3> axis_;
@@ -73,19 +72,14 @@ struct Joint  {
          */
         Joint(JointType jointType = JOINT_DEFAULT_TYPE, uint8_t parentIndex = JOINT_DEFAULT_PARENT_INDEX, uint8_t childIndex = JOINT_DEFAULT_CHILD_INDEX,
               cobalt::math::linear_algebra::Vector<3> axis = JOINT_DEFAULT_MOTION_AXIS, float minValue = JOINT_DEFAULT_MIN_VALUE, float maxValue = JOINT_DEFAULT_MAX_VALUE,
-              float initialVal = JOINT_DEFAULT_INITIAL_VALUE, float homeVal = JOINT_DEFAULT_HOME_VALUE, std::string name = JOINT_DEFAULT_NAME)
-         : type_(jointType), parentLinkIndex_(parentIndex), childLinkIndex_(childIndex), axis_(axis), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal), name_(name) {
+              float initialVal = JOINT_DEFAULT_INITIAL_VALUE, float homeVal = JOINT_DEFAULT_HOME_VALUE)
+         : type_(jointType), parentLinkIndex_(parentIndex), childLinkIndex_(childIndex), axis_(axis), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal) {
             axis_ = normalize(axis_);
             clampVal();
          }
 
 
         // ---------------- Getters ----------------
-        /**
-         *  @brief Get the name of the joint
-         */
-        std::string getName() const { return name_; }
-
         /**
          *  @brief Get the type of the joint. 
          *  @return `Revolute` or `Prismatic`
@@ -127,11 +121,6 @@ struct Joint  {
         const uint8_t &childIndex() const { return childLinkIndex_; }
 
         // ---------------- Setters ----------------
-        /**
-         *  @brief Set the joint name.
-         */
-        void setName(std::string name) { name_ = name; }
-
         /**
          *  @brief Set the value(angle or length) of the joint safely
          *  @param val Value to set the joint value(angle or length) to
