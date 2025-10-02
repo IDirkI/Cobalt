@@ -1,7 +1,20 @@
-> Robot Dog
+# 
+# TEST ROB file for a robot dog, join-link chain
+#
 
-.link base 
-.link dog_leg1 1
-.link dog_leg2 6 
+> RoboDog
 
-.joint revolute base dog_leg1 -0.5 0.5 0 0 1
+\link base
+\link dog/leg1_low {
+    .length = 0.13
+}
+\link dog/leg1_high {
+    .length = 0.12
+}
+
+
+\joint revolute {
+    .links = [base, dog/leg1_low]
+    .limits = [-0.5, 0.5]
+    .axis = [0, 0, 1]
+}
