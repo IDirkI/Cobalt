@@ -15,14 +15,14 @@ namespace cobalt::kinematics {
 // --------------------------------------
 /**
  *  @brief Chain of links and joints modeling the robot
- *  @tparam J Number of joints in the chain
  *  @tparam L Number of links in the chain
+ *  @tparam J Number of joints in the chain
  */
-template<uint8_t J, uint8_t L>
+template<uint8_t L, uint8_t J>
 struct RobotChain {
     private:
-        std::array<Joint, J> joints_;
         std::array<Link, L> links_;
+        std::array<Joint, J> joints_;
 
         // ---------------- Helper ----------------
         cobalt::math::geometry::Transform<> getJointMotion(const Joint &j) const {

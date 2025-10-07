@@ -15,16 +15,18 @@ using cobalt::kinematics::RobotChain;
 
 TEST_CASE("Kinematics, default construction", "[kinematics]") {
     Joint j(cobalt::kinematics::JointType::Revolute);
-    Link leg;
+    Link leg("leg");
 
     REQUIRE(true);
 } 
 
 TEST_CASE("Kinematics, forward-kinematics 1R Arm", "[kinematics]") {
-    RobotChain<1, 2> chain;
+    RobotChain<2, 1> chain;
 
+    chain.link(0).setName("base");
     chain.link(0).frame() = Transform<>::eye(); // Base
 
+    chain.link(1).setName("arm");
     chain.link(1).frame() = Transform<>::fromTranslation(Vector<3>(1.0f, 0.0f, 0.0f)); // End effector
 
     chain.joint(0).parentIndex() = 0;

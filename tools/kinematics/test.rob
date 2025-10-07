@@ -14,7 +14,13 @@
 
 
 \joint revolute {
-    .links = [base, dog/leg1_low]
+    .links = [base, dog/leg1_high]
     .limits = [-0.5, 0.5]
     .axis = [0, 0, 1]
+}
+
+\joint revolute {
+    .links = [dog/leg1_high, dog/leg1_low]
+    .limits = [-0.5, 0.5]
+    .axis = [0, 0, -1]
 }

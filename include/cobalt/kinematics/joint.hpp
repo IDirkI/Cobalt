@@ -18,6 +18,7 @@ enum class JointType {
 };
 
 constexpr JointType JOINT_DEFAULT_TYPE = JointType::Revolute;
+constexpr uint8_t JOINT_DEFAULT_ID = 0;
 
 constexpr uint8_t JOINT_DEFAULT_PARENT_INDEX = -1;
 constexpr uint8_t JOINT_DEFAULT_CHILD_INDEX = -1;
@@ -28,7 +29,6 @@ constexpr float JOINT_DEFAULT_INITIAL_VALUE = 0.0f;
 constexpr float JOINT_DEFAULT_HOME_VALUE = 0.0f;
 
 const cobalt::math::linear_algebra::Vector<3> JOINT_DEFAULT_MOTION_AXIS = cobalt::math::linear_algebra::Vector<3>::unitZ();
-const std::string JOINT_DEFAULT_NAME = "";
 
 // --------------------------------------
 //              Robot Joint    
@@ -39,6 +39,7 @@ const std::string JOINT_DEFAULT_NAME = "";
 struct Joint  {
     private:
         JointType type_;
+        uint8_t id_;
 
         cobalt::math::linear_algebra::Vector<3> axis_;
 
@@ -66,14 +67,14 @@ struct Joint  {
          *  @brief Construct a joint of a robot
          *  @param jointType Type of the joint. Revolute or Prismatic
          *  @param minValue Minimum joint value (angle or length) allowed
-         *  @param amxValue Maximum joint value (angle or length) allowed
+         *  @param maxValue Maximum joint value (angle or length) allowed
          *  @param initialVal Initial value the joint will be at
          *  @param localTransform Local position + orientation of the joint relative to its parent
          */
-        Joint(JointType jointType = JOINT_DEFAULT_TYPE, uint8_t parentIndex = JOINT_DEFAULT_PARENT_INDEX, uint8_t childIndex = JOINT_DEFAULT_CHILD_INDEX,
+        Joint(JointType jointType = JOINT_DEFAULT_TYPE, uint8_t jointId = JOINT_DEFAULT_ID, uint8_t parentIndex = JOINT_DEFAULT_PARENT_INDEX, uint8_t childIndex = JOINT_DEFAULT_CHILD_INDEX,
               cobalt::math::linear_algebra::Vector<3> axis = JOINT_DEFAULT_MOTION_AXIS, float minValue = JOINT_DEFAULT_MIN_VALUE, float maxValue = JOINT_DEFAULT_MAX_VALUE,
               float initialVal = JOINT_DEFAULT_INITIAL_VALUE, float homeVal = JOINT_DEFAULT_HOME_VALUE)
-         : type_(jointType), parentLinkIndex_(parentIndex), childLinkIndex_(childIndex), axis_(axis), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal) {
+         : type_(jointType), id_(jointId), parentLinkIndex_(parentIndex), childLinkIndex_(childIndex), axis_(axis), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal) {
             axis_ = normalize(axis_);
             clampVal();
          }
@@ -87,6 +88,11 @@ struct Joint  {
         constexpr JointType getType() const { return type_; }
 
         /**
+         *  @brief Get the id of the joint. 
+         */
+        constexpr uint8_t getId() const { return id_; }
+
+        /**
          *  @brief Get the axis of motion of the joint.
          *  @return Rotation axis or translation axis
          */
@@ -97,6 +103,23 @@ struct Joint  {
          *  @return `rotation` or `length`
          */
         constexpr float getValue() const { return value_; }
+
+        // ---------------- Setters ----------------
+        /**
+         *  @brief Set the unique Id of the joint
+         */
+        constexpr void setId(float id) { id_ = id; }
+
+        /**
+         *  @brief Set the value(angle or length) of the joint safely
+         *  @param val Value to set the joint value(angle or length) to
+         *  @return `true` if the value was valid, `false` if the value saturated the joint (exceeds min or max)
+         */
+        constexpr bool setValue(float val) {
+            value_ = val;
+
+            return clampVal();
+        }
 
         // ---------------- Accessors ---------------- 
 
@@ -119,18 +142,6 @@ struct Joint  {
          *  @brief Get the const child link index of the joint.
          */
         const uint8_t &childIndex() const { return childLinkIndex_; }
-
-        // ---------------- Setters ----------------
-        /**
-         *  @brief Set the value(angle or length) of the joint safely
-         *  @param val Value to set the joint value(angle or length) to
-         *  @return `true` if the value was valid, `false` if the value saturated the joint (exceeds min or max)
-         */
-        constexpr bool setValue(float val) {
-            value_ = val;
-
-            return clampVal();
-        }
 };
 
 } // cobalt::kinematics
