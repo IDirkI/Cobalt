@@ -1,3 +1,6 @@
+# ROB file outputs
+/include/cobalt/kinematics/robots/
+
 # External modules
 /extern/
 

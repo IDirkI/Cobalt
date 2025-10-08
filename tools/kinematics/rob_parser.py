@@ -138,12 +138,15 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
     file = ntpath.basename(filename)
     if not file.endswith(".rob"):
         raise ValueError("[ ERROR ] | Invalid file type. Use '.rob' config files")
-
+    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    relative_in_path = os.path.join(script_dir, "robots", str(file))
+    os.makedirs(os.path.dirname(relative_in_path), exist_ok=True)
 
     # ===== Initial Parsing =====
     isNamed = False
 
-    with open(filename) as f:
+    with open(relative_in_path) as f:
         for line in f:
             # Empty line
             if not line:    
@@ -168,7 +171,7 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
                     
 
     # ===== Block Parsing =====
-    with open(filename) as f:
+    with open(relative_in_path) as f:
         # Collect curly brace block
         blocks = collect_block(f.readlines())
 
@@ -225,7 +228,7 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
 
 
                 # Attribute checks
-                if not valid_types.__contains__(joint_type):                                         # Valid joint type
+                if not valid_types.__contains__(joint_type):                                        # Valid joint type
                     raise ValueError("[ ERROR ] | Invlid joint type")
                 if joint_links is []:                                                               # Parent/child links must exist
                     raise ValueError("[ ERROR ] | Joint must have a parent and child")
@@ -235,9 +238,7 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
                     raise ValueError("[ ERROR ] | Joint min/max limits must be valid")
                 if abs(1 - sqrt(joint_axis[0]**2 + joint_axis[1]**2 + joint_axis[2]**2)) > 0.001:   # Normalized axis
                     raise ValueError("[ ERROR ] | Joint axis must be normalized")
-                if not ((joint_limits[0] <= joint_home) and (joint_home <= joint_limits[1])):             # Home value is valid
-                    raise ValueError("[ ERROR ] | Joint home value must be valid")
-                if not ((joint_limits[0] <= joint_init) and (joint_init <= joint_limits[1])):             # Initial value is valid
+                if not ((joint_limits[0] <= joint_init) and (joint_init <= joint_limits[1])):       # Initial value is valid
                     raise ValueError("[ ERROR ] | Joint initial value must be valid")
 
                 joints.append(Joint(id=joint_index, type=joint_type, parent=joint_links[0], parentId=joint_parent, childId=joint_child, child=joint_links[1], limits=joint_limits, axis=joint_axis, home=joint_home, init=joint_init))
@@ -304,27 +305,26 @@ def generate_code(name : str, links : list[Link], joints : list[Joint]) -> str:
 
     code += f"}}; // cobalt::kinematics::robot\n"
 
-    print(code)
     return code
 
 
 def generate_header(name : str, code : str):
-    #out_dir = "..\\..\\include\\cobalt\\kinematics\\robots"
-    out_dir = "."
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, f"{name}.hpp")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    out_dir = "..\\..\\include\\cobalt\\kinematics\\robots"
+    relative_out_path = os.path.join(script_dir, out_dir, f"{name}.hpp")
+    os.makedirs(os.path.dirname(relative_out_path), exist_ok=True)
 
-    with open(out_path, "w") as f:
+    with open(relative_out_path, "w") as f:
         f.write(code)
 
-    print(f"[ SUCCESS ] | Generated {name}.hpp RobotChain header: {out_path}")
+    print(f"[ SUCCESS ] | Generated {name}.hpp RobotChain header: {relative_out_path}")
 
 if __name__ == "__main__":
     in_file = sys.argv[1]
     [name, links, joints] = parse_file(in_file)
 
     code = generate_code(name, links, joints)
-    #generate_header(name, code)
+    generate_header(name, code)
     '''
     print(">>> %s <<<" % (name))
     print("### Links ###")

@@ -43,13 +43,13 @@ struct Joint  {
 
         cobalt::math::linear_algebra::Vector<3> axis_;
 
+        int8_t parent_;
+        int8_t child_;
+
         float value_;       // Relative to homeValue_
         float valueMin_;    // Relative to homeValue_
         float valueMax_;    // Relative to homeValue_
         float homeValue_;
-
-        int8_t parentLinkIndex_;
-        int8_t childLinkIndex_;
 
         // ---------------- Helpers  ----------------
         constexpr bool clampVal() {
@@ -73,7 +73,7 @@ struct Joint  {
         Joint(JointType jointType = JOINT_DEFAULT_TYPE, uint8_t jointId = JOINT_DEFAULT_ID, uint8_t parentIndex = JOINT_DEFAULT_PARENT_INDEX, uint8_t childIndex = JOINT_DEFAULT_CHILD_INDEX,
               cobalt::math::linear_algebra::Vector<3> axis = JOINT_DEFAULT_MOTION_AXIS, float minValue = JOINT_DEFAULT_MIN_VALUE, float maxValue = JOINT_DEFAULT_MAX_VALUE,
               float initialVal = JOINT_DEFAULT_INITIAL_VALUE, float homeVal = JOINT_DEFAULT_HOME_VALUE)
-         : type_(jointType), id_(jointId), parentLinkIndex_(parentIndex), childLinkIndex_(childIndex), axis_(axis), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal) {
+         : type_(jointType), id_(jointId), parent_(parentIndex), child_(childIndex), axis_(axis), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal) {
             axis_ = normalize(axis_);
             clampVal();
          }
@@ -98,16 +98,68 @@ struct Joint  {
         constexpr cobalt::math::linear_algebra::Vector<3> getAxis() const { return axis_; }
 
         /**
-         *  @brief Get the value of the joint.
+         *  @brief Get the parent link index of the joint.
+         */
+        constexpr int8_t getParent() const { return parent_; }
+
+        /**
+         *  @brief Set the child link index of the joint.
+         */
+        constexpr int8_t getChild() const { return child_; }
+
+        /**
+         *  @brief Get the world value of the joint.
          *  @return `rotation` or `length`
          */
         constexpr float getValue() const { return value_ + homeValue_; }
 
+        /**
+         *  @brief Get the minimum value the joint can go to
+         *  @return Minimum `rotation` or `length`
+         */
+        constexpr float getMinLimit() const { return valueMin_; }
+
+        /**
+         *  @brief Get the maximum value the joint can go to
+         *  @return Maximum `rotation` or `length`
+         */
+        constexpr float getMaxLimit() const { return valueMax_; }
+
+        /**
+         *  @brief Get the home/offset value of the joint which its value is relative to
+         */
+        constexpr float getHome() const { return homeValue_; }
+
         // ---------------- Setters ----------------
         /**
+         *  @brief Set the type of the joint
+         *  @param type The type of the joint. Either `Revolute` or `Prismatic`
+         */
+        constexpr void setType(JointType type) { type_ = type; }
+
+        /**
          *  @brief Set the unique Id of the joint
+         *  @param id Unique Id of the joint. Should match its index i the RobotChain array
          */
         constexpr void setId(float id) { id_ = id; }
+
+        /**
+         *  @brief Set the axis of motion of the joint.
+         *  @param axis Normalized Vector<3> axis that the joint movement happens in
+         */
+        constexpr void setAxis(cobalt::math::linear_algebra::Vector<3> axis) { axis_ = normalize(axis); }
+
+        /**
+         *  @brief Set the parent link index of the joint.
+         *  @param parentIndex The index of the parent link of the joint
+         */
+        constexpr void setParent(int8_t parentIndex) { parent_ = parentIndex; }
+
+        /**
+         *  @brief Set the child link index of the joint.
+         *  @param childIndex The index of the child link of the joint
+         */
+        constexpr void setChild(int8_t childIndex) { child_ = childIndex; }
 
         /**
          *  @brief Set the value(angle or length) of the joint safely
@@ -120,28 +172,27 @@ struct Joint  {
             return clampVal();
         }
 
-        // ---------------- Setters ---------------- 
         /**
-         *  @brief Set the parent link index of the joint.
+         *  @brief Set the minimum and maximum value the joint can go to
+         *  @note `min` < `max` must be true(valid min/max) otherwise values will not be set
+         *  @return `true` if the limits are set successfully, `false` otherwise
          */
-        constexpr void setParent(int8_t parentIndex) { parentLinkIndex_ = parentIndex; }
+        constexpr bool setLimits(float min, float max) { 
+            if(min < max) {
+                valueMax_ = max;
+                valueMin_ = min;
+                return true;
+            }
+            return false;
+        }
 
         /**
-         *  @brief Set the child link index of the joint.
+         *  @brief Set the home/offset value of the joint which its value is relative to
+         *  @param home Home/offset value the joint moves around
          */
-        constexpr void setChild(int8_t childIndex) { childLinkIndex_ = childIndex; }
-
-        // ---------------- Getters ---------------- 
-        /**
-         *  @brief Get the parent link index of the joint.
-         */
-        constexpr int8_t getParent() { return parentLinkIndex_; }
-
-        /**
-         *  @brief Set the child link index of the joint.
-         */
-        constexpr int8_t getChild() { return childLinkIndex_; }
-
+        constexpr void setHome(float home) { 
+            homeValue_ = home;
+        }
 };
 
 } // cobalt::kinematics

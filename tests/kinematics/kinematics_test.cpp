@@ -6,6 +6,8 @@
 #include "cobalt/kinematics/robot_chain.hpp"
 #include "cobalt/kinematics/robots/robot_dog.hpp"
 
+#include "cobalt/math/linear_algebra/vector/vector_util.hpp"
+
 using cobalt::math::geometry::Transform;
 
 using cobalt::math::linear_algebra::Vector;
@@ -13,6 +15,7 @@ using cobalt::math::linear_algebra::Vector;
 using cobalt::kinematics::Joint;
 using cobalt::kinematics::Link;
 using cobalt::kinematics::RobotChain;
+using cobalt::kinematics::JointType;
 using cobalt::kinematics::robot::robot_dog;
 
 TEST_CASE("Kinematics, default construction", "[kinematics]") {
@@ -20,6 +23,58 @@ TEST_CASE("Kinematics, default construction", "[kinematics]") {
     Link leg("leg");
 
     REQUIRE(true);
+} 
+
+TEST_CASE("Kinematics, Link getters-setters", "[kinematics]") {
+    Link link("leg", 0.3, 0, 2, 0.5);
+    REQUIRE(link.getName() == "leg");
+    REQUIRE(link.getLength() == Catch::Approx(0.3f).margin(1e-6));
+    REQUIRE(link.getId() == 0);
+    REQUIRE(link.getChild() == 2);
+    REQUIRE(link.getMass() == Catch::Approx(0.5f).margin(1e-6));
+
+    link.setName("tail");
+    REQUIRE(link.getName() == "tail");
+    link.setLength(0.4);
+    REQUIRE(link.getLength() == Catch::Approx(0.4f).margin(1e-6));
+    link.setId(2);
+    REQUIRE(link.getId() == 2);
+    link.setChild(1);
+    REQUIRE(link.getChild() == 1);
+    link.setMass(1.2f);
+    REQUIRE(link.getMass() == Catch::Approx(1.2f).margin(1e-6));
+} 
+
+TEST_CASE("Kinematics, Joint getters-setters", "[kinematics]") {
+    Joint joint(JointType::Revolute, 0, 2, 3, cobalt::math::linear_algebra::Vector<3>{0.6, 0.8, 0}, -M_PI_2, M_PI_2, 0, 0);
+    REQUIRE(joint.getType() == JointType::Revolute);
+    REQUIRE(joint.getId() == 0);
+    REQUIRE(joint.getParent() == 2);
+    REQUIRE(joint.getChild() == 3);
+    REQUIRE(joint.getAxis() == cobalt::math::linear_algebra::Vector<3>{0.6, 0.8, 0});
+    REQUIRE(joint.getMinLimit() == Catch::Approx(-M_PI_2).margin(1e-6));
+    REQUIRE(joint.getMaxLimit() == Catch::Approx(M_PI_2).margin(1e-6));
+    REQUIRE(joint.getValue() == Catch::Approx(0.0f).margin(1e-6));
+    REQUIRE(joint.getHome() == Catch::Approx(0.0f).margin(1e-6));
+
+    joint.setType(JointType::Prismatic);
+    REQUIRE(joint.getType() == JointType::Prismatic);
+    joint.setId(1);
+    REQUIRE(joint.getId() == 1);
+    joint.setParent(1);
+    REQUIRE(joint.getParent() == 1);
+    joint.setChild(2);
+    REQUIRE(joint.getChild() == 2);
+    joint.setAxis(cobalt::math::linear_algebra::Vector<3>{0.0f, 0.0f, -1.0f});
+    REQUIRE(joint.getAxis() == cobalt::math::linear_algebra::Vector<3>{0.0f, 0.0f, -1.0f});
+    joint.setLimits(-M_PI_4, M_PI_4);
+    REQUIRE(joint.getMinLimit() == Catch::Approx(-M_PI_4).margin(1e-6));
+    REQUIRE(joint.getMaxLimit() == Catch::Approx(M_PI_4).margin(1e-6));
+    joint.setHome(M_PI_2);
+    REQUIRE(joint.getHome() == Catch::Approx(M_PI_2).margin(1e-6));
+    REQUIRE(joint.getValue() == Catch::Approx(M_PI_2).margin(1e-6));
+    joint.setValue(M_PI/6);
+    REQUIRE(joint.getValue() == Catch::Approx(M_PI_2 + M_PI/6).margin(1e-6));
 } 
 
 TEST_CASE("Kinematics, forward-kinematics 1R Arm", "[kinematics]") {
