@@ -47,7 +47,7 @@ struct RobotChain {
          *  @brief RobotChain constructor with link and joint array intializers
          */
         RobotChain(std::array<Link, L> links, std::array<Joint, J> joints) : links_(links), joints_(joints), base_(nullptr), end_(nullptr) {
-            updateLinks();
+            findLinks();
         }
 
 
@@ -63,53 +63,62 @@ struct RobotChain {
         constexpr uint8_t getLinkNum() const { return L; }
 
         /**
-         *  @brief Get the frame/pose of the end-effector
+         *  @brief Get the const reference to frame/pose of the end-effector
+         *  @return World frame of the end-effector in the chain
          */
-        const cobalt::math::geometry::Transform<> endEffector() const {
+        const cobalt::math::geometry::Transform<> &endEffector() const {
             return end_->worldFrame(); 
         }
 
         // ---------------- Accessors Functions ----------------
 
         /**
-         *  @brief Get the reference to frame/pose of an intermediary joint
+         *  @brief Get the reference to a joint
+         *  @param id is the unique Id of the joint
+         *  @return Const refrence to the joint with the id `id`. If `id` is invalid, returns the last joint in the list.
          */
-        constexpr Joint &joint(uint8_t index) {
-            if(index <= J) {
-                return joints_[index]; 
+        constexpr Joint &joint(uint8_t id) {
+            if(id <= J) {
+                return joints_[id]; 
             }
 
             return joints_[J-1];
         }
 
         /**
-         *  @brief Get a const intermediary link value
+         *  @brief Get the const reference to a joint
+         *  @param id is the unique Id of the joint
+         *  @return Const refrence to the joint with the id `id`. If `id` is invalid, returns the last joint in the list.
          */
-        const Joint joint(uint8_t index) const {
-            if(index <= J) {
-                return joints_[index]; 
+        const Joint &joint(uint8_t id) const {
+            if(id <= J) {
+                return joints_[id]; 
             }
 
             return joints_[J-1];
         }
 
         /**
-         *  @brief Get the reference to frame/pose of an intermediary link
+         *  @brief Get a refrence to an intermediary link value
+         *  @param id is the unique Id of the link
+         *  @return Const refrence to the link with the id `id`. If `id` is invalid, returns the enf-effector link
          */
-        constexpr Link &link(uint8_t index) {
-            if(index <= L) {
-                return links_[index]; 
+        constexpr Link &link(uint8_t id) {
+            if(id <= L) {
+                return links_[id]; 
             }
 
             return links_[L-1];
         }
 
         /**
-         *  @brief Get a const intermediary link value
+         *  @brief Get a const refrence to an intermediary link value
+         *  @param id is the unique Id of the link
+         *  @return Const refrence to the link with the id `id`. If `id` is invalid, returns the enf-effector link
          */
-        const Link link(uint8_t index) const {
-            if(index <= L) {
-                return links_[index]; 
+        const Link &link(uint8_t id) const {
+            if(id <= L) {
+                return links_[id]; 
             }
 
             return links_[L-1];
@@ -120,7 +129,7 @@ struct RobotChain {
          *  @brief Serach through the link array and set the base and endeffector pointers
          *  @return `true` if a 'base'-link & endeffector was found, `false` otherwise
          */
-        constexpr bool updateLinks() {
+        constexpr bool findLinks() {
             bool foundBase = false;
             bool foundEndEffector = false;
 
