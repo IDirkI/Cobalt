@@ -1,12 +1,25 @@
 import sys
 import ntpath
 import re
+import ast
+import math
+import operator as op
 
 from math import pi, sqrt
 from dataclasses import dataclass
 
+_ALLOWED_OPERATORS = {
+    ast.Add: op.add,
+    ast.Sub: op.sub,
+    ast.Mult: op.mul,
+    ast.Div: op.truediv,
+    ast.Pow: op.pow,
+    ast.USub: op.neg
+}
+
 @dataclass
 class Link:
+    id: int
     name: str
     length: float
     child: int
@@ -28,13 +41,40 @@ class PartBlock:
     subtype: str
     content: list[str]
 
+## ========== Helper Functions ==========
+def safe_eval(expr: str) -> float:
+    def _eval(node):
+        if isinstance(node, ast.Constant):
+            value = node.value
+            if isinstance(value, (int, float)):
+                return value
+            else:
+                raise ValueError("[ ERROR ] | Invalid expresison")
+        elif isinstance(node, ast.UnaryOp) and (type(node.op) in _ALLOWED_OPERATORS):
+            return float(_ALLOWED_OPERATORS[type(node.op)](_eval(node.operand)))
+        elif isinstance(node, ast.BinOp) and (type(node.op) in _ALLOWED_OPERATORS):
+            return float(_ALLOWED_OPERATORS[type(node.op)](_eval(node.left), _eval(node.right)))
+        elif isinstance(node, ast.Name):
+            if node.id == "pi":
+                return pi
+            elif node.id == "e":
+                return math.e
+            else:
+                raise ValueError("[ ERROR ] | Invalid expresison")
+        else:
+            raise ValueError("[ ERROR ] | Invalid expresison")
+        
+    node = ast.parse(expr, mode='eval').body
+    return _eval(node)
+
+
 def parse_bracket(line: str) -> list[float]:
-    items = re.findall(r"[-+]?\d*\.?\d+|[a-z\/\\\d_]+", line)
+    items = re.findall(r"[-+*\/\w().]+", line)
     value_list = []
 
     for i in items:
         try:
-            value_list.append(float(i))
+            value_list.append(safe_eval(i))
         except:
             raise ValueError("[ ERROR ] | An attribute must be a number")
 
@@ -83,9 +123,9 @@ def collect_block(lines : list[str]) -> list[PartBlock]:
                     working_block.content.append(line)
 
     return blocks
+## ======================================
 
-
-def parse_file(filename : str) -> tuple[list[Link], list[Joint]]:
+def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
     rob_name = ""
     links = []
     joints = []
@@ -100,11 +140,7 @@ def parse_file(filename : str) -> tuple[list[Link], list[Joint]]:
     isNamed = False
 
     with open(filename) as f:
-        # Collect curly brace block
-        blocks = collect_block(f.readlines())
-
         for line in f:
-
             # Empty line
             if not line:    
                 continue
@@ -119,7 +155,7 @@ def parse_file(filename : str) -> tuple[list[Link], list[Joint]]:
                     if isNamed:
                         raise ValueError("[ ERROR ] | The robot can only be named once.")
                     
-                    rob_name = line[1:].strip()
+                    rob_name = line.lstrip(">").strip().lower()
                     isNamed = True
 
                 case ('\\'): # Link/Joint
@@ -128,30 +164,41 @@ def parse_file(filename : str) -> tuple[list[Link], list[Joint]]:
                     
 
     # ===== Block Parsing =====
+    with open(filename) as f:
+        # Collect curly brace block
+        blocks = collect_block(f.readlines())
+
     valid_types = {
         "revolute",
         "prismatic"
     }
+
+    link_index = 0
     joint_index = 0
 
     for block in blocks:
         fields = {}
         for block_line in block.content:
             key, value = block_line.split("=", 1)
-            key = key.strip().lstrip(".")
+            key = key.lstrip(".").strip()
             value = value.strip()
             fields[key] = value
 
         match block.type:
             case ("link"):      # Parse Link
                 link_name = block.subtype
-                link_length = float(fields.get("length", -1))
+                link_length = parse_bracket(fields.get("length", "-1"))[0]
 
                 # Attribute checks
                 if (link_length < 0) and (link_name != "base"): # Non-negative length
                     raise ValueError("[ ERROR ] | Non-base link must have a valid length")
+                for l in links:                                 # Unique link names
+                    if l.name == link_name:
+                        raise ValueError("[ ERROR ] | Link names must be unique")
                 
-                links.append(Link(name=link_name, length=link_length, child=-1))
+                links.append(Link(id=link_index, name=link_name, length=link_length, child=-1))
+                
+                link_index = link_index + 1
                 continue
  
             case ("joint"):     # Parse Joint
@@ -159,8 +206,10 @@ def parse_file(filename : str) -> tuple[list[Link], list[Joint]]:
                 joint_links = parse_parent_child(fields.get("links", []))
                 joint_limits = parse_bracket(fields.get("limits", [-pi, pi]))
                 joint_axis = parse_bracket(fields.get("axis", [0, 0, 1]))
-                joint_home = fields.get("home", [0])[0]
-                joint_init = fields.get("init", [0])[0]
+                joint_home = parse_bracket(fields.get("home", "0"))[0]
+                joint_init = parse_bracket(fields.get("init", "0"))[0]
+
+                print(joint_limits[0])
 
                 # Attribute checks
                 if not valid_types.__contains__(joint_type):                                         # Valid joint type
@@ -192,16 +241,18 @@ def parse_file(filename : str) -> tuple[list[Link], list[Joint]]:
 
             case _:             # Unknown case
                 raise ValueError("[ ERROR ] | Invlid part type")
-    return links, joints
+    return rob_name, links, joints
 
 
 if __name__ == "__main__":
     in_file = sys.argv[1]
-    links, joints = parse_file(in_file)
+    name, links, joints = parse_file(in_file)
     
+    print(">>> %s <<<" % (name))
     print("### Links ###")
     for link in links:
         print("-----------------------------")
+        print("- Id: %d" % (link.id))
         print("- Name: %s" % (link.name))
         print("- Child: %d" % (link.child))   
         print("- Lenght: %.3f" % (link.length))
@@ -210,6 +261,7 @@ if __name__ == "__main__":
     print("### Joints ###")
     for joint in joints:
         print("-----------------------------")
+        print("- Id: %d" % (joint.id))
         print("- Type: %s" % (joint.type))
         print("- Parent: %s" % (joint.parent))   
         print("- Child: %s" % (joint.child))   
