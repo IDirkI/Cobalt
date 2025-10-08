@@ -4,6 +4,7 @@
 #include "cobalt/kinematics/joint.hpp"
 #include "cobalt/kinematics/link.hpp"
 #include "cobalt/kinematics/robot_chain.hpp"
+#include "cobalt/kinematics/robots/robot_dog.hpp"
 
 using cobalt::math::geometry::Transform;
 
@@ -12,6 +13,7 @@ using cobalt::math::linear_algebra::Vector;
 using cobalt::kinematics::Joint;
 using cobalt::kinematics::Link;
 using cobalt::kinematics::RobotChain;
+using cobalt::kinematics::robot::robot_dog;
 
 TEST_CASE("Kinematics, default construction", "[kinematics]") {
     Joint j(cobalt::kinematics::JointType::Revolute);
@@ -21,6 +23,24 @@ TEST_CASE("Kinematics, default construction", "[kinematics]") {
 } 
 
 TEST_CASE("Kinematics, forward-kinematics 1R Arm", "[kinematics]") {
+    RobotChain<2, 1> chain;
+
+    chain.link(0) = Link("base", -1, 0, 0);
+    chain.link(1) = Link("arm_high", 1, 1, -1);
+
+    chain.joint(0) = Joint(cobalt::kinematics::JointType::Revolute, 0, 0, 1);
+    chain.joint(0).setValue(M_PI_2);
+
+    REQUIRE(chain.updateLinks());
+    
+    Transform<> endFrame = chain.forwardKinematics();
+
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(0.0f).margin(1e-6));
+    REQUIRE(endFrame.translation()[1] == Catch::Approx(1.0f).margin(1e-6));
+    REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
+} 
+
+TEST_CASE("Kinematics, forward-kinematics 2R Arm", "[kinematics]") {
     RobotChain<3, 2> chain;
 
     chain.link(0) = Link("base", -1, 0, 0);
@@ -28,9 +48,9 @@ TEST_CASE("Kinematics, forward-kinematics 1R Arm", "[kinematics]") {
     chain.link(2) = Link("arm_low", 1, 2, -1);
 
     chain.joint(0) = Joint(cobalt::kinematics::JointType::Revolute, 0, 0, 1);
-    chain.joint(0).setValue(0);
+    chain.setJoint(0, 0);
     chain.joint(1) = Joint(cobalt::kinematics::JointType::Revolute, 1, 1, 2);
-    chain.joint(1).setValue(M_PI_2);
+    chain.setJoint(1, M_PI_2);
 
     REQUIRE(chain.updateLinks());
     
@@ -40,11 +60,67 @@ TEST_CASE("Kinematics, forward-kinematics 1R Arm", "[kinematics]") {
     REQUIRE(endFrame.translation()[1] == Catch::Approx(1.0f).margin(1e-6));
     REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
 
-    chain.joint(1).setValue(-M_PI_2);
+    chain.setJoint(1, -M_PI_2);
 
     endFrame = chain.forwardKinematics();
     
     REQUIRE(endFrame.translation()[0] == Catch::Approx(1.0f).margin(1e-6));
     REQUIRE(endFrame.translation()[1] == Catch::Approx(-1.0f).margin(1e-6));
+    REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
+} 
+
+TEST_CASE("Kinematics, ROB parsers & forward-kinematics 2R Leg", "[kinematics]") {
+    std::array<Link, 3> robot_dog_links = {
+      Link("base", -1.0f, 0, 0, 0.0f),
+      Link("dog/leg1_high", 0.3f, 1, 1, 0.4f),
+      Link("dog/leg1_low", 0.2f, 2, -1, 0.3f),
+    };
+
+    std::array<Joint, 2> robot_dog_joints = {
+      Joint(cobalt::kinematics::JointType::Revolute, 0, 0, 1,
+            cobalt::math::linear_algebra::Vector<3>(0.0f, 0.0f, -1.0f),
+            -1.5707963267948966f, 1.5707963267948966f, 0.0f, 0.0f),
+      Joint(cobalt::kinematics::JointType::Revolute, 1, 1, 2,
+            cobalt::math::linear_algebra::Vector<3>(0.0f, 0.0f, -1.0f),
+            -1.5707963267948966f, 1.5707963267948966f, 1.5707963267948966f, 0.0f),
+    };
+
+    RobotChain<3, 2> robot_dog(robot_dog_links, robot_dog_joints);
+
+    Transform<> endFrame = robot_dog.forwardKinematics();
+    robot_dog.updateLinks();
+
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(0.3f).margin(1e-6));
+    REQUIRE(endFrame.translation()[1] == Catch::Approx(-0.2f).margin(1e-6));
+    REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
+
+    REQUIRE(robot_dog.setJoint(0, M_PI_4));
+    endFrame = robot_dog.forwardKinematics();
+
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(0.0707106781f).margin(1e-6));
+    REQUIRE(endFrame.translation()[1] == Catch::Approx(-0.3535533906f).margin(1e-6));
+    REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
+} 
+
+TEST_CASE("Kinematics, ROB parsers & forward-kinematics 2R Leg with home-offset", "[kinematics]") {
+    Transform<> endFrame = robot_dog.forwardKinematics();
+    robot_dog.updateLinks();
+
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(0.3f).margin(1e-6));
+    REQUIRE(endFrame.translation()[1] == Catch::Approx(-0.2f).margin(1e-6));
+    REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
+
+    robot_dog.setJoint(1, -M_PI_2);
+    endFrame = robot_dog.forwardKinematics();
+
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(0.5f).margin(1e-6));
+    REQUIRE(endFrame.translation()[1] == Catch::Approx(0.0f).margin(1e-6));
+    REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
+
+    robot_dog.setJoints({-M_PI_2, 0});
+    endFrame = robot_dog.forwardKinematics();
+
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(0.2f).margin(1e-6));
+    REQUIRE(endFrame.translation()[1] == Catch::Approx(0.3f).margin(1e-6));
     REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
 } 

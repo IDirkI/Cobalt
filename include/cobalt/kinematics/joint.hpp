@@ -43,10 +43,9 @@ struct Joint  {
 
         cobalt::math::linear_algebra::Vector<3> axis_;
 
-        float value_;
-        float valueMin_;
-        float valueMax_;
-
+        float value_;       // Relative to homeValue_
+        float valueMin_;    // Relative to homeValue_
+        float valueMax_;    // Relative to homeValue_
         float homeValue_;
 
         int8_t parentLinkIndex_;
@@ -102,7 +101,7 @@ struct Joint  {
          *  @brief Get the value of the joint.
          *  @return `rotation` or `length`
          */
-        constexpr float getValue() const { return value_; }
+        constexpr float getValue() const { return value_ + homeValue_; }
 
         // ---------------- Setters ----------------
         /**

@@ -1,5 +1,6 @@
 import sys
 import ntpath
+import os
 import re
 import ast
 import math
@@ -21,8 +22,9 @@ _ALLOWED_OPERATORS = {
 class Link:
     id: int
     name: str
-    length: float
     child: int
+    length: float
+    mass: float
 
 @dataclass
 class Joint:
@@ -30,6 +32,8 @@ class Joint:
     type: str
     parent: str
     child: str
+    parentId: int
+    childId: int
     limits: list
     axis: list
     home: float
@@ -179,6 +183,8 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
     for block in blocks:
         fields = {}
         for block_line in block.content:
+            if not block_line:  # Empty line
+                continue
             key, value = block_line.split("=", 1)
             key = key.lstrip(".").strip()
             value = value.strip()
@@ -188,6 +194,7 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
             case ("link"):      # Parse Link
                 link_name = block.subtype
                 link_length = parse_bracket(fields.get("length", "-1"))[0]
+                link_mass = parse_bracket(fields.get("mass", "0"))[0]
 
                 # Attribute checks
                 if (link_length < 0) and (link_name != "base"): # Non-negative length
@@ -196,7 +203,7 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
                     if l.name == link_name:
                         raise ValueError("[ ERROR ] | Link names must be unique")
                 
-                links.append(Link(id=link_index, name=link_name, length=link_length, child=-1))
+                links.append(Link(id=link_index, name=link_name, child=-1, length=link_length, mass=link_mass))
                 
                 link_index = link_index + 1
                 continue
@@ -204,17 +211,25 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
             case ("joint"):     # Parse Joint
                 joint_type = block.subtype
                 joint_links = parse_parent_child(fields.get("links", []))
+                joint_parent = -1
+                joint_child = -1
                 joint_limits = parse_bracket(fields.get("limits", [-pi, pi]))
                 joint_axis = parse_bracket(fields.get("axis", [0, 0, 1]))
                 joint_home = parse_bracket(fields.get("home", "0"))[0]
                 joint_init = parse_bracket(fields.get("init", "0"))[0]
+                for link in links:
+                    if link.name == joint_links[0]:
+                        joint_parent = link.id
+                    if link.name == joint_links[1]:
+                        joint_child = link.id
 
-                print(joint_limits[0])
 
                 # Attribute checks
                 if not valid_types.__contains__(joint_type):                                         # Valid joint type
                     raise ValueError("[ ERROR ] | Invlid joint type")
                 if joint_links is []:                                                               # Parent/child links must exist
+                    raise ValueError("[ ERROR ] | Joint must have a parent and child")
+                if (joint_parent == -1) or (joint_child == -1):                                     # Parent/child links index must exist
                     raise ValueError("[ ERROR ] | Joint must have a parent and child")
                 if joint_limits[0] > joint_limits[1]:                                               # Min limit < Max limit
                     raise ValueError("[ ERROR ] | Joint min/max limits must be valid")
@@ -225,7 +240,7 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
                 if not ((joint_limits[0] <= joint_init) and (joint_init <= joint_limits[1])):             # Initial value is valid
                     raise ValueError("[ ERROR ] | Joint initial value must be valid")
 
-                joints.append(Joint(id=joint_index, type=joint_type, parent=joint_links[0], child=joint_links[1], limits=joint_limits, axis=joint_axis, home=joint_home, init=joint_init))
+                joints.append(Joint(id=joint_index, type=joint_type, parent=joint_links[0], parentId=joint_parent, childId=joint_child, child=joint_links[1], limits=joint_limits, axis=joint_axis, home=joint_home, init=joint_init))
 
                 # Set associated link's child joint id
                 for l in links:
@@ -243,11 +258,74 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
                 raise ValueError("[ ERROR ] | Invlid part type")
     return rob_name, links, joints
 
+def generate_code(name : str, links : list[Link], joints : list[Joint]) -> str:
+    L = len(links)
+    J = len(joints)
+    
+    desc_sep = "//" + "-" * (len(name)*3 - 3)
+
+
+    # Header Guard
+    code = "#pragma once\n\n"
+
+    # Includes
+    code += "#include \"../joint.hpp\"\n"
+    code += "#include \"../link.hpp\"\n"
+    code += "#include \"../robot_chain.hpp\"\n\n"
+
+    # Description
+    code += desc_sep + "\n"
+    code += f"// {name.center(len(name)*3-1 - 3)}\n"
+    code += desc_sep + "\n"
+    code += f"/** \n"
+    code += f" * This is an automatically generated '{name}' RobotChain from its .rob file.\n"
+    code += f" * Include '{name}.hpp' in your project upon calling it to access and use the created '{name}' chain.\n"
+    code += f" * Do not touch this file for any edits and use the .rob file for any edits.\n"
+    code += f" */ \n"
+    
+    code += f"namespace cobalt::kinematics::robot {{\n\n"
+
+    # Make Links
+    code += f"  const std::array<Link, {L}> {name}_links = {{\n"
+    for link in links:
+        code += f"      Link(\"{link.name}\", {float(link.length)}f, {link.id}, {link.child}, {float(link.mass)}f),\n"
+    code += f"  }};\n\n"
+
+    # Make Joints
+    code += f"  const std::array<Joint, {J}> {name}_joints = {{\n"
+    for joint in joints:
+        code += f"""      Joint(JointType::{joint.type.capitalize()}, {joint.id}, {joint.parentId}, {joint.childId},
+            cobalt::math::linear_algebra::Vector<3>({float(joint.axis[0])}f, {float(joint.axis[1])}f, {float(joint.axis[2])}f),
+            {float(joint.limits[0])}f, {float(joint.limits[1])}f, {float(joint.init)}f, {float(joint.home)}f),\n"""
+    code += f"  }};\n\n"
+
+    # Make Robot Chain
+    code += f"  inline RobotChain<{L}, {J}> {name}({name}_links, {name}_joints);\n\n"
+
+    code += f"}}; // cobalt::kinematics::robot\n"
+
+    print(code)
+    return code
+
+
+def generate_header(name : str, code : str):
+    #out_dir = "..\\..\\include\\cobalt\\kinematics\\robots"
+    out_dir = "."
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, f"{name}.hpp")
+
+    with open(out_path, "w") as f:
+        f.write(code)
+
+    print(f"[ SUCCESS ] | Generated {name}.hpp RobotChain header: {out_path}")
 
 if __name__ == "__main__":
     in_file = sys.argv[1]
-    name, links, joints = parse_file(in_file)
-    
+    [name, links, joints] = parse_file(in_file)
+
+    code = generate_code(name, links, joints)
+    #generate_header(name, code)
+    '''
     print(">>> %s <<<" % (name))
     print("### Links ###")
     for link in links:
@@ -256,6 +334,7 @@ if __name__ == "__main__":
         print("- Name: %s" % (link.name))
         print("- Child: %d" % (link.child))   
         print("- Lenght: %.3f" % (link.length))
+        print("- Mass: %.3f" % (link.mass))
     print("-----------------------------\n")
 
     print("### Joints ###")
@@ -263,11 +342,11 @@ if __name__ == "__main__":
         print("-----------------------------")
         print("- Id: %d" % (joint.id))
         print("- Type: %s" % (joint.type))
-        print("- Parent: %s" % (joint.parent))   
-        print("- Child: %s" % (joint.child))   
+        print("- Parent: %s (%d)" % (joint.parent, joint.parentId))   
+        print("- Child: %s (%d)" % (joint.child, joint.childId))   
         print("- Limits: [%.3f, %.3f]" % (joint.limits[0], joint.limits[1]))
         print("- Inital: %.3f" % (joint.init))
         print("- Home: %.3f" % (joint.home))
         print("- Axis: [%.3f, %.3f, %.3f]" % (joint.axis[0], joint.axis[1], joint.axis[2]))
     print("-----------------------------")
-
+    '''

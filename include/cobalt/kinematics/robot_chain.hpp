@@ -41,7 +41,14 @@ struct RobotChain {
         /**
          *  @brief Default RobotChain constrcutor
          */
-        RobotChain() : joints_{}, links_{}, base_(nullptr), end_(nullptr) {}
+        RobotChain() : links_{}, joints_{}, base_(nullptr), end_(nullptr) {}
+
+         /**
+         *  @brief RobotChain constructor with link and joint array intializers
+         */
+        RobotChain(std::array<Link, L> links, std::array<Joint, J> joints) : links_(links), joints_(joints), base_(nullptr), end_(nullptr) {
+            updateLinks();
+        }
 
 
         // ---------------- Getters ----------------
@@ -151,6 +158,7 @@ struct RobotChain {
             for(uint8_t i = 0; i < J; i++) {
                 if(!setJoint(i, values[i])) { return false; }
             }
+            return true;
         }
 
         /**
@@ -166,7 +174,7 @@ struct RobotChain {
             Link *parentLink = base_;
             Link *childLink = &links_[j->getChild()];
 
-            while(parentLink->getChild() >= 0) {
+            while(true) {
                 cobalt::math::geometry::Transform<> motion = getJointMotion(*j);
                 cobalt::math::geometry::Transform<> offset = cobalt::math::geometry::Transform<>::fromTranslation({childLink->getLength(), 0.0f, 0.0f});
 
