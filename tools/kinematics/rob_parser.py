@@ -29,7 +29,7 @@ class PartBlock:
     content: list[str]
 
 def parse_bracket(line: str) -> list[float]:
-    items = re.findall(r"[-+]?\d*\.?\d+|[a-z\/\\\d_]+", line.lower())
+    items = re.findall(r"[-+]?\d*\.?\d+|[a-z\/\\\d_]+", line)
     value_list = []
 
     for i in items:
@@ -159,8 +159,8 @@ def parse_file(filename : str) -> tuple[list[Link], list[Joint]]:
                 joint_links = parse_parent_child(fields.get("links", []))
                 joint_limits = parse_bracket(fields.get("limits", [-pi, pi]))
                 joint_axis = parse_bracket(fields.get("axis", [0, 0, 1]))
-                joint_home = parse_bracket(fields.get("home", 0))[0]
-                joint_init = parse_bracket(fields.get("init", 0))[0]
+                joint_home = fields.get("home", [0])[0]
+                joint_init = fields.get("init", [0])[0]
 
                 # Attribute checks
                 if not valid_types.__contains__(joint_type):                                         # Valid joint type
@@ -199,7 +199,6 @@ if __name__ == "__main__":
     in_file = sys.argv[1]
     links, joints = parse_file(in_file)
     
-
     print("### Links ###")
     for link in links:
         print("-----------------------------")

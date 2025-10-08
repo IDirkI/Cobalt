@@ -18,10 +18,10 @@ enum class JointType {
 };
 
 constexpr JointType JOINT_DEFAULT_TYPE = JointType::Revolute;
-constexpr uint8_t JOINT_DEFAULT_ID = 0;
+constexpr int8_t JOINT_DEFAULT_ID = -1;
 
-constexpr uint8_t JOINT_DEFAULT_PARENT_INDEX = -1;
-constexpr uint8_t JOINT_DEFAULT_CHILD_INDEX = -1;
+constexpr int8_t JOINT_DEFAULT_PARENT_INDEX = -1;
+constexpr int8_t JOINT_DEFAULT_CHILD_INDEX = -1;
 
 constexpr float JOINT_DEFAULT_MIN_VALUE = -M_PI;
 constexpr float JOINT_DEFAULT_MAX_VALUE = M_PI;
@@ -39,7 +39,7 @@ const cobalt::math::linear_algebra::Vector<3> JOINT_DEFAULT_MOTION_AXIS = cobalt
 struct Joint  {
     private:
         JointType type_;
-        uint8_t id_;
+        int8_t id_;
 
         cobalt::math::linear_algebra::Vector<3> axis_;
 
@@ -49,8 +49,8 @@ struct Joint  {
 
         float homeValue_;
 
-        uint8_t parentLinkIndex_;
-        uint8_t childLinkIndex_;
+        int8_t parentLinkIndex_;
+        int8_t childLinkIndex_;
 
         // ---------------- Helpers  ----------------
         constexpr bool clampVal() {
@@ -121,27 +121,28 @@ struct Joint  {
             return clampVal();
         }
 
-        // ---------------- Accessors ---------------- 
+        // ---------------- Setters ---------------- 
+        /**
+         *  @brief Set the parent link index of the joint.
+         */
+        constexpr void setParent(int8_t parentIndex) { parentLinkIndex_ = parentIndex; }
 
         /**
-         *  @brief Get the refrence to parent link index of the joint.
+         *  @brief Set the child link index of the joint.
          */
-        constexpr uint8_t &parentIndex() { return parentLinkIndex_; }
+        constexpr void setChild(int8_t childIndex) { childLinkIndex_ = childIndex; }
+
+        // ---------------- Getters ---------------- 
+        /**
+         *  @brief Get the parent link index of the joint.
+         */
+        constexpr int8_t getParent() { return parentLinkIndex_; }
 
         /**
-         *  @brief Get the const parent link index of the joint.
+         *  @brief Set the child link index of the joint.
          */
-        const uint8_t &parentIndex() const { return parentLinkIndex_; }
+        constexpr int8_t getChild() { return childLinkIndex_; }
 
-        /**
-         *  @brief Get the reference to child link index of the joint.
-         */
-        constexpr uint8_t &childIndex() { return childLinkIndex_; }
-
-        /**
-         *  @brief Get the const child link index of the joint.
-         */
-        const uint8_t &childIndex() const { return childLinkIndex_; }
 };
 
 } // cobalt::kinematics

@@ -21,23 +21,30 @@ TEST_CASE("Kinematics, default construction", "[kinematics]") {
 } 
 
 TEST_CASE("Kinematics, forward-kinematics 1R Arm", "[kinematics]") {
-    RobotChain<2, 1> chain;
+    RobotChain<3, 2> chain;
 
-    chain.link(0).setName("base");
-    chain.link(0).frame() = Transform<>::eye(); // Base
+    chain.link(0) = Link("base", -1, 0, 0);
+    chain.link(1) = Link("arm_high", 1, 1, 1);
+    chain.link(2) = Link("arm_low", 1, 2, -1);
 
-    chain.link(1).setName("arm");
-    chain.link(1).frame() = Transform<>::fromTranslation(Vector<3>(1.0f, 0.0f, 0.0f)); // End effector
+    chain.joint(0) = Joint(cobalt::kinematics::JointType::Revolute, 0, 0, 1);
+    chain.joint(0).setValue(0);
+    chain.joint(1) = Joint(cobalt::kinematics::JointType::Revolute, 1, 1, 2);
+    chain.joint(1).setValue(M_PI_2);
 
-    chain.joint(0).parentIndex() = 0;
-    chain.joint(0).childIndex() = 1;
-    chain.joint(0).setValue(M_PI_2);
+    REQUIRE(chain.updateLinks());
+    
+    Transform<> endFrame = chain.forwardKinematics();
 
-    chain.forwardKinematics();
-
-    Transform<> endFrame = chain.endEffector();
-
-    REQUIRE(endFrame.translation()[0] == Catch::Approx(0.0f).margin(1e-6));
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(1.0f).margin(1e-6));
     REQUIRE(endFrame.translation()[1] == Catch::Approx(1.0f).margin(1e-6));
+    REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
+
+    chain.joint(1).setValue(-M_PI_2);
+
+    endFrame = chain.forwardKinematics();
+    
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(1.0f).margin(1e-6));
+    REQUIRE(endFrame.translation()[1] == Catch::Approx(-1.0f).margin(1e-6));
     REQUIRE(endFrame.translation()[2] == Catch::Approx(0.0f).margin(1e-6));
 } 

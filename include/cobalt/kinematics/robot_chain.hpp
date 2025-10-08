@@ -24,6 +24,9 @@ struct RobotChain {
         std::array<Link, L> links_;
         std::array<Joint, J> joints_;
 
+        Link *base_;
+        Link *end_;
+
         // ---------------- Helper ----------------
         cobalt::math::geometry::Transform<> getJointMotion(const Joint &j) const {
             switch(j.getType()) {
@@ -35,7 +38,10 @@ struct RobotChain {
 
     public: 
         // ---------------- Constructors ----------------
-        RobotChain() : joints_{}, links_{} {}
+        /**
+         *  @brief Default RobotChain constrcutor
+         */
+        RobotChain() : joints_{}, links_{}, base_(nullptr), end_(nullptr) {}
 
 
         // ---------------- Getters ----------------
@@ -53,7 +59,7 @@ struct RobotChain {
          *  @brief Get the frame/pose of the end-effector
          */
         const cobalt::math::geometry::Transform<> endEffector() const {
-            return links_[L-1].worldFrame(); 
+            return end_->worldFrame(); 
         }
 
         // ---------------- Accessors Functions ----------------
@@ -104,10 +110,33 @@ struct RobotChain {
 
         // ---------------- Member Functions ----------------
         /**
-         *  @brief Set the frame/pose of the end-effector
+         *  @brief Serach through the link array and set the base and endeffector pointers
+         *  @return `true` if a 'base'-link & endeffector was found, `false` otherwise
+         */
+        constexpr bool updateLinks() {
+            bool foundBase = false;
+            bool foundEndEffector = false;
+
+            for(Link &l: links_) {
+                if(l.getName() == "base") {
+                    base_ = &l;
+                    foundBase = true;
+                }
+                
+                if(l.getChild() == -1) {
+                    end_ = &l;
+                    foundEndEffector = true;
+                }
+            }
+
+            return foundBase && foundEndEffector;
+        }
+
+        /**
+         *  @brief Set a joint value of the robot
          *  @return `true` if joint value was set successfully, `false` otherwise
          */
-        bool setJoint(uint8_t index, float value) {
+        constexpr bool setJoint(uint8_t index, float value) {
             if(index < J) {
                 return (joints_[index].setValue(value));
             }
@@ -115,19 +144,43 @@ struct RobotChain {
         }
 
         /**
-         *  @brief Update the world frames of all links
+         *  @brief Set the joint values of the robot
+         *  @return `true` if joint values were set successfully, `false` otherwise
          */
-        void forwardKinematics() {
-            for(Joint &j : joints_) {
-                if(j.parentIndex() < 0) { continue; }
-                if(j.childIndex() < 0)  { continue; }
-
-                cobalt::math::geometry::Transform<> motion = getJointMotion(j);
-                
-                links_[j.childIndex()].worldFrame() = links_[j.parentIndex()].worldFrame() * (motion * links_[j.childIndex()].frame());
+        constexpr bool setJoints(std::array<float, J> values) {
+            for(uint8_t i = 0; i < J; i++) {
+                if(!setJoint(i, values[i])) { return false; }
             }
         }
-        
+
+        /**
+         *  @brief Update the world frames of all links
+         *  @note `updateLinks()` must have been called before hand to set `base_` and `end_` pointers
+         *  @return The world frame of the end-effector of the robot after the motion is complete. If `base_` or `end_` wasn't set beforehand, return the identity transform
+         */
+        cobalt::math::geometry::Transform<> forwardKinematics() {
+            if(!base_) { return cobalt::math::geometry::Transform<>::eye(); }
+            if(!end_) { return cobalt::math::geometry::Transform<>::eye(); }
+
+            Joint *j = &joints_[base_->getChild()];
+            Link *parentLink = base_;
+            Link *childLink = &links_[j->getChild()];
+
+            while(parentLink->getChild() >= 0) {
+                cobalt::math::geometry::Transform<> motion = getJointMotion(*j);
+                cobalt::math::geometry::Transform<> offset = cobalt::math::geometry::Transform<>::fromTranslation({childLink->getLength(), 0.0f, 0.0f});
+
+                childLink->worldFrame() = parentLink->worldFrame() * (motion * offset * childLink->frame());
+                
+                if(childLink->getChild() == -1) { break; }  // End-effector reached
+
+                j = &joints_[childLink->getChild()];
+                parentLink = childLink;
+                childLink = &links_[j->getChild()];
+            }
+
+            return endEffector();
+        }
 };
 
 } // cobatl::kinematics
