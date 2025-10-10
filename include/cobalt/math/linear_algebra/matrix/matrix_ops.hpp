@@ -276,7 +276,6 @@ template<uint8_t N, typename T = float>
 template<uint8_t N, uint8_t M, typename T = float>
     [[nodiscard]] constexpr inline bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
         static_assert(N >= M, "pseudoL Works for 'tall' matricies, not 'wide' ones.");
-        if (rank(A) < M) { return false; }
 
         Matrix<N,N> U;
         Matrix<N,M> S;

@@ -17,6 +17,7 @@ namespace cobalt::kinematics {
 
 constexpr float ROBOTCHAIN__IK_THRESHOLD = 1e-4;
 constexpr uint8_t ROBOTCHAIN_IK_LINESEARCH_COUNT = 6;
+constexpr uint8_t ROBOTCHAIN_IK_RESTARTS = 6;
 
 constexpr float ROBOTCHAIN_DEFAULT_NOISE_MAG = 0.1;
 constexpr uint8_t ROBOTCHAIN_DEFAULT_IK_MAX_ITERATION = 20;
@@ -288,6 +289,7 @@ struct RobotChain {
          */
          size_t inverseKinematics(std::array<float, J> &q, cobalt::math::linear_algebra::Vector<3> goal, uint8_t maxIter = ROBOTCHAIN_DEFAULT_IK_MAX_ITERATION, float alpha = ROBOTCHAIN_DEFAULT_IK_ALPHA) {
             size_t iter = 0;
+            bool converged = false;
             
             cobalt::math::linear_algebra::Vector<3> err{};
             
@@ -297,50 +299,68 @@ struct RobotChain {
             cobalt::math::linear_algebra::Vector<J> dq{};
             cobalt::math::linear_algebra::Vector<J> q_vec = cobalt::math::linear_algebra::Vector<J>::fromArray(q_hold);
 
-            for(uint8_t i = 0; i < J; i++) { q_vec[i] += getNoise(); }
+            for(uint8_t i = 0; i < J; i++) { 
+                q_vec[i] += getNoise();
+            }
 
 
-            for(uint8_t i = 0; i < maxIter; i++) {
-                iter++;
-                printf("[ %3.4f    %3.4f ]\n", endEffector().translation()[0], endEffector().translation()[1]);
-                //printf("[ Angle: %3.4f    %3.4f ]\n", q_vec[0], q_vec[1]);
-
-                err = goal - endEffector().translation();
-                cobalt::math::linear_algebra::Matrix<6, J> Jac = getJacobian();
-                cobalt::math::linear_algebra::Matrix<J, 3> J_pseudo;
-                if(!cobalt::math::linear_algebra::pseudoL(Jac.template block<3, J>(), J_pseudo)) {
-                    setJoints(q_hold);
-                    return false;
+            for(uint8_t restarts = 0; (restarts < ROBOTCHAIN_IK_RESTARTS) && !converged; restarts++) {
+                if(restarts != 0) {
+                    for(uint8_t i = 0; i < J; i++) { 
+                        q_vec[i] = q_hold[i] + restarts*getNoise();
+                    }
                 }
-                dq = J_pseudo*err;
+                for(uint8_t i = 0; i < maxIter; i++) {
+                    iter++;
+                    printf("[ %3.4f    %3.4f ]\n", endEffector().translation()[0], endEffector().translation()[1]);
+                    //printf("[ Angle: %3.4f    %3.4f ]\n", q_vec[0], q_vec[1]);
 
-                // ---- Line seach ----
-                float alphaTest = alpha;
+                    for(uint8_t i = 0; i < J; i++) { 
+                        if(q_vec[i] > joints_[i].getMaxLimit()) { q_vec[i] = joints_[i].getMaxLimit(); }
+                        if(q_vec[i] < joints_[i].getMinLimit()) { q_vec[i] = joints_[i].getMinLimit(); }
+                    } 
+                    setJoints(cobalt::math::linear_algebra::toArray(q_vec));
 
-                bool improved = false;
-                for(uint8_t j = 0; j < ROBOTCHAIN_IK_LINESEARCH_COUNT; j++) {
-                    cobalt::math::linear_algebra::Vector<J> q_test = q_vec + alphaTest*dq;
-                    setJoints(cobalt::math::linear_algebra::toArray(q_test));
+                    cobalt::math::linear_algebra::Matrix<6, J> Jac = getJacobian();
+                    cobalt::math::linear_algebra::Matrix<J, 3> J_pseudo;
 
-                    cobalt::math::linear_algebra::Vector<3> errTest{};
-                    errTest = goal - endEffector().translation();
-
-                    if(cobalt::math::linear_algebra::norm(errTest) < cobalt::math::linear_algebra::norm(err)) {
-                        q_vec = q_test;
-                        err = errTest;
-                        improved = true;
-                        break;
+                    if(!cobalt::math::linear_algebra::pseudoL(Jac.template block<3, J>(), J_pseudo)) {
+                        printf("PSEUDO FAIL\n");
+                        setJoints(q_hold);
+                        return iter;
                     }
 
-                    alphaTest *= 0.5;
+                    err = goal - endEffector().translation();
+                    dq = J_pseudo*err;
+
+                    // ---- Line seach ----
+                    float alphaTest = alpha;
+
+                    bool improved = false;
+                    for(uint8_t j = 0; j < ROBOTCHAIN_IK_LINESEARCH_COUNT; j++) {
+                        cobalt::math::linear_algebra::Vector<J> q_test = q_vec + alphaTest*dq;
+                        setJoints(cobalt::math::linear_algebra::toArray(q_test));
+
+                        cobalt::math::linear_algebra::Vector<3> errTest{};
+                        errTest = goal - endEffector().translation();
+
+                        if(cobalt::math::linear_algebra::norm(errTest) < cobalt::math::linear_algebra::norm(err)) {
+                            q_vec = q_test;
+                            err = errTest;
+                            improved = true;
+                            break;
+                        }
+
+                        alphaTest *= 0.5;
+                    }
+
+                    if(!improved) { break; }
+                    // --------------------
+
+                    if( (fabsf(err[0]) < ROBOTCHAIN__IK_THRESHOLD  &&
+                         fabsf(err[1]) < ROBOTCHAIN__IK_THRESHOLD) &&
+                         fabsf(err[2]) < ROBOTCHAIN__IK_THRESHOLD) { converged = true; break; }
                 }
-
-                if(!improved) { break; }
-                // --------------------
-
-                setJoints(cobalt::math::linear_algebra::toArray(q_vec));
-
-                if(cobalt::math::linear_algebra::norm(err) < ROBOTCHAIN__IK_THRESHOLD) { break; }
             }
 
             q = cobalt::math::linear_algebra::toArray(q_vec);

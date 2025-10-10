@@ -191,13 +191,44 @@ TEST_CASE("Kinematics, IK with 2R Arm", "[kinematics]") {
     arm_2r.setJoints({0.0f, 0.0f});
 
     std::array<float, 2> q{};
-    cobalt::math::linear_algebra::Vector<3> goal{0.2f, 0.0f, 0.0f};
+    cobalt::math::linear_algebra::Vector<3> goal{-0.6f, 0.1f, 0.0f};
 
     size_t iter = arm_2r.inverseKinematics(q, goal, 60);
     arm_2r.setJoints(q);
     endFrame = arm_2r.endEffector();
 
     CAPTURE(iter);
-    REQUIRE(endFrame.translation()[0] == Catch::Approx(goal[0]).margin(1e-2));
-    REQUIRE(endFrame.translation()[1] == Catch::Approx(goal[1]).margin(1e-2));
+    REQUIRE(endFrame.translation()[0] == Catch::Approx(goal[0]).margin(1e-3));
+    REQUIRE(endFrame.translation()[1] == Catch::Approx(goal[1]).margin(1e-3));
+} 
+
+TEST_CASE("Kinematics, moving IK circle with 2R Arm", "[kinematics]") {
+    arm_2r.setJoints({0.0f, 0.0f});
+    cobalt::math::linear_algebra::Vector<2> center{0.0f, 1.0f};
+    float circRad = 0.8f;
+
+    std::array<float, 2> q{};
+    for(float t = 0.0f; t < 2*M_PI; t += 0.1f) {
+        cobalt::math::linear_algebra::Vector<3> goal{center[0] + circRad*cos(t), center[1] + circRad*sin(t), 0.0f};
+
+        size_t iter = arm_2r.inverseKinematics(q, goal, 60);
+        arm_2r.setJoints(q);
+        cobalt::math::geometry::Transform<> endFrame = arm_2r.endEffector();
+
+        CAPTURE(iter);
+        REQUIRE(endFrame.translation()[0] == Catch::Approx(goal[0]).margin(1e-3));
+        REQUIRE(endFrame.translation()[1] == Catch::Approx(goal[1]).margin(1e-3));
+    }
+
+    for(float t = 2*M_PI; t > 0.0f; t -= 0.1f) {
+        cobalt::math::linear_algebra::Vector<3> goal{center[0] + circRad*cos(t), center[1] + circRad*sin(t), 0.0f};
+
+        size_t iter = arm_2r.inverseKinematics(q, goal, 60);
+        arm_2r.setJoints(q);
+        cobalt::math::geometry::Transform<> endFrame = arm_2r.endEffector();
+
+        CAPTURE(iter);
+        REQUIRE(endFrame.translation()[0] == Catch::Approx(goal[0]).margin(1e-3));
+        REQUIRE(endFrame.translation()[1] == Catch::Approx(goal[1]).margin(1e-3));
+    }
 } 
