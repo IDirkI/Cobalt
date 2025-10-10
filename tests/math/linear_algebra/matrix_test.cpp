@@ -246,7 +246,23 @@ TEST_CASE("Matrix, inverse", "[matrix]") {
             REQUIRE(AiA(i,j) == Catch::Approx(I(i,j)).margin(1e-6));
         }
     }
+}  
 
+TEST_CASE("Matrix, left pseudo-inverse", "[matrix]") {
+    Matrix<3, 2> A{{1.0f, 2.0f}, {-2.0f, 5.0f}, {7.0f, 1.0f}};
+    Matrix<2, 3> Ainv;
+
+    REQUIRE(pseudoL(A, Ainv));
+
+    
+    Matrix<2,2> I = Matrix<2,2>::eye();
+    Matrix<2,2> AiA = Ainv*A;
+
+    for(uint8_t i = 0; i < 2; i++) {
+        for(uint8_t j = 0; j < 2; j++) {
+            REQUIRE(AiA(i,j) == Catch::Approx(I(i,j)).margin(1e-6));
+        }
+    }
 }  
 
 TEST_CASE("Matrix, rank", "[matrix]") {

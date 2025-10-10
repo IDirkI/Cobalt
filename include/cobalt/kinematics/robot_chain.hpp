@@ -6,9 +6,21 @@
 #include "joint.hpp"
 #include "link.hpp"
 
+#include "../math/linear_algebra/vector/vector.hpp"
+#include "../math/linear_algebra/vector/vector_util.hpp"
+#include "../math/linear_algebra/matrix/matrix.hpp"
+#include "../math/linear_algebra/matrix/matrix_ops.hpp"
+#include "../math/geometry/transform/transform.hpp"
 #include "../math/geometry/transform/transform_ops.hpp"
 
 namespace cobalt::kinematics {
+
+constexpr float ROBOTCHAIN__IK_THRESHOLD = 1e-4;
+constexpr uint8_t ROBOTCHAIN_IK_LINESEARCH_COUNT = 6;
+
+constexpr float ROBOTCHAIN_DEFAULT_NOISE_MAG = 0.1;
+constexpr uint8_t ROBOTCHAIN_DEFAULT_IK_MAX_ITERATION = 20;
+constexpr float ROBOTCHAIN_DEFAULT_IK_ALPHA = 0.8f;
 
 // --------------------------------------
 //              Robot Chain    
@@ -27,6 +39,8 @@ struct RobotChain {
         Link *base_;
         Link *end_;
 
+        uint32_t seed = 1638178391u;
+
         // ---------------- Helper ----------------
         cobalt::math::geometry::Transform<> getJointMotion(const Joint &j) const {
             switch(j.getType()) {
@@ -34,6 +48,12 @@ struct RobotChain {
                 case (JointType::Prismatic):    { return cobalt::math::geometry::Transform<>::fromTranslation(j.getAxis()*j.getValue()); }
                 default:                        { return cobalt::math::geometry::Transform<>::eye(); }
             }
+        }
+
+        float getNoise(float min = ROBOTCHAIN_DEFAULT_NOISE_MAG, float max = ROBOTCHAIN_DEFAULT_NOISE_MAG) {
+            seed = 67395 * seed + 6741013;
+            float rand = (seed & 0x00ffffff) / float(0x01000000);
+            return min + (max-min)*rand;
         }
 
     public: 
@@ -48,6 +68,7 @@ struct RobotChain {
          */
         RobotChain(std::array<Link, L> links, std::array<Joint, J> joints) : links_(links), joints_(joints), base_(nullptr), end_(nullptr) {
             findLinks();
+            forwardKinematics();
         }
 
 
@@ -149,25 +170,81 @@ struct RobotChain {
         }
 
         /**
-         *  @brief Set a joint value of the robot
-         *  @return `true` if joint value was set successfully, `false` otherwise
+         *  @brief Set a joint value of the robot and update its body
+         *  @return `true` if joint value was set successfully, `false` otherwise or if `index` was out of bounds
          */
         constexpr bool setJoint(uint8_t index, float value) {
             if(index < J) {
-                return (joints_[index].setValue(value));
+                if(joints_[index].setValue(value)) {
+                    forwardKinematics();
+                    return true;
+                }
+                else { return false; }
             }
-            else { return false;}
+            else { return false; }
         }
 
         /**
-         *  @brief Set the joint values of the robot
+         *  @brief Set the joint values of the robot and update its body
          *  @return `true` if joint values were set successfully, `false` otherwise
          */
         constexpr bool setJoints(std::array<float, J> values) {
-            for(uint8_t i = 0; i < J; i++) {
-                if(!setJoint(i, values[i])) { return false; }
+            bool result = true;
+            for(Joint &j : joints_) {
+                if(!j.setValue(values[j.getId()])) { result = false; }
             }
-            return true;
+            forwardKinematics();
+            return result;
+        }
+
+
+        /**
+         *  @brief Calculate the jacobian matrix associated with the robot at the moment 
+         *  @return Instantanious jacobian matrix(6xJ) of the robot
+         */
+        cobalt::math::linear_algebra::Matrix<6, J> getJacobian() {
+            cobalt::math::linear_algebra::Matrix<6, J> Jac = cobalt::math::linear_algebra::Matrix<6, J>::zero();
+
+            for( Joint &j : joints_) {
+                switch(j.getType()) {
+                    case (JointType::Revolute): {
+                        cobalt::math::linear_algebra::Vector<3> axis = j.getAxis();
+                        cobalt::math::geometry::Transform<> motion = getJointMotion(j);
+                        cobalt::math::linear_algebra::Vector<3> diff = (end_->worldFrame()).translation();
+
+                        // Jacobian columns:
+                        //   Jac_j  = | Jv_j | = | b_j x (x_e - l_{j-1}) |
+                        //            | Jw_j |   |          b_j          |     
+                        cobalt::math::linear_algebra::Vector<3> Jv = cross(axis, diff - links_[j.getParent()].worldFrame().translation());
+
+                        Jac(0, j.getId()) = Jv[0];
+                        Jac(1, j.getId()) = Jv[1];
+                        Jac(2, j.getId()) = Jv[2];
+
+                        Jac(3, j.getId()) = axis[0];
+                        Jac(4, j.getId()) = axis[1];
+                        Jac(5, j.getId()) = axis[2];
+
+                        break;
+                    }
+                    case (JointType::Prismatic): {
+                        cobalt::math::linear_algebra::Vector<3> axis = j.getAxis();
+
+                        // Jacobian columns:
+                        //   Jac_j  = | Jv_j | = | b_j | = | axis |
+                        //            |   0  |   |  0  |   |   0  |     
+                        Jac(0, j.getId()) = axis[0];
+                        Jac(1, j.getId()) = axis[1];
+                        Jac(2, j.getId()) = axis[2];
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
+            }
+
+            return Jac;
         }
 
         /**
@@ -187,7 +264,8 @@ struct RobotChain {
                 cobalt::math::geometry::Transform<> motion = getJointMotion(*j);
                 cobalt::math::geometry::Transform<> offset = cobalt::math::geometry::Transform<>::fromTranslation({childLink->getLength(), 0.0f, 0.0f});
 
-                childLink->worldFrame() = parentLink->worldFrame() * (motion * offset * childLink->frame());
+                childLink->frame() = motion * offset;
+                childLink->worldFrame() = parentLink->worldFrame() * childLink->frame();
                 
                 if(childLink->getChild() == -1) { break; }  // End-effector reached
 
@@ -197,6 +275,77 @@ struct RobotChain {
             }
 
             return endEffector();
+        }
+
+        /**
+         *  @brief Calculate the reqired joint values 
+         *  @note `updateLinks()` must have been called before hand to set `base_` and `end_` pointers
+         *  @param q Output array of the required joint values to achieve the goal pose
+         *  @param goal Desired 6-vector end-effector pose
+         *  @param maxIter The number of maximum iterations the IK algorithm will run for. Defaults to 20
+         *  @param alpha Initial step size for line search that determines convergence speed and accuracy
+         *  @return The total amount of iterations the IK algorithm ran for. -1 if the state is unreachable.
+         */
+         size_t inverseKinematics(std::array<float, J> &q, cobalt::math::linear_algebra::Vector<3> goal, uint8_t maxIter = ROBOTCHAIN_DEFAULT_IK_MAX_ITERATION, float alpha = ROBOTCHAIN_DEFAULT_IK_ALPHA) {
+            size_t iter = 0;
+            
+            cobalt::math::linear_algebra::Vector<3> err{};
+            
+            std::array<float, J> q_hold{};
+            for(Joint &j : joints_) { q_hold[j.getId()] = j.getValue(); }
+            // q_0 = q_current + random noise
+            cobalt::math::linear_algebra::Vector<J> dq{};
+            cobalt::math::linear_algebra::Vector<J> q_vec = cobalt::math::linear_algebra::Vector<J>::fromArray(q_hold);
+
+            for(uint8_t i = 0; i < J; i++) { q_vec[i] += getNoise(); }
+
+
+            for(uint8_t i = 0; i < maxIter; i++) {
+                iter++;
+                printf("[ %3.4f    %3.4f ]\n", endEffector().translation()[0], endEffector().translation()[1]);
+                //printf("[ Angle: %3.4f    %3.4f ]\n", q_vec[0], q_vec[1]);
+
+                err = goal - endEffector().translation();
+                cobalt::math::linear_algebra::Matrix<6, J> Jac = getJacobian();
+                cobalt::math::linear_algebra::Matrix<J, 3> J_pseudo;
+                if(!cobalt::math::linear_algebra::pseudoL(Jac.template block<3, J>(), J_pseudo)) {
+                    setJoints(q_hold);
+                    return false;
+                }
+                dq = J_pseudo*err;
+
+                // ---- Line seach ----
+                float alphaTest = alpha;
+
+                bool improved = false;
+                for(uint8_t j = 0; j < ROBOTCHAIN_IK_LINESEARCH_COUNT; j++) {
+                    cobalt::math::linear_algebra::Vector<J> q_test = q_vec + alphaTest*dq;
+                    setJoints(cobalt::math::linear_algebra::toArray(q_test));
+
+                    cobalt::math::linear_algebra::Vector<3> errTest{};
+                    errTest = goal - endEffector().translation();
+
+                    if(cobalt::math::linear_algebra::norm(errTest) < cobalt::math::linear_algebra::norm(err)) {
+                        q_vec = q_test;
+                        err = errTest;
+                        improved = true;
+                        break;
+                    }
+
+                    alphaTest *= 0.5;
+                }
+
+                if(!improved) { break; }
+                // --------------------
+
+                setJoints(cobalt::math::linear_algebra::toArray(q_vec));
+
+                if(cobalt::math::linear_algebra::norm(err) < ROBOTCHAIN__IK_THRESHOLD) { break; }
+            }
+
+            q = cobalt::math::linear_algebra::toArray(q_vec);
+            setJoints(q_hold);
+            return iter;
         }
 };
 

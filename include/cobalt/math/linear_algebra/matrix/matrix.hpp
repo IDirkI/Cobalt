@@ -14,6 +14,8 @@ constexpr uint8_t MATRIX_MAX_COL_SIZE = 12;
 constexpr float   MATRIX_EQUAL_THRESHOLD = 1e-6;
 constexpr float   MATRIX_ZERO_THRESHOLD = 1e-12;
 
+constexpr float MATRIX_PSEUDO_K= 0.5;
+
 constexpr uint8_t MATRIX_DEFAULT_PRECISION = 3;
 constexpr uint8_t MATRIX_DEFAULT_SVD_ITERATIONS = 100;
 
@@ -174,27 +176,26 @@ struct Matrix {
         }
 
         /**
-         *  @brief Right-multiply another matrix(MxL) to this matrix(NxM).
-         *  @return (NxL) right-multiplied matrix
+         *  @brief Right-multiply another matrix(NxN) to this matrix(NxN).
+         *  @return (NxN) right-multiplied matrix
          */
-        template<uint8_t L>
-            constexpr Matrix<N, L> &operator*=(const Matrix<M, L, T> &rhs) {
-                Matrix<N, L, T> output{};
+        constexpr Matrix<N, N> &operator*=(const Matrix<N, N, T> &rhs) {
+            Matrix<N, N, T> output{};
 
-                for(uint8_t i = 0; i < N; i++) {
-                    for(uint8_t j = 0; j < L; j++) {
-                        output(i, j) = static_cast<T>(0);
+            for(uint8_t i = 0; i < N; i++) {
+                for(uint8_t j = 0; j < N; j++) {
+                    output(i, j) = static_cast<T>(0);
 
-                        for(uint8_t k = 0; k < M; k++) {
-                            output(i, j) += data_[i*M + k] * rhs(k, j);
-                        }
+                    for(uint8_t k = 0; k < N; k++) {
+                        output(i, j) += data_[i*N + k] * rhs(k, j);
                     }
                 }
-
-                *this = output;
-
-                return *this;
             }
+
+            *this = output;
+
+            return *this;
+        }
 
         /**
          *  @brief Scalar multiplication of this matrix
