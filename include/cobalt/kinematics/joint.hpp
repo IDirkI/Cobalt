@@ -73,7 +73,7 @@ struct Joint  {
         Joint(JointType jointType = JOINT_DEFAULT_TYPE, uint8_t jointId = JOINT_DEFAULT_ID, uint8_t parentIndex = JOINT_DEFAULT_PARENT_INDEX, uint8_t childIndex = JOINT_DEFAULT_CHILD_INDEX,
               cobalt::math::linear_algebra::Vector<3> axis = JOINT_DEFAULT_MOTION_AXIS, float minValue = JOINT_DEFAULT_MIN_VALUE, float maxValue = JOINT_DEFAULT_MAX_VALUE,
               float initialVal = JOINT_DEFAULT_INITIAL_VALUE, float homeVal = JOINT_DEFAULT_HOME_VALUE)
-         : type_(jointType), id_(jointId), parent_(parentIndex), child_(childIndex), axis_(axis), valueMin_(minValue), valueMax_(maxValue), value_(initialVal), homeValue_(homeVal) {
+         : type_(jointType), id_(jointId), axis_(axis), parent_(parentIndex), child_(childIndex), value_(initialVal), valueMin_(minValue), valueMax_(maxValue), homeValue_(homeVal) {
             axis_ = normalize(axis_);
             clampVal();
          }
