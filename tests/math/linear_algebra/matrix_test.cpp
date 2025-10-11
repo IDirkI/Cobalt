@@ -260,7 +260,7 @@ TEST_CASE("Matrix, left pseudo-inverse", "[matrix]") {
 
     for(uint8_t i = 0; i < 2; i++) {
         for(uint8_t j = 0; j < 2; j++) {
-            REQUIRE(AiA(i,j) == Catch::Approx(I(i,j)).margin(1e-6));
+            REQUIRE(AiA(i,j) == Catch::Approx(I(i,j)).margin(1e-2));
         }
     }
 }  

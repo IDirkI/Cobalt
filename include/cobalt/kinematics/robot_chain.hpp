@@ -312,8 +312,6 @@ struct RobotChain {
                 }
                 for(uint8_t i = 0; i < maxIter; i++) {
                     iter++;
-                    printf("[ %3.4f    %3.4f ]\n", endEffector().translation()[0], endEffector().translation()[1]);
-                    //printf("[ Angle: %3.4f    %3.4f ]\n", q_vec[0], q_vec[1]);
 
                     for(uint8_t i = 0; i < J; i++) { 
                         if(q_vec[i] > joints_[i].getMaxLimit()) { q_vec[i] = joints_[i].getMaxLimit(); }
@@ -325,7 +323,6 @@ struct RobotChain {
                     cobalt::math::linear_algebra::Matrix<J, 3> J_pseudo;
 
                     if(!cobalt::math::linear_algebra::pseudoL(Jac.template block<3, J>(), J_pseudo)) {
-                        printf("PSEUDO FAIL\n");
                         setJoints(q_hold);
                         return iter;
                     }
