@@ -47,7 +47,7 @@ struct Link {
          *  @param mass Local position + orientation of the joint relative to its parent
          */
         Link(const std::string &name = "", float length = LINK_DEFAULT_LENGTH, uint8_t linkId = LINK_DEFAULT_ID, uint8_t childJoint = LINK_DEFAULT_CHILD, float mass = LINK_DEFAULT_MASS)
-            :  name_(name), length_(length), id_(linkId), child_(childJoint), mass_(mass), localTransform_(LINK_DEFAULT_TRANSFORM), worldTransform_(LINK_DEFAULT_TRANSFORM), centerMass_(LINK_DEFAULT_COM) {} 
+            :  name_(name), id_(linkId), child_(childJoint), length_(length), mass_(mass), localTransform_(LINK_DEFAULT_TRANSFORM), worldTransform_(LINK_DEFAULT_TRANSFORM), centerMass_(LINK_DEFAULT_COM) {} 
         
 
         // ---------------- Getters ----------------

@@ -6,7 +6,7 @@
 
 #include "i2c/i2c_base.hpp"       // Base I2C virtual class
 #include "i2c/i2c_arduino.hpp"    // -- Arudino I2C implementation class
-
+#include "i2c/i2c_espidf.hpp"     // -- ESPIDF I2C implementation class
 
 namespace cobalt::hal {
     #if defined(ARDUINO)
@@ -14,5 +14,6 @@ namespace cobalt::hal {
         using I2C = I2CArduino;
     #elif defined(IDF_VER)
         using GPIO = GPIOESPIDF;
+        using I2C = I2CESPIDF;
     #endif
 }
