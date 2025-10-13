@@ -1,18 +1,16 @@
 # Changelog
 
-## ⚙️ Cobalt v2.0.0
+## Cobalt v2.1.0
+
 ---
-### ⛓️‍💥 Breaking Changes
-- Removed `toString` methods from math types
 
-### 🚀 Added 
-- Hardware abstracted GPIO and I2C interfaces for Arduino and ESP-IDF frameworks.
-- New `Transform` type to rotate & translate 3-vectors or represent poses.
+### Added 
+- Joint, Link and RobotChain types for robot descriptions
+- FK and IK calculations on RobotChains 
+- On compile `.rob` file parser, used to turn robot description to usable header files under `build/robots` or `include/cobalt/kinematics/robots` depending on if the library is built or being used in the project
+- Machine wide build option & alongside `cobalt_generate_robot_headers()` CMAKE function defintion for use in downstream projects
 
-### 🛠️ Fixed
-- `operator-()` implementation in `Vector`, `Matrix` and `Complex`
-
-### 📍 Planned
-- Controller save/load functionality
-- ROS-like middlware
-- More board/hardware additions to the HAL
+### Fixed
+- `operator*()` and `operator*=()` implementations in `Matrix`
+- `I2C` defined properly when on ESPIDF framework
+- Minor comments and spellings

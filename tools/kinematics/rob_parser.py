@@ -139,14 +139,14 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
     if not file.endswith(".rob"):
         raise ValueError("[ ERROR ] | Invalid file type. Use '.rob' config files")
     
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    relative_in_path = os.path.join(script_dir, "robots", str(file))
-    os.makedirs(os.path.dirname(relative_in_path), exist_ok=True)
+    abs_in_path = os.path.abspath(filename)
+    if not os.path.isfile(abs_in_path):
+        raise FileNotFoundError(f" [ ERROR ] | Could not find the file at: {abs_in_path}")
 
     # ===== Initial Parsing =====
     isNamed = False
 
-    with open(relative_in_path) as f:
+    with open(abs_in_path) as f:
         for line in f:
             # Empty line
             if not line:    
@@ -171,7 +171,7 @@ def parse_file(filename : str) -> tuple[str, list[Link], list[Joint]]:
                     
 
     # ===== Block Parsing =====
-    with open(relative_in_path) as f:
+    with open(abs_in_path) as f:
         # Collect curly brace block
         blocks = collect_block(f.readlines())
 
@@ -270,9 +270,9 @@ def generate_code(name : str, links : list[Link], joints : list[Joint]) -> str:
     code = "#pragma once\n\n"
 
     # Includes
-    code += "#include \"../joint.hpp\"\n"
-    code += "#include \"../link.hpp\"\n"
-    code += "#include \"../robot_chain.hpp\"\n\n"
+    code += "#include \"cobalt/kinematics/joint.hpp\"\n"
+    code += "#include \"cobalt/kinematics/link.hpp\"\n"
+    code += "#include \"cobalt/kinematics/robot_chain.hpp\"\n\n"
 
     # Description
     code += desc_sep + "\n"
@@ -308,45 +308,49 @@ def generate_code(name : str, links : list[Link], joints : list[Joint]) -> str:
     return code
 
 
-def generate_header(name : str, code : str):
+def generate_header(name : str, code : str, out_dir : str):
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    out_dir = "..\\..\\include\\cobalt\\kinematics\\robots"
-    relative_out_path = os.path.join(script_dir, out_dir, f"{name}.hpp")
-    os.makedirs(os.path.dirname(relative_out_path), exist_ok=True)
+    realtive_out_dir = "..\\..\\include\\cobalt\\kinematics\\robots"
 
-    with open(relative_out_path, "w") as f:
-        f.write(code)
+    if out_dir == "":
+        out_path = os.path.join(script_dir, realtive_out_dir, f"{name}.hpp")
+    else:
+        out_path = os.path.join(out_dir, f"{name}.hpp")
 
-    print(f"[ SUCCESS ] | Generated {name}.hpp RobotChain header: {relative_out_path}")
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+    with open(out_path, "w") as f:
+            f.write(code)
+    
+    print(f"[ SUCCESS ] | Generated {name}.hpp RobotChain header: {out_path}")
 
 if __name__ == "__main__":
-    in_file = sys.argv[1]
-    [name, links, joints] = parse_file(in_file)
+    files = []
 
-    code = generate_code(name, links, joints)
-    generate_header(name, code)
-    '''
-    print(">>> %s <<<" % (name))
-    print("### Links ###")
-    for link in links:
-        print("-----------------------------")
-        print("- Id: %d" % (link.id))
-        print("- Name: %s" % (link.name))
-        print("- Child: %d" % (link.child))   
-        print("- Lenght: %.3f" % (link.length))
-        print("- Mass: %.3f" % (link.mass))
-    print("-----------------------------\n")
+    if len(sys.argv) > 1:   # Called with input argument
+        in_file = sys.argv[1]
+        files.append(in_file)
 
-    print("### Joints ###")
-    for joint in joints:
-        print("-----------------------------")
-        print("- Id: %d" % (joint.id))
-        print("- Type: %s" % (joint.type))
-        print("- Parent: %s (%d)" % (joint.parent, joint.parentId))   
-        print("- Child: %s (%d)" % (joint.child, joint.childId))   
-        print("- Limits: [%.3f, %.3f]" % (joint.limits[0], joint.limits[1]))
-        print("- Inital: %.3f" % (joint.init))
-        print("- Home: %.3f" % (joint.home))
-        print("- Axis: [%.3f, %.3f, %.3f]" % (joint.axis[0], joint.axis[1], joint.axis[2]))
-    print("-----------------------------")
-    '''
+        if len(sys.argv) == 2: # Called with only input argument
+            out_file = ""
+        else:                  # Called with both input & output argument
+            out_file = sys.argv[2]
+
+    else:                   # Called with no arguments
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        default_dir = "robots/"
+        files_dir = os.path.join(script_dir, default_dir)
+        out_file = ""
+        
+        for entry in os.listdir(files_dir):
+            full_path = os.path.join(files_dir, entry)
+            if os.path.isfile(full_path):
+                files.append(full_path)
+
+
+    for file in files:
+        [name, links, joints] = parse_file(file)
+
+        code = generate_code(name, links, joints)
+        generate_header(name, code, out_file)
+    
