@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 project(Cobalt 
-    VERSION 2.0.0 
+    VERSION 2.1.0 
     LANGUAGES C CXX
 )
 
 ## ===== LIB VERSION ======
 set(COBALT_VERSION_MAJOR 2)
-set(COBALT_VERSION_MINOR 0)
+set(COBALT_VERSION_MINOR 1)
 set(COBALT_VERSION_PATCH 0)
-
 
 ## ===== C++ STANDARD =====
 set(CMAKE_CXX_STANDARD 17)
@@ -25,12 +24,24 @@ if (NOT COBALT_SOURCES)
     message(WARNING "No sources found for Cobalt in src/")
 endif()
 
-## ===== PARSERS =====
+## ===== PARSERS =====e
     # ----- ROB -----
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_SOURCE_DIR}/robots"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/kinematics/robots"
+    )
+
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
-    file(GLOB ROBOT_FILES "${CMAKE_SOURCE_DIR}/tools/kinematics/robots/*.rob")
-    set(ROBOT_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/include/cobalt/kinematics/robots")
+    file(GLOB LOCAL_ROBOTS "${CMAKE_SOURCE_DIR}/robots/*.rob")
+    file(GLOB COBALT_ROBOTS "${CMAKE_CURRENT_SOURCE_DIR}/tools/kinematics/robots/*.rob")
+    set(ROBOT_FILES  ${LOCAL_ROBOTS} ${COBALT_ROBOTS})
+
+    if(PROJECT_NAME STREQUAL "Cobalt") # Building directly
+        set(ROBOT_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/cobalt/kinematics/robots")
+    else()                             # Building directly
+        set(ROBOT_OUTPUT_DIR "${CMAKE_BINARY_DIR}/robots")
+    endif()
 
     set(ROB_PARSER "${CMAKE_SOURCE_DIR}/tools/kinematics/rob_parser.py")
     if(NOT EXISTS "${ROB_PARSER}")
@@ -46,8 +57,8 @@ endif()
         
         add_custom_command(
             OUTPUT  ${ROBOT_OUT_FILE}
-            COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/kinematics/rob_parser.py ${ROB_FILE_NAME}.rob -o
-            DEPENDS ${ROBOT_FILE} ${ROB_PARSER}
+            COMMAND ${Python3_EXECUTABLE} ${ROB_PARSER} ${ROBOT_FILE} ${ROBOT_OUTPUT_DIR}
+            DEPENDS ${ROB_PARSER} ${ROBOT_FILE}
             COMMENT "Parsing ${ROB_FILE_NAME}.rob ==> ${ROB_FILE_NAME}.hpp (${ROBOT_OUT_FILE})"
             VERBATIM
         )
@@ -63,8 +74,9 @@ add_library(cobalt STATIC)
 target_sources(cobalt PRIVATE ${COBALT_SOURCES})
 
 target_include_directories(cobalt 
-    PUBLIC
+    PUBLIC 
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/robots>"
         "$<INSTALL_INTERFACE:include>"
 )
 target_compile_features(cobalt PUBLIC cxx_std_17)
@@ -87,6 +99,14 @@ else()
 endif()
 
 ## ===== INSTALL =====
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    if(WIN32)
+        set(CMAKE_INSTALL_PREFIX "C:/dev/Cobalt" CACHE PATH "Install path prefix" FORCE)
+    else()
+        set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Install path prefix" FORCE)
+    endif()
+endif()
+
 include(GNUInstallDirs)
 install(TARGETS cobalt
     EXPORT CobaltTargets
@@ -94,4 +114,42 @@ install(TARGETS cobalt
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-install(DIRECTORY include/ DESTINATION include)
+
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/robots/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cobalt/kinematics/robots
+    FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(EXPORT CobaltTargets
+    FILE CobaltTargets.cmake
+    NAMESPACE Cobalt::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Cobalt
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/CobaltConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CobaltConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/CobaltConfig.cmake"
+    @ONLY
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/CobaltConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/CobaltConfigVersion.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Cobalt"
+)
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/tools/kinematics/rob_parser.py"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tools"
+)
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CobaltFunctions.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Cobalt"
+)
