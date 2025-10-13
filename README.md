@@ -75,10 +75,16 @@ Library will be installed at `C:/dev/Cobalt`
 #### <u>b) Using with Platform.io:</u>
 
 1) Drop the provided _Cobalt_ files in the .zip under `lib/`
-2) In `platform.ini`, use the flags
+2) In `platform.ini`, use the flags if on ESPIDF framework
     ``` ini
     build_flags = -I lib/Cobalt/include
     ```
+    otherwise if on Arduino framework, use use the flags:
+    ``` ini
+    build_unflags = -std=gnu++11
+    build_flags = -I lib/Cobalt/include -std=gnu++17
+    ```
+
 3)  _Optionally include_
     ``` ini
     extra_scripts = pre:lib/Cobalt/tools/kinematics/pio_run_rob_parser.py
