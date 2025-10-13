@@ -111,6 +111,51 @@ struct Transform {
             return out;
         }
 
+        /**
+         *  @brief Construct a rotation-transformation along the X-axis from a given angle.
+         *  @param t Angle to rotate around X-axis
+         */
+        static constexpr Transform<T> rotationX(float t) {
+            Transform<T> out = Transform<T>::eye();
+
+            out(1,1) = std::cos(t);
+            out(2,1) = std::sin(t);
+            out(1,2) = -std::sin(t);
+            out(2,2) = std::cos(t);
+        
+            return out;
+        }
+
+        /**
+         *  @brief Construct a rotation-transformation along the Y-axis from a given angle.
+         *  @param t Angle to rotate around Y-axis
+         */
+        static constexpr Transform<T> rotationY(float t) {
+            Transform<T> out = Transform<T>::eye();
+
+            out(0,0) = std::cos(t);
+            out(2,0) = -std::sin(t);
+            out(0,2) = std::sin(t);
+            out(2,2) = std::cos(t);
+        
+            return out;
+        }
+
+        /**
+         *  @brief Construct a rotation-transformation along the Z-axis from a given angle.
+         *  @param t Angle to rotate around Z-axis
+         */
+        static constexpr Transform<T> rotationZ(float t) {
+            Transform<T> out = Transform<T>::eye();
+
+            out(0,0) = std::cos(t);
+            out(1,0) = std::sin(t);
+            out(0,1) = -std::sin(t);
+            out(1,1) = std::cos(t);
+        
+            return out;
+        }
+
 
         // ---------------- Getters ----------------
         /**

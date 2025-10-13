@@ -14,6 +14,9 @@ add_executable(cobalt_tests
 
     # ===== Control =====
     ./control/controller/pid_test.cpp
+
+    # ===== Kinematics =====
+    ./kinematics/kinematics_test.cpp
 )
 
 # Include paths

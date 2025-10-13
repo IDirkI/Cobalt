@@ -129,7 +129,7 @@ template<uint8_t N, uint8_t M, typename T = float>
         S = Matrix<N, M, T>::zero();
         V = Matrix<M, M, T>::eye();
 
-        size_t iterations = jacobi(AtA, eigen, V);
+        size_t iterations = jacobi(AtA, eigen, V, maxIterations);
 
 
         // Compute S, singular values
