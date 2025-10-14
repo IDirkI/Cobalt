@@ -1,6 +1,6 @@
 #include "cobalt/hal/i2c/i2c_espidf.hpp"
 
-#if defined(IDF_VER)
+#if (defined(IDF_VER) && !defined(ARDUINO_ARCH_ESP32))
 
 /**
 * @brief Initialize to start communication with the I2C Interface

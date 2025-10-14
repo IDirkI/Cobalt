@@ -8,12 +8,12 @@ struct BuildInfo {
     /**
      *  @brief Date of latest compilation
      */
-    static constexpr char* COMPILE_DATE = (char* const)__DATE__;
+    static constexpr char* COMPILE_DATE = __DATE__;
 
     /**
      *  @brief Time of latest compilation
      */
-    static constexpr char* COMPILE_TIME = (char* const)__TIME__;
+    static constexpr char* COMPILE_TIME = __TIME__;
 
     /**
      *  @brief C++ standard of the library

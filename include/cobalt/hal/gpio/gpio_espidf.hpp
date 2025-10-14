@@ -4,7 +4,7 @@
 
 #include "gpio_base.hpp"
 
-#ifdef IDF_VER
+#if (defined(ESP_PLATFORM) && !defined(ARDUINO_ARCH_ESP32))
 #include <driver/gpio.h>
 #include <driver/ledc.h>
 

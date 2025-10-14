@@ -1,7 +1,6 @@
 #include "cobalt/hal/gpio/gpio_arduino.hpp"
 
-#if ARDUINO
-#include <Arduino.h>
+#if defined(ARDUINO_ARCH_ESP32)
 
 /**
 * @brief Set the GPIO pins mode/type

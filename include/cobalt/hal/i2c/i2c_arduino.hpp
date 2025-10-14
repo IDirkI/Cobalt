@@ -4,7 +4,7 @@
 
 #include "i2c_base.hpp"
 
-#if defined(ARDUINO)
+#if defined(ARDUINO_ARCH_ESP32)
 #include <Wire.h>
 
 namespace cobalt::hal {
