@@ -6,7 +6,7 @@
 
 #include "i2c_base.hpp"
 
-#if defined(IDF_VER)
+#if (defined(IDF_VER) && !defined(ARDUINO_ARCH_ESP32))
 #include <driver/i2c.h>
 
 namespace cobalt::hal {

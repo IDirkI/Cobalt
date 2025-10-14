@@ -1,6 +1,6 @@
 #include "cobalt/hal/gpio/gpio_espidf.hpp"
 
-#ifdef IDF_VER
+#if (defined(IDF_VER) && !defined(ARDUINO_ARCH_ESP32))
 
 // ---------------- ESPIDF GPIO Private Helper Functions ----------------
 /**
