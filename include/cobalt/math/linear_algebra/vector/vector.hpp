@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <array>
-#include <string>
 
 namespace cobalt::math::linear_algebra {
 
