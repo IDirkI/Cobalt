@@ -8,17 +8,17 @@ struct BuildInfo {
     /**
      *  @brief Date of latest compilation
      */
-    static constexpr char* COMPILE_DATE = __DATE__;
+    static constexpr const char* COMPILE_DATE = __DATE__;
 
     /**
      *  @brief Time of latest compilation
      */
-    static constexpr char* COMPILE_TIME = __TIME__;
+    static constexpr const char* COMPILE_TIME = __TIME__;
 
     /**
      *  @brief C++ standard of the library
      */
-    static constexpr char* CPP_STANDARD = "C++17";
+    static constexpr const char* CPP_STANDARD = "C++17";
 
     /**
      *  @brief Get the compiler used to compile the current code with version info

@@ -1,0 +1,40 @@
+#
+# n.R-Robot arm is used in the test for the IK Plotting
+#
+
+> robot_arm
+
+\link base
+\link l1 {
+    .length = 1.0
+}
+\link l2 {
+    .length = 1.0
+}
+\link l3 {
+    .length = 1.0
+}
+
+\joint revolute {
+    .links = [base, l1]
+    .limits = [-pi, pi]
+    .axis = [0, 0, 1]
+    .init = 0
+    .home = 0
+}
+
+\joint revolute {
+    .links = [l1, l2]
+    .limits = [-pi, pi]
+    .axis = [0, 0, 1]
+    .init = 0
+    .home = 0
+}
+
+\joint revolute {
+    .links = [l2, l3]
+    .limits = [-pi, pi]
+    .axis = [0, 0, 1]
+    .init = 0
+    .home = 0
+}
