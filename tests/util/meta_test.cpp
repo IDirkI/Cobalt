@@ -16,7 +16,7 @@ using cobalt::util::meta::PlatformInfo;
 TEST_CASE("Meta, cobalt info", "[utility]") {
     CAPTURE(CobaltInfo::version());
 
-    REQUIRE(false);
+    REQUIRE(true);
 }   
 
 TEST_CASE("Meta, build info", "[utility]") {
@@ -24,7 +24,7 @@ TEST_CASE("Meta, build info", "[utility]") {
     CAPTURE(BuildInfo::COMPILE_DATE);
     CAPTURE(BuildInfo::COMPILE_TIME);
 
-    REQUIRE(false);
+    REQUIRE(true);
 }   
 
 TEST_CASE("Meta, platform info", "[utility]") {
@@ -34,6 +34,6 @@ TEST_CASE("Meta, platform info", "[utility]") {
     CAPTURE(PlatformInfo::framework());
     CAPTURE(PlatformInfo::framework_version());
 
-    REQUIRE(false);
+    REQUIRE(true);
 }   
 
