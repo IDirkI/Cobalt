@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include "matrix.hpp"
 #include "matrix_util.hpp"
 
@@ -7,64 +9,36 @@
 
 namespace cobalt::math::linear_algebra {
 
-// ---------------- Member Functions ----------------
-/**
- *  @brief Get a RxC matrix block out of a NxM matrix.
- *  
- *  Extracts a RxC matrix from the elements `(r0, c0)` --> `(r0 + R, c0 + C)`.
- * 
- * 
- *  @tparam R Row count of the output matrix.
- *  @tparam C Column count of the output matrix.
- *  @param r0 (optional) Starting row of the block
- *  @param c0 (optional) Starting column of the block
- * 
- *  @note If the original matrix isn't defined inside the output block the missing entried are set to zero.
- */
-template<uint8_t N, uint8_t M, typename T>
-template<uint8_t R, uint8_t C>
-    constexpr inline Matrix<R, C, T> Matrix<N, M, T>::block(uint8_t r0, uint8_t c0) const {
-        Matrix<R, C, T> output = Matrix<R, C, T>::zero();
-
-        for(uint8_t i = 0; i < R; i++) {
-            for(uint8_t j = 0; j < C; j++) {
-                output(i, j) = data_[(i+r0)*M + (j+c0)];
-            }
-        }
-
-        return output;
-    }
-
 // ---------------- Non-member Arithmetic Overloads ----------------
 /**
  *  @brief Matrix addition.
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Matrix<N, M, T> operator+(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) { lhs += rhs; return lhs; }
+    constexpr Matrix<N, M, T> operator+(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) { lhs += rhs; return lhs; }
 
 /**
  *  @brief Matrix subtraction.
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Matrix<N, M, T> operator-(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) { lhs -= rhs; return lhs; }
+    constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) { lhs -= rhs; return lhs; }
 
 /**
  *  @brief Scalar matrix multiplication.
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Matrix<N, M, T> operator*(Matrix<N, M, T> lhs, float c) { lhs *= c; return lhs; }
+    constexpr Matrix<N, M, T> operator*(Matrix<N, M, T> lhs, T c) { lhs *= c; return lhs; }
 
 /**
  *  @brief Scalar matrix multiplication.
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Matrix<N, M, T> operator*(float c, Matrix<N, M, T> lhs) { lhs *= c; return lhs; }
+    constexpr Matrix<N, M, T> operator*(T c, Matrix<N, M, T> lhs) { lhs *= c; return lhs; }
 
 /**
  *  @brief Matrix multiplication.
  */
 template<uint8_t N, uint8_t M, uint8_t K, typename T = float>
-    constexpr inline Matrix<N, K, T> operator*(Matrix<N, M, T> lhs, const Matrix<M, K, T> &rhs) { 
+    constexpr Matrix<N, K, T> operator*(Matrix<N, M, T> lhs, const Matrix<M, K, T> &rhs) { 
         Matrix<N, K, T> output{};
 
         for(uint8_t i = 0; i < N; i++) {
@@ -84,7 +58,7 @@ template<uint8_t N, uint8_t M, uint8_t K, typename T = float>
  *  @brief Vector right-multiplication.
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Vector<N, T> operator*(const Matrix<N, M, T> &A, const Vector<M, T> &v) {
+    constexpr Vector<N, T> operator*(const Matrix<N, M, T> &A, const Vector<M, T> &v) {
         Vector<N, T> output{};
         for(uint8_t i = 0; i < N; i++) {
             output[i] = static_cast<T>(0);
@@ -96,7 +70,7 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Element wise negative to this matrix
+ *  @brief Unary negation
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> A) { A *= -1; return A; }
@@ -105,7 +79,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @brief Scalar matrix divison.
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Matrix<N, M, T> operator/(Matrix<N, M, T> lhs, float c) { lhs /= c; return lhs; }
+    constexpr Matrix<N, M, T> operator/(Matrix<N, M, T> lhs, T c) { lhs /= c; return lhs; }
 
 /**
  *  @brief Matrix equality.
@@ -114,7 +88,7 @@ template<uint8_t N, uint8_t M, typename T = float>
     constexpr inline bool operator==(const Matrix<N, M, T> &lhs, const Matrix<N, M, T> &rhs) { 
         for(uint8_t i = 0; i < N; i++) {
             for(uint8_t j = 0; j < M; j++) {
-                if(fabsf(lhs(i, j) - rhs(i, j)) > static_cast<T>(MATRIX_EQUAL_THRESHOLD)) return false;
+                if(std::abs(lhs(i, j) - rhs(i, j)) > static_cast<T>(MATRIX_EQUAL_THRESHOLD)) return false;
             }
         }
 
@@ -133,7 +107,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to get determinant of
  */
 template<uint8_t N, typename T = float>
-    constexpr inline T det(const Matrix<N, N, T> &A) {
+    constexpr T det(const Matrix<N, N, T> &A) {
         T output = static_cast<T>(0);
 
         switch(N) {
@@ -152,7 +126,7 @@ template<uint8_t N, typename T = float>
                 Matrix<N, N, T> L, U;
                 Vector<N, T> P;
 
-                if(!decompLU(A, L, U, P)) { output = static_cast<T>(0); break; } // Singualr => det(A) = 0
+                if(!lu(A, L, U, P)) { output = static_cast<T>(0); break; } // Singualr => det(A) = 0
 
                 uint8_t swapCount = 0;
                 std::array<bool, N> visited{false};
@@ -185,7 +159,7 @@ template<uint8_t N, typename T = float>
  *  @param A Matrix to transpose
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Matrix<M, N, T> transpose(const Matrix<N, M, T> &A) {
+    constexpr Matrix<M, N, T> transpose(const Matrix<N, M, T> &A) {
         Matrix<M, N, T> output{};
 
         for(uint8_t i = 0; i < M; i++) {
@@ -205,17 +179,17 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Return value should not be ignored and handled properly if A is singular
  */
 template<uint8_t N, typename T = float>
-    [[nodiscard]] constexpr inline bool inv(const Matrix<N, N, T> &A, Matrix<N, N, T> &Ainv) {
+    [[nodiscard]] constexpr bool inv(const Matrix<N, N, T> &A, Matrix<N, N, T> &Ainv) {
         switch(N) {
             case 1: { 
-                if(fabsf(A(0, 0)) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                if(std::abs(A(0, 0)) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
                 Ainv(0, 0) = 1.0f / A(0, 0); 
 
                 return true; 
             }
             case 2: { 
-                float denom = static_cast<float>(det(A));
-                if(fabsf(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                T denom = static_cast<T>(det(A));
+                if(std::abs(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
                 Ainv(0, 0) = A(1, 1) / denom;
                 Ainv(0, 1) = -A(0, 1) / denom;
                 Ainv(1, 0) = -A(1, 0) / denom;
@@ -224,8 +198,8 @@ template<uint8_t N, typename T = float>
                 return true;
             }
             case 3: { 
-                float denom = static_cast<float>(det(A));
-                if(fabsf(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                T denom = static_cast<T>(det(A));
+                if(std::abs(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
 
                 Ainv(0, 0) =  (A(1,1)*A(2,2) - A(1,2)*A(2,1)) / denom;
                 Ainv(0, 1) = -(A(0,1)*A(2,2) - A(0,2)*A(2,1)) / denom;
@@ -245,7 +219,7 @@ template<uint8_t N, typename T = float>
                 Matrix<N, N, T> L, U;
                 Vector<N, T> P;
 
-                if(!decompLU(A, L, U, P)) { return false; } // Singular
+                if(!lu(A, L, U, P)) { return false; } // Singular
 
                 for(uint8_t j = 0; j < N; j++) {
                     Vector<N, T> e{}, x{};
@@ -267,23 +241,23 @@ template<uint8_t N, typename T = float>
  *  @brief Compute the left moore-penrose psuedo inverse of a matrix
  *  @param A Matrix to pseudo-invert
  *  @param Ainv Inverted output Matrix
- *  @return `true` if inversion succeeds, `false` if A is not-full rank.
+ *  @return `true` if inversion succeeds, `false` if A is not-full column rank.
  * 
  *  DLS method is used to handle possible singular value A.
  *  
- *  @note Return value should not be ignored and handled properly if A is not-full rank
+ *  @note Return value should not be ignored and handled properly if A is not-full column rank
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    [[nodiscard]] constexpr inline bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
-        static_assert(N >= M, "pseudoL Works for 'tall' matricies, not 'wide' ones.");
+    [[nodiscard]] constexpr bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
+        static_assert(N >= M, "Left pseudo-inverse onlt works for 'tall' matricies, not 'wide'.");
 
         Matrix<N,N> U;
         Matrix<N,M> S;
         Matrix<M,M> V;
         svd(A, U, S, V);
-        float sMax = S(0,0);
-        float sMin = S(M,M);
-        float lambda = MATRIX_PSEUDO_K * (1 - sMin/sMax);
+        T sMax = S(0,0);
+        T sMin = S(M-1,M-1);
+        T lambda = static_cast<T>(MATRIX_PSEUDO_K) * (1 - sMin/sMax);
 
         Matrix<M,N,T> At = transpose(A);
         Matrix<M,M,T> sym = (At*A + (lambda*lambda)*Matrix<M,M,T>::eye());
@@ -297,11 +271,44 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
+ *  @brief Compute the right moore-penrose psuedo inverse of a matrix
+ *  @param A Matrix to pseudo-invert
+ *  @param Ainv Inverted output Matrix
+ *  @return `true` if inversion succeeds, `false` if A is not-full row rank.
+ * 
+ *  DLS method is used to handle possible singular value A.
+ *  
+ *  @note Return value should not be ignored and handled properly if A is not-full row rank
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    [[nodiscard]] constexpr bool pseudoR(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
+        static_assert(M >= N, "Right pseudo-inverse onlt works for 'wide' matricies, not 'tall'.");
+
+        Matrix<N,N> U;
+        Matrix<N,M> S;
+        Matrix<M,M> V;
+        svd(A, U, S, V);
+        T sMax = S(0,0);
+        T sMin = S(M-1,M-1);
+        T lambda = static_cast<T>(MATRIX_PSEUDO_K) * (1 - sMin/sMax);
+
+        Matrix<M,N,T> At = transpose(A);
+        Matrix<M,M,T> sym = (A*At + (lambda*lambda)*Matrix<M,M,T>::eye());
+        Matrix<M,M,T> AAtinv;
+
+        if(!inv(sym, AAtinv)) { return false; }
+ 
+        Ainv = At * AAtinv;
+
+        return true;
+    }
+
+/**
  *  @brief Compute rank of matrix
  *  @param A Matrix to compute rank of 
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline uint8_t rank(const Matrix<N, M, T> &A) {
+    constexpr uint8_t rank(const Matrix<N, M, T> &A) {
         Matrix<N, M> Q;
 
         if(gramSchmidt(A, Q)) { return M; } // Full rank
@@ -321,7 +328,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to compute trace of 
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline T trace(const Matrix<N, M, T> &A) {
+    constexpr T trace(const Matrix<N, M, T> &A) {
         T output = static_cast<T>(0);
 
         for(uint8_t i = 0; i < M; i++) {
@@ -336,7 +343,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to compute trace product of 
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline T traceProduct(const Matrix<N, M, T> &A) {
+    constexpr T traceProduct(const Matrix<N, M, T> &A) {
         T output = static_cast<T>(1);
 
         for(uint8_t i = 0; i < M; i++) {
@@ -359,7 +366,7 @@ template<uint8_t N, typename T = float>
         Matrix<N, N, T> L, U;
         Vector<N, T> P;
         
-        if(!decompLU(A, L, U, P)) { return false; }    // Singular
+        if(!lu(A, L, U, P)) { return false; }    // Singular
 
         // Solve for Pb = b'
         Vector<N, T> bp{};
@@ -384,7 +391,7 @@ template<uint8_t N, typename T = float>
                 sum -= U(i,j) * x[j];
             }
 
-            if(static_cast<T>(fabsf(U(i, i))) < static_cast<T>(MATRIX_EQUAL_THRESHOLD)) { return false; } // Singular
+            if(static_cast<T>(std::abs(U(i, i))) < static_cast<T>(MATRIX_EQUAL_THRESHOLD)) { return false; } // Singular
 
             x[i] = sum / U(i, i);
         }

@@ -9,7 +9,8 @@ add_executable(cobalt_tests
         ./math/linear_algebra/vector/vector_util_test.cpp
 
         # ----- Matrix -----
-        #./math/linear_algebra/matrix_test.cpp
+        ./math/linear_algebra/matrix/matrix_core_test.cpp
+        ./math/linear_algebra/matrix/matrix_ops_test.cpp
 
         # ----- Complex -----
         #./math/algebra/complex_test.cpp

@@ -284,9 +284,9 @@ template<uint8_t N, typename T = float>
         T vm = mean(v);
         T um = mean(u);
         for(uint8_t i = 0; i < N; i++) {
-            sqrSum += (v[i] - vm)*(u[i] - um)
+            sum += (v[i] - vm)*(u[i] - um);
         }
-        return sqrSum/(static_cast<T>(N));
+        return sum/(static_cast<T>(N));
     }
 
 /**

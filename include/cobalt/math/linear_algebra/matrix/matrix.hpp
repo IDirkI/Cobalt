@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <array>
-#include <string>
 
 #include "../vector/vector.hpp"
 
@@ -31,8 +30,6 @@ constexpr uint8_t MATRIX_DEFAULT_SVD_ITERATIONS = 100;
  */
 template<uint8_t N, uint8_t M, typename T = float>
 struct Matrix {
-    static_assert(N > 0                     , "[MATRIX Error] : Matrix rows must be positive.");
-    static_assert(M > 0                     , "[MATRIX Error] : Matrix columns must be positive");
     static_assert(N <= MATRIX_MAX_ROW_SIZE  , "[MATRIX Error] : Matrix rows exceeds maximum size.");
     static_assert(M <= MATRIX_MAX_COL_SIZE  , "[MATRIX Error] : Matrix columns exceeds maximum size.");
 
@@ -138,18 +135,47 @@ struct Matrix {
              *  @brief Access element at the given row/column.
              *  @param r Row of the accessed element.
              *  @param c Column of the accessed element.
+             *  @warning No bounds checking. Use at() for safe access
+             *  @note In debug mode, asserts if `r` >= `N` or `c` >= `M`
              *  @return Reference to element.
              */
-            constexpr T &operator()(uint8_t r, uint8_t c) { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
+            constexpr T &operator()(uint8_t r, uint8_t c) { 
+                assert(r < N && "[MATRIX Error] : Accessed element must be within matrix row size.");
+                assert(c < M && "[MATRIX Error] : Accessed element must be within matrix column size.");
+                return data_[r*M + c]; 
+            }
 
             /**
              *  @brief Const access to element at the given row/column.
              *  @param r Row of the accessed element.
              *  @param c Column of the accessed element.
+             *  @warning No bounds checking. Use at() for safe access
+             *  @note In debug mode, asserts if `r` >= `R` or `c` >= `C`
              *  @return Const reference to element.
              */
-            const T &operator()(uint8_t r, uint8_t c) const { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
+            const T &operator()(uint8_t r, uint8_t c) const {
+                assert(r < N && "[MATRIX Error] : Accessed element must be within matrix row size.");
+                assert(c < M && "[MATRIX Error] : Accessed element must be within matrix column size.");
+                 return data_[r*M + c];
+            }
         
+            /**
+             *  @brief Access element at the given row/column.
+             *  @param r Row of the accessed element.
+             *  @param c Column of the accessed element.
+             *  @note Clamps the output to the last element if the asked index is out of bounds
+             *  @return Reference to element.
+             */
+            constexpr T &at(uint8_t r, uint8_t c) { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
+
+            /**
+             *  @brief Const access to element at the given row/column.
+             *  @param r Row of the accessed element.
+             *  @param c Column of the accessed element.
+             *  @note Clamps the output to the last element if the asked index is out of bounds
+             *  @return Const reference to element.
+             */
+            const T &at(uint8_t r, uint8_t c) const { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
         // ---------------- Arithmetic Overloads ----------------
         /**
          *  @brief Add another matrix to this matrix.
@@ -200,7 +226,7 @@ struct Matrix {
         /**
          *  @brief Scalar multiplication of this matrix
          */
-        constexpr Matrix &operator*=(float c) {
+        constexpr Matrix &operator*=(T c) {
             for(uint8_t i = 0; i < N; i++) {
                 for(uint8_t j = 0; j < M; j++) {
                     data_[i*M + j] *= c;
@@ -213,7 +239,7 @@ struct Matrix {
         /**
          *  @brief Scalar divison of this matrix
          */
-        constexpr Matrix &operator/=(float c) {
+        constexpr Matrix &operator/=(T c) {
             for(uint8_t i = 0; i < N; i++) {
                 for(uint8_t j = 0; j < M; j++) {
                     data_[i*M + j] /= c;
@@ -224,8 +250,32 @@ struct Matrix {
         }
 
         // ------------ Member Functions  ------------
+
+        /**
+         *  @brief Get a RxC matrix block out of a NxM matrix.
+         *  
+         *  Extracts a RxC matrix from the elements `(r0, c0)` --> `(r0 + R, c0 + C)`.
+         * 
+         * 
+         *  @tparam R Row count of the output matrix.
+         *  @tparam C Column count of the output matrix.
+         *  @param r0 (optional) Starting row of the block
+         *  @param c0 (optional) Starting column of the block
+         * 
+         *  @note If the original matrix isn't defined inside the output block the missing entried are set to zero.
+         */
         template<uint8_t R, uint8_t C>
-            constexpr inline Matrix<R, C, T> block(uint8_t r0 = 0, uint8_t c0 = 0) const;
+            constexpr Matrix<R, C, T> block(uint8_t r0 = 0, uint8_t c0 = 0) const  {
+                Matrix<R, C, T> output = Matrix<R, C, T>::zero();
+
+                for(uint8_t i = 0; i < R; i++) {
+                    for(uint8_t j = 0; j < C; j++) {
+                        output(i, j) = data_[(i+r0)*M + (j+c0)];
+                    }
+                }
+
+                return output;
+            }
 };
 
 } // cobalt::math::linear_algebra
