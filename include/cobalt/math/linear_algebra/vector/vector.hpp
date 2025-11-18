@@ -1,14 +1,14 @@
 #pragma once
 
 #include <stdint.h>
+#include <cassert>
 #include <array>
 
 namespace cobalt::math::linear_algebra {
 
 constexpr uint8_t VECTOR_MAX_SIZE = 12;
 
-constexpr float   VECTOR_EQUAL_THRESHOLD = 1e-5;
-constexpr float   VECTOR_ZERO_THRESHOLD = 1e-12;
+constexpr float   VECTOR_EQUAL_THRESHOLD = 1e-6;
 
 // --------------------------------------
 //          N-Dimentional Vector    
@@ -85,14 +85,14 @@ struct Vector{
         /**
          *  @brief Construct a unit vector in the +z direction.
          */
-        template<uint8_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>>
+        template<uint8_t M = N, typename = std::enable_if_t<(M == 3)>>
             static constexpr Vector unitZ() noexcept { return Vector{static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)}; }
         
 
         /**
          *  @brief Construct a vector from std::array.
          */
-        static constexpr inline Vector fromArray(const std::array<T, N> &arr) {
+        static constexpr Vector fromArray(const std::array<T, N> &arr) {
             Vector<N, T> v;
             for(uint8_t i = 0; i < N; i++) {
                 v[i] = arr[i];
@@ -130,7 +130,7 @@ struct Vector{
          */
         template<uint8_t M = N, typename = std::enable_if_t<(M == 3)>> 
             constexpr T &z() { return data_[2]; }
-        template<uint8_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
+        template<uint8_t M = N, typename = std::enable_if_t<(M == 3)>> 
             const T &z() const { return data_[2]; }
 
 
@@ -138,16 +138,42 @@ struct Vector{
         /**
          *  @brief Access element at the given index.
          *  @param n Index of the accessed element.
+         *  @warning No bounds checking. Use at() for safe access
+         *  @note In debug mode, asserts if `n` >= `N`
          *  @return Reference to element.
          */
-        constexpr T &operator[](uint8_t n) { if(n >= N) n = N-1; return data_[n]; }
+        constexpr T &operator[](uint8_t n) { 
+            assert(n < N && "[VECTOR Error] : Accessed index must be within vector size.");
+            return data_[n]; 
+        }
 
         /**
          *  @brief Const access to element at the given index.
          *  @param n Index of the accessed element.
+         *  @warning No bounds checking. Use at() for safe access
+         *  @note In debug mode, asserts if `n` >= `N`
          *  @return Const reference to element.
          */
-        const T &operator[](uint8_t n) const { if(n >= N) n = N-1; return data_[n]; }
+        const T &operator[](uint8_t n) const { 
+            assert(n < N && "[VECTOR Error] : Accessed index must be within vector size.");
+            return data_[n];
+        }
+
+        /**
+         *  @brief Safe access element at the given index.
+         *  @param n Index of the accessed element.
+         *  @note Clamps the output to the last element if the asked index is out of bounds
+         *  @return Reference to element.
+         */
+        constexpr T &at(uint8_t n) { if(n >= N) n = N-1; return data_[n]; }
+
+        /**
+         *  @brief Safe const access to element at the given index.
+         *  @param n Index of the accessed element.
+         *  @note Clamps the output to the last element if the asked index is out of bounds
+         *  @return Const reference to element.
+         */
+        const T &at(uint8_t n) const { if(n >= N) n = N-1; return data_[n]; }
         
         // ---------------- Arithmetic Overloads ----------------
         /**

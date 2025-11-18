@@ -146,6 +146,28 @@ TEST_CASE("Vector - Hadamard Product", "[vector][ops]") {
     REQUIRE_THAT(result[2], Catch::Matchers::WithinAbs(18.0, 1e-6));
 }
 
+TEST_CASE("Vector - Triple Product", "[vector][ops]") {
+    Vector<3> v = {1.0f, 0.0f, 0.0f};
+    Vector<3> u = {0.0f, 1.0f, 0.0f};
+    Vector<3> w = {0.0f, 0.0f, 1.0f};
+    
+    float result = tripleProduct(v, u, w);
+    
+    // Volume of unit cube = 1
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(1.0, 1e-6));
+}
+
+TEST_CASE("Vector - Triple Product Coplanar Vectors", "[vector][ops]") {
+    Vector<3> v = {1.0f, 0.0f, 0.0f};
+    Vector<3> u = {0.0f, 1.0f, 0.0f};
+    Vector<3> w = {1.0f, 1.0f, 0.0f};
+    
+    float result = tripleProduct(v, u, w);
+    
+    // Coplanar vectors have zero volume
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(0.0, 1e-6));
+}
+
 TEST_CASE("Vector - Norm", "[vector][ops]") {
     Vector<3> v = {3.0f, 4.0f, 0.0f};
     
@@ -160,6 +182,14 @@ TEST_CASE("Vector - Norm Unit Vector", "[vector][ops]") {
     float result = norm(v);
     
     REQUIRE_THAT(result, Catch::Matchers::WithinAbs(1.0, 1e-6));
+}
+
+TEST_CASE("Vector - Norm Squared", "[vector][ops]") {
+    Vector<3> v = {3.0f, 4.0f, 0.0f};
+    
+    float result = normSqr(v);
+    
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(25.0, 1e-6));
 }
 
 TEST_CASE("Vector - Normalize", "[vector][ops]") {
@@ -184,47 +214,47 @@ TEST_CASE("Vector - Normalize Zero Vector", "[vector][ops]") {
     REQUIRE_THAT(result[2], Catch::Matchers::WithinAbs(0.0, 1e-6));
 }
 
-TEST_CASE("Vector - Get Distance", "[vector][ops]") {
+TEST_CASE("Vector - Distance", "[vector][ops]") {
     Vector<3> v1 = {0.0f, 0.0f, 0.0f};
     Vector<3> v2 = {3.0f, 4.0f, 0.0f};
     
-    float result = getDistance(v1, v2);
+    float result = distance(v1, v2);
     
     REQUIRE_THAT(result, Catch::Matchers::WithinAbs(5.0, 1e-6));
 }
 
-TEST_CASE("Vector - Get Distance Squared", "[vector][ops]") {
+TEST_CASE("Vector - Distance Squared", "[vector][ops]") {
     Vector<3> v1 = {0.0f, 0.0f, 0.0f};
     Vector<3> v2 = {3.0f, 4.0f, 0.0f};
     
-    float result = getDistanceSqr(v1, v2);
+    float result = distanceSqr(v1, v2);
     
     REQUIRE_THAT(result, Catch::Matchers::WithinAbs(25.0, 1e-6));
 }
 
-TEST_CASE("Vector - Get Angle", "[vector][ops]") {
+TEST_CASE("Vector - Angle", "[vector][ops]") {
     Vector<3> v1 = {1.0f, 0.0f, 0.0f};
     Vector<3> v2 = {0.0f, 1.0f, 0.0f};
     
-    float result = getAngle(v1, v2);
+    float result = angle(v1, v2);
     
     REQUIRE_THAT(result, Catch::Matchers::WithinAbs(M_PI/2, 1e-6));
 }
 
-TEST_CASE("Vector - Get Angle Parallel", "[vector][ops]") {
+TEST_CASE("Vector - Angle Parallel", "[vector][ops]") {
     Vector<3> v1 = {1.0f, 0.0f, 0.0f};
     Vector<3> v2 = {2.0f, 0.0f, 0.0f};
     
-    float result = getAngle(v1, v2);
+    float result = angle(v1, v2);
     
     REQUIRE_THAT(result, Catch::Matchers::WithinAbs(0.0, 1e-6));
 }
 
-TEST_CASE("Vector - Project Onto", "[vector][ops]") {
+TEST_CASE("Vector - Project", "[vector][ops]") {
     Vector<3> v = {1.0f, 1.0f, 0.0f};
     Vector<3> u = {1.0f, 0.0f, 0.0f};
     
-    Vector<3> result = projectOnto(v, u);
+    Vector<3> result = project(v, u);
     
     REQUIRE_THAT(result[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
     REQUIRE_THAT(result[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
@@ -235,7 +265,7 @@ TEST_CASE("Vector - Project Onto Zero Vector", "[vector][ops]") {
     Vector<3> v = {1.0f, 1.0f, 0.0f};
     Vector<3> u = {0.0f, 0.0f, 0.0f};
     
-    Vector<3> result = projectOnto(v, u);
+    Vector<3> result = project(v, u);
     
     // Should return zero vector
     REQUIRE_THAT(result[0], Catch::Matchers::WithinAbs(0.0, 1e-6));

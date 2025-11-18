@@ -3,14 +3,23 @@ add_executable(cobalt_tests
     sanity_test.cpp
 
     # ===== Math =====
-    #./math/linear_algebra/vector_test.cpp
-    #./math/linear_algebra/matrix_test.cpp
-    #./math/linear_algebra/complex_vector_test.cpp
+        # ----- Vector -----
+        ./math/linear_algebra/vector/vector_core_test.cpp
+        ./math/linear_algebra/vector/vector_ops_test.cpp
+        ./math/linear_algebra/vector/vector_util_test.cpp
 
-    #./math/algebra/complex_test.cpp
+        # ----- Matrix -----
+        #./math/linear_algebra/matrix_test.cpp
 
-    #./math/geometry/quaternion_test.cpp
-    #./math/geometry/transform_test.cpp
+        # ----- Complex -----
+        #./math/algebra/complex_test.cpp
+        #./math/linear_algebra/complex_vector_test.cpp
+
+        # ----- Quaternion -----
+        #./math/geometry/quaternion_test.cpp
+
+        # ----- Transform -----
+        #./math/geometry/transform_test.cpp
 
     # ===== Control =====
     #./control/controller/pid_test.cpp

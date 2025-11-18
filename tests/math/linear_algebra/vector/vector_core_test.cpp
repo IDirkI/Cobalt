@@ -139,11 +139,11 @@ TEST_CASE("Vector - Element Access Valid Index", "[vector][core]") {
     REQUIRE_THAT(v[2], Catch::Matchers::WithinAbs(3.0, 1e-6));
 }
 
-TEST_CASE("Vector - Element Access Out of Bounds", "[vector][core]") {
+TEST_CASE("Vector - Safe Element Access Out of Bounds", "[vector][core]") {
     Vector<3> v = {1.0f, 2.0f, 3.0f};
     
-    // Should clamp to last element
-    REQUIRE_THAT(v[10], Catch::Matchers::WithinAbs(3.0, 1e-6));
+    // at() should clamp to last element
+    REQUIRE_THAT(v.at(10), Catch::Matchers::WithinAbs(3.0, 1e-6));
 }
 
 TEST_CASE("Vector - Element Modification", "[vector][core]") {

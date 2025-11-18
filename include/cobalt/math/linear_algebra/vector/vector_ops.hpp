@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math.h>
+#include <cmath>
 
 #include "vector.hpp"
 
@@ -11,31 +11,31 @@ namespace cobalt::math::linear_algebra {
  *  @brief Vector addition.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline Vector<N, T> operator+(Vector<N, T> lhs, const Vector<N, T> &rhs) { lhs += rhs; return lhs; }
+    constexpr Vector<N, T> operator+(Vector<N, T> lhs, const Vector<N, T> &rhs) { lhs += rhs; return lhs; }
 
 /**
  *  @brief Vector subtraction.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline Vector<N, T> operator-(Vector<N, T> lhs, const Vector<N, T> &rhs) { lhs -= rhs; return lhs; }
+    constexpr Vector<N, T> operator-(Vector<N, T> lhs, const Vector<N, T> &rhs) { lhs -= rhs; return lhs; }
 
 /**
  *  @brief Vector subtraction.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline Vector<N, T> operator*(Vector<N, T> v, float c) { v *= c; return v; }
+    constexpr Vector<N, T> operator*(Vector<N, T> v, T c) { v *= c; return v; }
 
 /**
  *  @brief Vector scalar multiplication.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline Vector<N, T> operator*(float c, Vector<N, T> v) { return v * c; }
+    constexpr Vector<N, T> operator*(T c, Vector<N, T> v) { return v * c; }
 
 /**
  *  @brief Vector scalar divison.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline Vector<N, T> operator/(Vector<N, T> v, float c) { v /= c; return v; }
+    constexpr Vector<N, T> operator/(Vector<N, T> v, T c) { v /= c; return v; }
 
 /**
  *  @brief Flip the vector. Element wise negation.
@@ -49,7 +49,7 @@ template<uint8_t N, typename T = float>
 template<uint8_t N, typename T = float>
     constexpr bool operator==(const Vector<N, T> &lhs, const Vector<N, T> &rhs) {
         for(uint8_t i = 0; i < N; i++) {
-            if(fabsf(lhs[i] - rhs[i]) > static_cast<T>(VECTOR_EQUAL_THRESHOLD)) return false;
+            if(std::abs(lhs[i] - rhs[i]) > static_cast<T>(VECTOR_EQUAL_THRESHOLD)) return false;
         }
         return true;
     }
@@ -67,8 +67,8 @@ template<uint8_t N, typename T = float>
  *  @return Scalar dot product.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline float dot(const Vector<N, T> &v, const Vector<N, T> &u) { 
-        float output = 0.0f;
+    constexpr T dot(const Vector<N, T> &v, const Vector<N, T> &u) { 
+        T output = static_cast<T>(0.0f);
         for(uint8_t i = 0; i < N; i++) {
             output += v[i] * u[i];
         }
@@ -80,7 +80,7 @@ template<uint8_t N, typename T = float>
  *  @return Vector cross product.
  */
 template<typename T = float>
-    constexpr inline Vector<3, T> cross(const Vector<3, T> &v, const Vector<3, T> &u) { 
+    constexpr Vector<3, T> cross(const Vector<3, T> &v, const Vector<3, T> &u) { 
         return Vector<3, T> {
             v.y()*u.z() - v.z()*u.y(),
             v.z()*u.x() - v.x()*u.z(),
@@ -93,12 +93,21 @@ template<typename T = float>
  *  @return Vector hadamard product.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline Vector<N, T> hadamard(const Vector<N, T> &v, const Vector<N, T> &u) { 
+    constexpr Vector<N, T> hadamard(const Vector<N, T> &v, const Vector<N, T> &u) { 
         Vector<N, T> output{};
         for(uint8_t i = 0; i < N; i++) {
             output[i] = v[i]*u[i];
         }
         return output;
+    }
+
+/**
+ *  @brief Triple product between three 3-vectors
+ *  @return Scalar `v · (u ⨯ w)`
+ */
+template<typename T = float>
+    constexpr T tripleProduct(const Vector<3, T> &v, const Vector<3, T> &u, const Vector<3, T> &w) { 
+        return dot(v, cross(u, w));
     }
 
 
@@ -107,17 +116,24 @@ template<uint8_t N, typename T = float>
  *  @return Norm/Magnitude of vector.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline float norm(const Vector<N, T> &v) { return sqrtf(dot(v, v)); }
+    constexpr float norm(const Vector<N, T> &v) { return std::sqrt(dot(v, v)); }
+
+/**
+ *  @brief Compute square of vector norm.
+ *  @return Squared norm/magnitude of vector.
+ */
+template<uint8_t N, typename T = float>
+    constexpr float normSqr(const Vector<N, T> &v) { return dot(v, v); }
 
 /**
  *  @brief Compute normalized vector.
  *  @return Normalized (unit) vector in the same direction as the vector.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline Vector<N, T> normalize(const Vector<N, T> &v) {
+    constexpr Vector<N, T> normalize(const Vector<N, T> &v) {
         float mag = norm(v);
         Vector<N, T> output = v;
-        output = (mag > VECTOR_ZERO_THRESHOLD) ?(output /= mag) :(Vector<N, T>::zero());
+        output = (mag > VECTOR_EQUAL_THRESHOLD) ?(output /= mag) :(Vector<N, T>::zero());
         return output;
     }
 
@@ -126,21 +142,21 @@ template<uint8_t N, typename T = float>
  *  @return Scalar distance between the tips of the vectors.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline float getDistance(const Vector<N, T> &v, const Vector<N, T> &u) { return norm(v - u); }
+    constexpr float distance(const Vector<N, T> &v, const Vector<N, T> &u) { return norm(v - u); }
 
 /**
  *  @brief Compute the distance squared between two vectors.
  *  @return Scalar squared distance between the tips of the vectors.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline float getDistanceSqr(const Vector<N, T> &v, const Vector<N, T> &u) { return dot(v - u, v - u); }
+    constexpr float distanceSqr(const Vector<N, T> &v, const Vector<N, T> &u) { return dot(v - u, v - u); }
 
 /**
  *  @brief Compute angle between two vectors.
  *  @return Angle between two vectors in their shared plane (radians)
  */
 template<uint8_t N, typename T = float>
-    constexpr inline float getAngle(const Vector<N, T> &v, const Vector<N, T> &u) { return static_cast<T>(acosf(dot(v, u)/(norm(v)*norm(u)))); }
+    constexpr float angle(const Vector<N, T> &v, const Vector<N, T> &u) { return std::acos(dot(v, u)/(norm(v)*norm(u))); }
 
 /**
  *  @brief Compute projection of one vector onto another.
@@ -149,12 +165,12 @@ template<uint8_t N, typename T = float>
  *  @return Projected component of v.
  */
 template<uint8_t N, typename T = float>
-    constexpr inline Vector<N, T> projectOnto(const Vector<N, T> &v, const Vector<N, T> &u) {
-        float denom = dot(u, u);
-        if(denom == static_cast<T>(0.0f)) { return Vector<N, T>{}; }
+    constexpr Vector<N, T> project(const Vector<N, T> &v, const Vector<N, T> &u) {
+        T denom = dot(u, u);
+        if(std::abs(denom) < static_cast<T>(VECTOR_EQUAL_THRESHOLD)) { return Vector<N, T>::zero(); }
 
-        float newLength = dot(v, u) / denom;
-        return u * newLength;
+        T scale = dot(v, u) / denom;
+        return u * scale;
     }
 
 } // cobalt::math::linear_algebra
