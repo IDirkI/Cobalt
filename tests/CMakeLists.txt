@@ -11,6 +11,7 @@ add_executable(cobalt_tests
         # ----- Matrix -----
         ./math/linear_algebra/matrix/matrix_core_test.cpp
         ./math/linear_algebra/matrix/matrix_ops_test.cpp
+        ./math/linear_algebra/matrix/matrix_util_test.cpp
 
         # ----- Complex -----
         #./math/algebra/complex_test.cpp

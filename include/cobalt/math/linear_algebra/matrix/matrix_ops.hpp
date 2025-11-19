@@ -238,88 +238,23 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute the left moore-penrose psuedo inverse of a matrix
- *  @param A Matrix to pseudo-invert
- *  @param Ainv Inverted output Matrix
- *  @return `true` if inversion succeeds, `false` if A is not-full column rank.
- * 
- *  DLS method is used to handle possible singular value A.
- *  
- *  @note Return value should not be ignored and handled properly if A is not-full column rank
- */
-template<uint8_t N, uint8_t M, typename T = float>
-    [[nodiscard]] constexpr bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
-        static_assert(N >= M, "Left pseudo-inverse onlt works for 'tall' matricies, not 'wide'.");
-
-        Matrix<N,N> U;
-        Matrix<N,M> S;
-        Matrix<M,M> V;
-        svd(A, U, S, V);
-        T sMax = S(0,0);
-        T sMin = S(M-1,M-1);
-        T lambda = static_cast<T>(MATRIX_PSEUDO_K) * (1 - sMin/sMax);
-
-        Matrix<M,N,T> At = transpose(A);
-        Matrix<M,M,T> sym = (At*A + (lambda*lambda)*Matrix<M,M,T>::eye());
-        Matrix<M,M,T> AtAinv;
-
-        if(!inv(sym, AtAinv)) { return false; }
- 
-        Ainv = AtAinv * At;
-
-        return true;
-    }
-
-/**
- *  @brief Compute the right moore-penrose psuedo inverse of a matrix
- *  @param A Matrix to pseudo-invert
- *  @param Ainv Inverted output Matrix
- *  @return `true` if inversion succeeds, `false` if A is not-full row rank.
- * 
- *  DLS method is used to handle possible singular value A.
- *  
- *  @note Return value should not be ignored and handled properly if A is not-full row rank
- */
-template<uint8_t N, uint8_t M, typename T = float>
-    [[nodiscard]] constexpr bool pseudoR(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
-        static_assert(M >= N, "Right pseudo-inverse onlt works for 'wide' matricies, not 'tall'.");
-
-        Matrix<N,N> U;
-        Matrix<N,M> S;
-        Matrix<M,M> V;
-        svd(A, U, S, V);
-        T sMax = S(0,0);
-        T sMin = S(M-1,M-1);
-        T lambda = static_cast<T>(MATRIX_PSEUDO_K) * (1 - sMin/sMax);
-
-        Matrix<M,N,T> At = transpose(A);
-        Matrix<M,M,T> sym = (A*At + (lambda*lambda)*Matrix<M,M,T>::eye());
-        Matrix<M,M,T> AAtinv;
-
-        if(!inv(sym, AAtinv)) { return false; }
- 
-        Ainv = At * AAtinv;
-
-        return true;
-    }
-
-/**
  *  @brief Compute rank of matrix
  *  @param A Matrix to compute rank of 
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr uint8_t rank(const Matrix<N, M, T> &A) {
-        Matrix<N, M> Q;
-
-        if(gramSchmidt(A, Q)) { return M; } // Full rank
-
-        uint8_t rankNum = N;
+        Matrix<N, M, T> Q;
+        gramSchmidt(A, Q);
+        
+        uint8_t rankNum = 0;
         for(uint8_t j = 0; j < M; j++) {
             Vector<N, T> colVec = toVector(Q, j);
-
-            if(norm(colVec) < MATRIX_ZERO_THRESHOLD) { rankNum--; }
+            
+            if(norm(colVec) > static_cast<T>(MATRIX_EQUAL_THRESHOLD)) {
+                rankNum++;
+            }
         }
-
+        
         return rankNum;
     }
 
@@ -352,6 +287,100 @@ template<uint8_t N, uint8_t M, typename T = float>
         
         return output;
     }
+
+/**
+ *  @brief Compute power of A to c (A^c)
+ *  @param A Matrix to compute power of 
+ *  @param c Power of the matrix
+ */
+template<uint8_t N, typename T = float>
+    constexpr T pow(const Matrix<N, N, T> &A, uint8_t c) {
+        Matrix<N, N, T> output = Matrix<N, N, T>::eye();
+
+        for(uint8_t i = 0; i < c; i++) { output *= A; }
+        
+        return output;
+    }
+
+
+/**
+ *  @brief Compute the Frobenius norm of a matrix
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr T normFrobenius(const Matrix<N, M, T> &A) {
+        T sum = static_cast<T>(0.0f);
+
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                sum += A(i, j) * A(i, j);
+            }
+        }
+        
+        return std::sqrt(sum);
+    }
+
+/**
+ *  @brief Compute the inf-norm of a matrix (Largest row sum)
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr T normInf(const Matrix<N, M, T> &A) {
+        T max = static_cast<T>(0.0f);
+
+        for(uint8_t i = 0; i < N; i++) {
+            T sum = static_cast<T>(0.0f);
+            for(uint8_t j = 0; j < M; j++) {
+                sum += A(i,j);
+            }
+            max = (max < sum) ?sum :max;
+        }
+        
+        return max;
+    }
+
+/**
+ *  @brief Compute the 1-norm of a matrix (Largest column sum)
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr T norm1(const Matrix<N, M, T> &A) {
+        T max = static_cast<T>(0.0f);
+
+        for(uint8_t j = 0; j < M; j++) {
+            T sum = static_cast<T>(0.0f);
+            for(uint8_t i = 0; i < N; i++) {
+                sum += A(i,j);
+            }
+            max = (max < sum) ?sum :max;
+        }
+        
+        return max;
+    }
+
+/**
+ *  @brief Compute the 2-norm of a matrix (Largest singular value)
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr T norm2(const Matrix<N, M, T> &A) {
+        Matrix<N, N, T> U;
+        Matrix<N, M, T> S;
+        Matrix<M, M, T> V;
+        svd(A, U, S, V);
+
+        return S(0,0);
+    }
+
+/**
+ *  @brief Compute the condition number of a matrix
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr T conditionNum(const Matrix<N, M, T> &A) {
+        Matrix<N, N, T> U;
+        Matrix<N, M, T> S;
+        Matrix<M, M, T> V;
+        svd(A, U, S, V);
+
+        return S(0,0)/S(M-1,M-1);
+    }
+
 
 /**
  *  @brief Solve the linear system A * x = b.

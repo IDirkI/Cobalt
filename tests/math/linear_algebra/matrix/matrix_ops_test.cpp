@@ -208,3 +208,162 @@ TEST_CASE("Matrix - Determinant Identity", "[matrix][ops]") {
     
     REQUIRE_THAT(result, Catch::Matchers::WithinAbs(1.0, 1e-6));
 }
+
+TEST_CASE("Matrix - Transpose", "[matrix][ops]") {
+    Matrix<2, 3> m = {
+        {1.0f, 2.0f, 3.0f},
+        {4.0f, 5.0f, 6.0f}
+    };
+    
+    Matrix<3, 2> result = transpose(m);
+    
+    REQUIRE_THAT(result(0, 0), Catch::Matchers::WithinAbs(1.0, 1e-6));
+    REQUIRE_THAT(result(0, 1), Catch::Matchers::WithinAbs(4.0, 1e-6));
+    REQUIRE_THAT(result(1, 0), Catch::Matchers::WithinAbs(2.0, 1e-6));
+    REQUIRE_THAT(result(1, 1), Catch::Matchers::WithinAbs(5.0, 1e-6));
+    REQUIRE_THAT(result(2, 0), Catch::Matchers::WithinAbs(3.0, 1e-6));
+    REQUIRE_THAT(result(2, 1), Catch::Matchers::WithinAbs(6.0, 1e-6));
+}
+
+
+TEST_CASE("Matrix - Transpose Square", "[matrix][ops]") {
+    Matrix<3, 3> m = {
+        {1.0f, 2.0f, 3.0f},
+        {4.0f, 5.0f, 6.0f},
+        {7.0f, 8.0f, 9.0f}
+    };
+    
+    Matrix<3, 3> result = transpose(m);
+    
+    REQUIRE_THAT(result(0, 0), Catch::Matchers::WithinAbs(1.0, 1e-6));
+    REQUIRE_THAT(result(0, 1), Catch::Matchers::WithinAbs(4.0, 1e-6));
+    REQUIRE_THAT(result(0, 2), Catch::Matchers::WithinAbs(7.0, 1e-6));
+    REQUIRE_THAT(result(1, 0), Catch::Matchers::WithinAbs(2.0, 1e-6));
+    REQUIRE_THAT(result(2, 0), Catch::Matchers::WithinAbs(3.0, 1e-6));
+}
+
+TEST_CASE("Matrix - Inverse 2x2", "[matrix][ops]") {
+    Matrix<2, 2> m = {
+        {4.0f, 7.0f},
+        {2.0f, 6.0f}
+    };
+    Matrix<2, 2> result;
+    
+    bool success = inv(m, result);
+    
+    REQUIRE(success);
+    // inv = 1/10 * [6 -7]
+    //              [-2 4]
+    REQUIRE_THAT(result(0, 0), Catch::Matchers::WithinAbs(0.6, 1e-6));
+    REQUIRE_THAT(result(0, 1), Catch::Matchers::WithinAbs(-0.7, 1e-6));
+    REQUIRE_THAT(result(1, 0), Catch::Matchers::WithinAbs(-0.2, 1e-6));
+    REQUIRE_THAT(result(1, 1), Catch::Matchers::WithinAbs(0.4, 1e-6));
+}
+
+TEST_CASE("Matrix - Inverse Identity", "[matrix][ops]") {
+    Matrix<3, 3> m = Matrix<3, 3>::eye();
+    Matrix<3, 3> result;
+    
+    bool success = inv(m, result);
+    
+    REQUIRE(success);
+    REQUIRE(result == Matrix<3, 3>::eye());
+}
+
+TEST_CASE("Matrix - Inverse Singular Matrix", "[matrix][ops]") {
+    Matrix<2, 2> m = {
+        {1.0f, 2.0f},
+        {2.0f, 4.0f}  // Linearly dependent rows
+    };
+    Matrix<2, 2> result;
+    
+    bool success = inv(m, result);
+    
+    REQUIRE_FALSE(success);
+}
+
+TEST_CASE("Matrix - Inverse Multiply Identity", "[matrix][ops]") {
+    Matrix<2, 2> m = {
+        {4.0f, 7.0f},
+        {2.0f, 6.0f}
+    };
+    Matrix<2, 2> mInv;
+    
+    bool res = inv(m, mInv);
+    REQUIRE(res);
+    Matrix<2, 2> result = m * mInv;
+    
+    // Should be identity
+    REQUIRE_THAT(result(0, 0), Catch::Matchers::WithinAbs(1.0, 1e-5));
+    REQUIRE_THAT(result(0, 1), Catch::Matchers::WithinAbs(0.0, 1e-5));
+    REQUIRE_THAT(result(1, 0), Catch::Matchers::WithinAbs(0.0, 1e-5));
+    REQUIRE_THAT(result(1, 1), Catch::Matchers::WithinAbs(1.0, 1e-5));
+}
+
+TEST_CASE("Matrix - Trace", "[matrix][ops]") {
+    Matrix<3, 3> m = {
+        {1.0f, 2.0f, 3.0f},
+        {4.0f, 5.0f, 6.0f},
+        {7.0f, 8.0f, 9.0f}
+    };
+    
+    float result = trace(m);
+    
+    // trace = 1 + 5 + 9 = 15
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(15.0, 1e-6));
+}
+
+TEST_CASE("Matrix - Trace Product", "[matrix][ops]") {
+    Matrix<3, 3> m = {
+        {2.0f, 0.0f, 0.0f},
+        {0.0f, 3.0f, 0.0f},
+        {0.0f, 0.0f, 4.0f}
+    };
+    
+    float result = traceProduct(m);
+    
+    // traceProduct = 2 * 3 * 4 = 24
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(24.0, 1e-6));
+}
+
+TEST_CASE("Matrix - Solve Linear System", "[matrix][ops]") {
+    Matrix<2, 2> A = {
+        {2.0f, 1.0f},
+        {1.0f, 3.0f}
+    };
+    Vector<2> b = {5.0f, 6.0f};
+    Vector<2> x;
+    
+    bool success = solve(A, b, x);
+    
+    REQUIRE(success);
+    // Solution: x = [1.8, 1.4]
+    REQUIRE_THAT(x[0], Catch::Matchers::WithinAbs(1.8, 1e-5));
+    REQUIRE_THAT(x[1], Catch::Matchers::WithinAbs(1.4, 1e-5));
+}
+
+TEST_CASE("Matrix - Solve Identity System", "[matrix][ops]") {
+    Matrix<3, 3> A = Matrix<3, 3>::eye();
+    Vector<3> b = {1.0f, 2.0f, 3.0f};
+    Vector<3> x;
+    
+    bool success = solve(A, b, x);
+    
+    REQUIRE(success);
+    REQUIRE_THAT(x[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
+    REQUIRE_THAT(x[1], Catch::Matchers::WithinAbs(2.0, 1e-6));
+    REQUIRE_THAT(x[2], Catch::Matchers::WithinAbs(3.0, 1e-6));
+}
+
+TEST_CASE("Matrix - Solve Singular System", "[matrix][ops]") {
+    Matrix<2, 2> A = {
+        {1.0f, 2.0f},
+        {2.0f, 4.0f}  // Singular
+    };
+    Vector<2> b = {3.0f, 6.0f};
+    Vector<2> x;
+    
+    bool success = solve(A, b, x);
+    
+    REQUIRE_FALSE(success);
+}

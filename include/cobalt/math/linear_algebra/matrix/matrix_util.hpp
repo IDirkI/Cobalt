@@ -10,6 +10,110 @@
 namespace cobalt::math::linear_algebra {
 
 // ---------------- Non-member Utility ----------------
+
+/**
+ *  @brief Compute the hadamard (element-wise) product of two matrices
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> exp(const Matrix<N, M, T> &A, const Matrix<N, M, T> &B) {
+        Matrix<N, M, T> output = Matrix<N, M, T>::zero();
+        
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i,j) = A(i,j) * B(i,j);
+            }
+        }
+
+        return output;
+    }
+
+
+/**
+ *  @brief Compute the matrix exponential approximation of a matrix
+ *  @param A Matrix to exponentiate
+ *  @param terms Number of terms to approximate with
+ */
+template<uint8_t N, typename T = float>
+    constexpr Matrix<N, N, T> exp(const Matrix<N, N, T> &A, uint8_t terms = MATRIX_DEFAULT_EXP_TERMS) {
+        Matrix<N, N, T> output = Matrix<N, N, T>::zero();
+        float powA = Matrix<N, N, T>::eye();
+        float fact = 1;
+
+        for(uint8_t i = 0; i < terms; i++) {
+            output += static_cast<T>(1.0f/fact) * powA;
+            powA *= A;
+            fact *= (i+1);
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Compute the left moore-penrose psuedo inverse of a matrix
+ *  @param A Matrix to pseudo-invert
+ *  @param Ainv Inverted output Matrix
+ *  @return `true` if inversion succeeds, `false` if A is not-full column rank.
+ * 
+ *  DLS method is used to handle possible singular value A.
+ *  
+ *  @note Return value should not be ignored and handled properly if A is not-full column rank
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    [[nodiscard]] constexpr bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
+        static_assert(N >= M, "Left pseudo-inverse onlt works for 'tall' matricies, not 'wide'.");
+
+        Matrix<N,N> U;
+        Matrix<N,M> S;
+        Matrix<M,M> V;
+        svd(A, U, S, V);
+        T sMax = S(0,0);
+        T sMin = S(M-1,M-1);
+        T lambda = static_cast<T>(MATRIX_PSEUDO_K) * (1 - sMin/sMax);
+
+        Matrix<M,N,T> At = transpose(A);
+        Matrix<M,M,T> sym = (At*A + (lambda*lambda)*Matrix<M,M,T>::eye());
+        Matrix<M,M,T> AtAinv;
+
+        if(!inv(sym, AtAinv)) { return false; }
+ 
+        Ainv = AtAinv * At;
+
+        return true;
+    }
+
+/**
+ *  @brief Compute the right moore-penrose psuedo inverse of a matrix
+ *  @param A Matrix to pseudo-invert
+ *  @param Ainv Inverted output Matrix
+ *  @return `true` if inversion succeeds, `false` if A is not-full row rank.
+ * 
+ *  DLS method is used to handle possible singular value A.
+ *  
+ *  @note Return value should not be ignored and handled properly if A is not-full row rank
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    [[nodiscard]] constexpr bool pseudoR(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
+        static_assert(M >= N, "Right pseudo-inverse onlt works for 'wide' matricies, not 'tall'.");
+
+        Matrix<N,N> U;
+        Matrix<N,M> S;
+        Matrix<M,M> V;
+        svd(A, U, S, V);
+        T sMax = S(0,0);
+        T sMin = S(M-1,M-1);
+        T lambda = static_cast<T>(MATRIX_PSEUDO_K) * (1 - sMin/sMax);
+
+        Matrix<M,N,T> At = transpose(A);
+        Matrix<M,M,T> sym = (A*At + (lambda*lambda)*Matrix<M,M,T>::eye());
+        Matrix<M,M,T> AAtinv;
+
+        if(!inv(sym, AAtinv)) { return false; }
+ 
+        Ainv = At * AAtinv;
+
+        return true;
+    }
+
 /**
  *  @brief Extract eigenvalue and eigenvectors of a symmetric matrix
  * 
@@ -142,7 +246,7 @@ template<uint8_t N, uint8_t M, typename T = float>
         Matrix<N, M, T> AV = A * V;
 
         for(uint8_t j = 0; j < M; j++) {
-            if(static_cast<float>(sig[j]) > MATRIX_ZERO_THRESHOLD) {
+            if(static_cast<float>(sig[j]) > MATRIX_EQUAL_THRESHOLD) {
                 for(uint8_t i = 0; i < N; i++) {
                     U(i, j) = AV(i, j) / sig[j];
                 }
@@ -213,38 +317,101 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute the QR-decomposion of a matrix.
+ *  @brief Compute the QR-decomposition of a matrix.
  * 
- *  Decomposes `A` into orthonormal `Q` & upper triangular `R` matricies such that A = QR. 
+ *  Decomposes `A` into orthonormal `Q` (NxN) & upper triangular `R` (NxM) such that A = QR. 
  * 
- *  @param A Matrix to QR-decompose.
- *  @param Q Orthonormal matrix Q (NxN) decomposion output.
- *  @param R Upper triangular matrix R (NxN) decomposion output.
- *  @return `true` if A's columns were independent, `false` otherwise. Returning false indicates `R` will be singular.
+ *  @param A Matrix to QR-decompose (NxM).
+ *  @param Q Orthonormal matrix Q (NxN) decomposition output.
+ *  @param R Upper triangular matrix R (NxM) decomposition output.
+ *  @return `true` if A's columns were independent, `false` otherwise.
  */
 template<uint8_t N, uint8_t M, typename T = float>
     bool qr(const Matrix<N, M, T> &A, Matrix<N, N, T> &Q, Matrix<N, M, T> &R) {
         
         bool isIndependent = gramSchmidt(A, Q);
 
-        if(!isIndependent) { return false; }
+        R = transpose(Q) * A;
 
-        R =  transpose(Q) * A;
-
-        return true;
+        return isIndependent;
     }
 
 /**
- *  @brief Extract a orthonormal set of vectors from a column vector matrix
+ *  @brief Extract a full orthonormal basis from a column vector matrix
  * 
- *  Creates a orthonormal set of vectors from the column vectors of `A` as the column vectors of the output matrix `Q`
+ *  Creates an orthonormal set of vectors from the column vectors of `A` as the 
+ *  first M columns of Q. If M < N, extends to a full orthonormal basis.
  * 
- *  @param A Matrix with column vectors to orthonormalize.
- *  @param Q Output matrix with orthonormal column vectors.
- *  @return `true` if input vectors were linearly independent, `false` otherwise. Returning false indicates `Q` has zero column(s)
+ *  @param A Matrix with column vectors to orthonormalize (NxM).
+ *  @param Q Output matrix with orthonormal columns (NxN).
+ *  @return `true` if input vectors were linearly independent, `false` otherwise.
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    bool gramSchmidt(const Matrix<N, M, T> &A, Matrix<N, M, T> &Q) {
+    bool gramSchmidt(const Matrix<N, M, T> &A, Matrix<N, N, T> &Q) {
+        Q = Matrix<N, N, T>::zero();
+        bool isIndependent = true;
+
+        for(uint8_t j = 0; j < M; j++) {
+            Vector<N, T> vec = toVector(A, j);
+
+            for(uint8_t i = 0; i < j; i++) {
+                Vector<N, T> qi = toVector(Q, i);
+                vec = ortho(vec, qi);
+            }
+
+            vec = normalize(vec);
+
+            if(norm(vec) < MATRIX_EQUAL_THRESHOLD) { isIndependent = false; } // Zero colummn
+
+            for(uint8_t i = 0; i < N; i++) { 
+                Q(i, j) = vec[i];
+            }
+        }
+
+        if(M < N) {
+            for(uint8_t j = M; j < N; j++) {
+                Vector<N, T> vec = Vector<N, T>::zero();
+                vec[j] = static_cast<T>(1);
+
+                for(uint8_t i = 0; i < j; i++) {
+                    Vector<N, T> qi = toVector(Q, i);
+                    vec = ortho(vec, qi);
+                }
+
+                uint8_t attempt = 0;
+                while((norm(vec) < static_cast<T>(MATRIX_EQUAL_THRESHOLD)) && (attempt < N)) {
+                    vec = Vector<N, T>::zero();
+                    vec[(j + attempt) % N] = static_cast<T>(1);
+                    
+                    for(uint8_t i = 0; i < j; i++) {
+                        Vector<N, T> qi = toVector(Q, i);
+                        vec = ortho(vec, qi);
+                    }
+                    attempt++;
+                }
+
+                vec = normalize(vec);
+
+                for(uint8_t i = 0; i < N; i++) { 
+                    Q(i, j) = vec[i]; 
+                }
+            }
+        }
+
+        return isIndependent;
+    }
+
+/**
+ *  @brief Orthonormalize the columns of a matrix (reduced QR)
+ * 
+ *  Creates orthonormal columns from A's columns (NxM output).
+ * 
+ *  @param A Matrix with column vectors to orthonormalize (NxM).
+ *  @param Q Output matrix with orthonormal columns (NxM).
+ *  @return `true` if input vectors were linearly independent.
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    bool gramSchmidtReduced(const Matrix<N, M, T> &A, Matrix<N, M, T> &Q) {
         Q = Matrix<N, M, T>::zero();
         bool isIndependent = true;
 
@@ -252,14 +419,17 @@ template<uint8_t N, uint8_t M, typename T = float>
             Vector<N, T> vec = toVector(A, j);
 
             for(uint8_t i = 0; i < j; i++) {
-                vec = ortho(vec, toVector(Q, i));
+                Vector<N, T> qi = toVector(Q, i);
+                vec = ortho(vec, qi);
             }
 
             vec = normalize(vec);
 
-            if(norm(vec) < MATRIX_ZERO_THRESHOLD) { return isIndependent = false; } // Zero colummn
+            if(norm(vec) < MATRIX_EQUAL_THRESHOLD) { isIndependent = false; } // Zero colummn
 
-            for(uint8_t i = 0; i < N; i++) { Q(i, j) = vec[i]; }
+            for(uint8_t i = 0; i < N; i++) { 
+                Q(i, j) = vec[i];
+            }
         }
 
         return isIndependent;
@@ -287,13 +457,130 @@ template<uint8_t N, uint8_t M, typename T = float>
         return output;
     }
 
+/**
+ *  @brief Get the column of a matrix as a vector
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr inline Vector<N, T> getColumn(const Matrix<N, M, T> &A, uint8_t column = 0) {
+        return toVector(A, column);
+    }
+
+/**
+ *  @brief Get the row of a matrix as a vector
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr inline Vector<M, T> getRow(const Matrix<N, M, T> &A, uint8_t row = 0) {
+        Vector<M, T> output;
+
+        for(uint8_t j = 0; j < M; j++) {
+            output[j] = A(row, j);
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Get the main diagonal of a matrix as a vector
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr inline Vector<(N < M) ?N :M, T> getDiagonal(const Matrix<N, M, T> &A) {
+        constexpr uint8_t minLength = (N < M) ?N :M;
+        Vector<minLength, T> output;
+
+        for(uint8_t i = 0; i < minLength; i++) {
+            output[i] = A(i, i);
+        }
+
+        return output;
+    }
+
 // ---------------- Checks ----------------
 /**
- *  @brief Check if a matrix is singular (det = 0)
+ *  @brief Check if a matrix is the zero matrix
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+constexpr inline bool isZero(const Matrix<N, M, T> &A) {
+    for(uint8_t i = 0; i < N; i++) {
+        for(uint8_t j = 0; j < M; j++) {
+            if(std::abs(A(i,j)) > MATRIX_EQUAL_THRESHOLD) { return false; }
+        }
+    }
+
+    return true;
+}
+
+/**
+ *  @brief Check if a matrix is the identity matrix
+ */
+template<uint8_t N, typename T = float>
+constexpr inline bool isIdentity(const Matrix<N, N, T> &A) {
+    return isZero(A - Matrix<N, N, T>::eye());
+}
+
+/**
+ *  @brief Check if a matrix is symmetric
+ */
+template<uint8_t N, typename T = float>
+constexpr inline bool isSymmetric(const Matrix<N, N, T> &A) {
+    return isZero(A - transpose(A));
+}
+
+/**
+ *  @brief Check if a matrix is orthogonal
+ */
+template<uint8_t N, typename T = float>
+constexpr inline bool isOrthogonal(const Matrix<N, N, T> &A) {
+    return isZero(A*transpose(A));
+}
+
+/**
+ *  @brief Check if a matrix is diagonal
+ */
+template<uint8_t N, typename T = float>
+constexpr inline bool isDiagonal(const Matrix<N, N, T> &A) {
+    return isZero(A - Matrix<N, N, T>::diagonal(getDiagonal(A)));
+}
+
+/**
+ *  @brief Check if a matrix is singular
  */
 template<uint8_t N, typename T = float>
 constexpr inline bool isSingular(const Matrix<N, N, T> &A) {
     return (std::abs(det(A)) < MATRIX_EQUAL_THRESHOLD);
+}
+
+/**
+ *  @brief Check if a matrix is positive definite
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+constexpr inline bool isPD(const Matrix<N, M, T> &A) {
+    Matrix<N, N, T> U;
+    Matrix<N, M, T> S;
+    Matrix<M, M, T> V;
+    svd(A, U, S, V);
+
+
+    for(uint8_t i = 0; i < M; i++) {
+        if(S(i,i) <= MATRIX_EQUAL_THRESHOLD) { return false;}
+    }
+    return true;
+}
+
+/**
+ *  @brief Check if a matrix is positive semi-definite
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+constexpr inline bool isPSD(const Matrix<N, M, T> &A) {
+    Matrix<N, N, T> U;
+    Matrix<N, M, T> S;
+    Matrix<M, M, T> V;
+    svd(A, U, S, V);
+
+
+    for(uint8_t i = 0; i < M; i++) {
+        if(S(i,i) < MATRIX_EQUAL_THRESHOLD) { return false;}
+    }
+    return true;
 }
 
 } // cobalt::math::linear_algebra
