@@ -269,7 +269,7 @@ struct Matrix {
 
                 for(uint8_t i = 0; i < R; i++) {
                     for(uint8_t j = 0; j < C; j++) {
-                        output(i, j) = data_[(i+r0)*M + (j+c0)];
+                        output(i, j) = ((i+r0)*M + (j+c0) < N*M) ?data_[(i+r0)*M + (j+c0)] :static_cast<T>(0.0f);
                     }
                 }
 

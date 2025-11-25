@@ -126,7 +126,7 @@ template<uint8_t N, typename T = float>
                 Matrix<N, N, T> L, U;
                 Vector<N, T> P;
 
-                if(!lu(A, L, U, P)) { output = static_cast<T>(0); break; } // Singualr => det(A) = 0
+                if(!lu(A, L, U, P)) { output = static_cast<T>(0); } // Singualr => det(A) = 0
 
                 uint8_t swapCount = 0;
                 std::array<bool, N> visited{false};
@@ -294,7 +294,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param c Power of the matrix
  */
 template<uint8_t N, typename T = float>
-    constexpr T pow(const Matrix<N, N, T> &A, uint8_t c) {
+    constexpr Matrix<N, N, T> pow(const Matrix<N, N, T> &A, uint8_t c) {
         Matrix<N, N, T> output = Matrix<N, N, T>::eye();
 
         for(uint8_t i = 0; i < c; i++) { output *= A; }

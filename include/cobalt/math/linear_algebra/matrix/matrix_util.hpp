@@ -15,7 +15,7 @@ namespace cobalt::math::linear_algebra {
  *  @brief Compute the hadamard (element-wise) product of two matrices
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> exp(const Matrix<N, M, T> &A, const Matrix<N, M, T> &B) {
+    constexpr Matrix<N, M, T> hadamard(const Matrix<N, M, T> &A, const Matrix<N, M, T> &B) {
         Matrix<N, M, T> output = Matrix<N, M, T>::zero();
         
         for(uint8_t i = 0; i < N; i++) {
