@@ -99,8 +99,8 @@ TEST_CASE("Matrix - Gram-Schmidt Orthonormalization", "[matrix][util]") {
     REQUIRE(success);
     
     // Check orthonormality of columns
-    Vector<3> col0 = toVector(Q, 0);
-    Vector<3> col1 = toVector(Q, 1);
+    Vector<3> col0 = getColumn(Q, 0);
+    Vector<3> col1 = getColumn(Q, 1);
     
     REQUIRE_THAT(norm(col0), Catch::Matchers::WithinAbs(1.0, 1e-5));
     REQUIRE_THAT(norm(col1), Catch::Matchers::WithinAbs(1.0, 1e-5));
@@ -182,8 +182,8 @@ TEST_CASE("Matrix - To Vector Conversion", "[matrix][util]") {
         {3.0f, 6.0f}
     };
     
-    Vector<3> col0 = toVector(m, 0);
-    Vector<3> col1 = toVector(m, 1);
+    Vector<3> col0 = getColumn(m, 0);
+    Vector<3> col1 = getColumn(m, 1);
     
     REQUIRE_THAT(col0[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
     REQUIRE_THAT(col0[1], Catch::Matchers::WithinAbs(2.0, 1e-6));

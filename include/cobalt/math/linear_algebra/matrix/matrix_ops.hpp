@@ -229,7 +229,7 @@ template<uint8_t N, uint8_t M, typename T = float>
         
         uint8_t rankNum = 0;
         for(uint8_t j = 0; j < M; j++) {
-            Vector<N, T> colVec = toVector(Q, j);
+            Vector<N, T> colVec = getColumn(Q, j);
             
             if(norm(colVec) > static_cast<T>(MATRIX_EQUAL_THRESHOLD)) {
                 rankNum++;

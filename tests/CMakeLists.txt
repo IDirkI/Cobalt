@@ -14,8 +14,7 @@ add_executable(cobalt_tests
         ./math/linear_algebra/matrix/matrix_util_test.cpp
 
         # ----- Complex -----
-        #./math/algebra/complex_test.cpp
-        #./math/linear_algebra/complex_vector_test.cpp
+        ./math/algebra/complex/complex_core_test.cpp
 
         # ----- Quaternion -----
         #./math/geometry/quaternion_test.cpp

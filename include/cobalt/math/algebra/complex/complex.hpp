@@ -7,9 +7,6 @@
 namespace cobalt::math::algebra {
 
 constexpr float COMPLEX_EQUAL_THRESHOLD = 1e-5;
-constexpr float COMPLEX_ZERO_THRESHOLD = 1e-12;
-
-constexpr float COMPLEX_DEFAULT_PRECISION = 3;
 
 // --------------------------------------
 //          Complex Number    
@@ -56,7 +53,7 @@ struct Complex {
          *  @param r The norm/magnitude of the complex number
          *  @param theta The argument/angle of the complex number
          */
-        static Complex polar(float r, float theta) noexcept { return Complex(r*cosf(theta), r*sinf(theta)); }
+        static Complex polar(float r, float theta) noexcept { return Complex(r*std::cos(theta), r*std::sin(theta)); }
 
 
         // ---------------- Accessors ----------------
@@ -126,8 +123,12 @@ struct Complex {
          *  @brief Multiply this complex number by another complex number.
          */
         constexpr Complex &operator*=(const Complex &rhs) {
-            re_ = re_*rhs.re_ - im_*rhs.im_;
-            im_ = re_*rhs.im_ + im_*rhs.re_;
+            
+            float tempRe = re_*rhs.re_ - im_*rhs.im_;
+            float tempIm = re_*rhs.im_ + im_*rhs.re_;
+
+            re_ = tempRe;
+            im_ = tempIm;
 
             return *this;
         }
@@ -148,8 +149,11 @@ struct Complex {
         constexpr Complex &operator/=(const Complex &rhs) {
             float denom = rhs.re_*rhs.re_ + rhs.im_*rhs.im_;
             
-            re_ = (re_*rhs.re_ - im_*rhs.im_) / denom;
-            im_ = (re_*rhs.im_ - im_*rhs.re_) / denom;
+            float tempRe = (re_*rhs.re_ + im_*rhs.im_) / denom;
+            float tempIm = (im_*rhs.re_ - re_*rhs.im_) / denom;
+
+            re_ = tempRe;
+            im_ = tempIm;
 
             return *this;
         }

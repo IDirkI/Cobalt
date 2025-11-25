@@ -339,10 +339,10 @@ template<uint8_t N, uint8_t M, typename T = float>
         bool isIndependent = true;
 
         for(uint8_t j = 0; j < M; j++) {
-            Vector<N, T> vec = toVector(A, j);
+            Vector<N, T> vec = getColumn(A, j);
 
             for(uint8_t i = 0; i < j; i++) {
-                Vector<N, T> qi = toVector(Q, i);
+                Vector<N, T> qi = getColumn(Q, i);
                 vec = ortho(vec, qi);
             }
 
@@ -361,7 +361,7 @@ template<uint8_t N, uint8_t M, typename T = float>
                 vec[j] = static_cast<T>(1);
 
                 for(uint8_t i = 0; i < j; i++) {
-                    Vector<N, T> qi = toVector(Q, i);
+                    Vector<N, T> qi = getColumn(Q, i);
                     vec = ortho(vec, qi);
                 }
 
@@ -371,7 +371,7 @@ template<uint8_t N, uint8_t M, typename T = float>
                     vec[(j + attempt) % N] = static_cast<T>(1);
                     
                     for(uint8_t i = 0; i < j; i++) {
-                        Vector<N, T> qi = toVector(Q, i);
+                        Vector<N, T> qi = getColumn(Q, i);
                         vec = ortho(vec, qi);
                     }
                     attempt++;
@@ -403,10 +403,10 @@ template<uint8_t N, uint8_t M, typename T = float>
         bool isIndependent = true;
 
         for(uint8_t j = 0; j < M; j++) {
-            Vector<N, T> vec = toVector(A, j);
+            Vector<N, T> vec = getColumn(A, j);
 
             for(uint8_t i = 0; i < j; i++) {
-                Vector<N, T> qi = toVector(Q, i);
+                Vector<N, T> qi = getColumn(Q, i);
                 vec = ortho(vec, qi);
             }
 
@@ -424,17 +424,46 @@ template<uint8_t N, uint8_t M, typename T = float>
 
 // ---------------- Conversions ----------------
 /**
- *  @brief Convert a matrix into a vector
- * 
- *  Creates a vector out of a matrix(Nx1) or the colummn of a matrix(NxM)
+ *  @brief Convert a matrix into a vector. Row first order
  * 
  *  @param A Matrix to convert to a vector
- *  @param d (optional) Matrix column to convert. Defaults to 0.
- *  @return Vector of size `R`
+ *  @return Vector of size `N*M`
  * 
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Vector<N, T> toVector(const Matrix<N, M, T> &A, uint8_t column = 0) {
+    constexpr Vector<N*M, T> vectorize(const Matrix<N, M, T> &A) {
+        Vector<N*M, T> output;
+
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output[i*M + j] = A(i, j);
+            }   
+        }
+    }
+
+/**
+ *  @brief Convert a vector into a matrix. Row first order
+ * 
+ *  @param v Vector to convert to a matrix
+ *  @return Matrix of size `NxM`
+ * 
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> reshape(const Vector<N*M, T> &v) {
+        Matrix<N, M, T> output;
+
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = v[i*M + j];
+            }   
+        }
+    }
+
+/**
+ *  @brief Get the column of a matrix as a vector
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Vector<N, T> getColumn(const Matrix<N, M, T> &A, uint8_t column = 0) {
         Vector<N, T> output;
 
         for(uint8_t i = 0; i < N; i++) {
@@ -445,18 +474,10 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Get the column of a matrix as a vector
- */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Vector<N, T> getColumn(const Matrix<N, M, T> &A, uint8_t column = 0) {
-        return toVector(A, column);
-    }
-
-/**
  *  @brief Get the row of a matrix as a vector
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Vector<M, T> getRow(const Matrix<N, M, T> &A, uint8_t row = 0) {
+    constexpr Vector<M, T> getRow(const Matrix<N, M, T> &A, uint8_t row = 0) {
         Vector<M, T> output;
 
         for(uint8_t j = 0; j < M; j++) {
@@ -470,7 +491,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @brief Get the main diagonal of a matrix as a vector
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline Vector<(N < M) ?N :M, T> getDiagonal(const Matrix<N, M, T> &A) {
+    constexpr Vector<(N < M) ?N :M, T> getDiagonal(const Matrix<N, M, T> &A) {
         constexpr uint8_t minLength = (N < M) ?N :M;
         Vector<minLength, T> output;
 
@@ -486,7 +507,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @brief Check if a matrix is the zero matrix
  */
 template<uint8_t N, uint8_t M, typename T = float>
-constexpr inline bool isZero(const Matrix<N, M, T> &A) {
+constexpr bool isZero(const Matrix<N, M, T> &A) {
     for(uint8_t i = 0; i < N; i++) {
         for(uint8_t j = 0; j < M; j++) {
             if(std::abs(A(i,j)) > MATRIX_EQUAL_THRESHOLD) { return false; }
@@ -500,7 +521,7 @@ constexpr inline bool isZero(const Matrix<N, M, T> &A) {
  *  @brief Check if a matrix is the identity matrix
  */
 template<uint8_t N, typename T = float>
-constexpr inline bool isIdentity(const Matrix<N, N, T> &A) {
+constexpr bool isIdentity(const Matrix<N, N, T> &A) {
     return isZero(A - Matrix<N, N, T>::eye());
 }
 
@@ -508,7 +529,7 @@ constexpr inline bool isIdentity(const Matrix<N, N, T> &A) {
  *  @brief Check if a matrix is symmetric
  */
 template<uint8_t N, typename T = float>
-constexpr inline bool isSymmetric(const Matrix<N, N, T> &A) {
+constexpr bool isSymmetric(const Matrix<N, N, T> &A) {
     return isZero(A - transpose(A));
 }
 
@@ -516,7 +537,7 @@ constexpr inline bool isSymmetric(const Matrix<N, N, T> &A) {
  *  @brief Check if a matrix is orthogonal
  */
 template<uint8_t N, typename T = float>
-constexpr inline bool isOrthogonal(const Matrix<N, N, T> &A) {
+constexpr bool isOrthogonal(const Matrix<N, N, T> &A) {
     return isZero(A*transpose(A));
 }
 
@@ -524,7 +545,7 @@ constexpr inline bool isOrthogonal(const Matrix<N, N, T> &A) {
  *  @brief Check if a matrix is diagonal
  */
 template<uint8_t N, typename T = float>
-constexpr inline bool isDiagonal(const Matrix<N, N, T> &A) {
+constexpr bool isDiagonal(const Matrix<N, N, T> &A) {
     return isZero(A - Matrix<N, N, T>::diagonal(getDiagonal(A)));
 }
 
@@ -532,42 +553,8 @@ constexpr inline bool isDiagonal(const Matrix<N, N, T> &A) {
  *  @brief Check if a matrix is singular
  */
 template<uint8_t N, typename T = float>
-constexpr inline bool isSingular(const Matrix<N, N, T> &A) {
+constexpr bool isSingular(const Matrix<N, N, T> &A) {
     return (std::abs(det(A)) < MATRIX_EQUAL_THRESHOLD);
-}
-
-/**
- *  @brief Check if a matrix is positive definite
- */
-template<uint8_t N, uint8_t M, typename T = float>
-constexpr inline bool isPD(const Matrix<N, M, T> &A) {
-    Matrix<N, N, T> U;
-    Matrix<N, M, T> S;
-    Matrix<M, M, T> V;
-    svd(A, U, S, V);
-
-
-    for(uint8_t i = 0; i < M; i++) {
-        if(S(i,i) <= MATRIX_EQUAL_THRESHOLD) { return false;}
-    }
-    return true;
-}
-
-/**
- *  @brief Check if a matrix is positive semi-definite
- */
-template<uint8_t N, uint8_t M, typename T = float>
-constexpr inline bool isPSD(const Matrix<N, M, T> &A) {
-    Matrix<N, N, T> U;
-    Matrix<N, M, T> S;
-    Matrix<M, M, T> V;
-    svd(A, U, S, V);
-
-
-    for(uint8_t i = 0; i < M; i++) {
-        if(S(i,i) < MATRIX_EQUAL_THRESHOLD) { return false;}
-    }
-    return true;
 }
 
 } // cobalt::math::linear_algebra
