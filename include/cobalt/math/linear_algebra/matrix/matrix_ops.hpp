@@ -123,27 +123,9 @@ template<uint8_t N, typename T = float>
                 break;
             }
             default: {
-                Matrix<N, N, T> L, U;
-                Vector<N, T> P;
-
-                if(!lu(A, L, U, P)) { output = static_cast<T>(0); } // Singualr => det(A) = 0
-
+                Matrix<N, N, T> L, U, P;
                 uint8_t swapCount = 0;
-                std::array<bool, N> visited{false};
-
-                for(uint8_t i = 0; i < N; i++) {
-                    if(!visited[i]) {
-                        uint8_t cycle = 0;
-                        uint8_t j = i;
-                        while(!visited[j]) {
-                            visited[j] = true;
-                            j = P[j];
-                            cycle++;
-                        }
-
-                        if(cycle > 0) { swapCount += cycle-1; }
-                    }
-                }
+                if(!lu(A, L, U, P, swapCount)) { return static_cast<T>(0.0f); } // Singualr => det(A) = 0
 
                 output = (swapCount % 2 == 0) ?static_cast<T>(1) :static_cast<T>(-1);
                 output *= static_cast<T>(traceProduct(U));
@@ -216,10 +198,9 @@ template<uint8_t N, typename T = float>
                 return true;
             }
             default: { 
-                Matrix<N, N, T> L, U;
-                Vector<N, T> P;
-
-                if(!lu(A, L, U, P)) { return false; } // Singular
+                Matrix<N, N, T> L, U, P;
+                uint8_t swapCount;
+                if(!lu(A, L, U, P, swapCount)) { return false; } // Singular
 
                 for(uint8_t j = 0; j < N; j++) {
                     Vector<N, T> e{}, x{};
@@ -392,37 +373,30 @@ template<uint8_t N, uint8_t M, typename T = float>
  */
 template<uint8_t N, typename T = float>
     [[nodiscard]] inline bool solve(const Matrix<N, N, T> &A, const Vector<N, T> &b, Vector<N, T> &x) {
-        Matrix<N, N, T> L, U;
-        Vector<N, T> P;
+        Matrix<N, N, T> L, U, P;
+        uint8_t swapCount;
         
-        if(!lu(A, L, U, P)) { return false; }    // Singular
+        if(!lu(A, L, U, P, swapCount)) { return false; }    // Singular
 
-        // Solve for Pb = b'
-        Vector<N, T> bp{};
-        for(uint8_t i = 0; i < N; i++) { bp[i] = b[P[i]]; }
-
-        Vector<N, T> y{}; 
-        for(uint8_t i = 0; i < N; i++) { // Solve for L*y = b', frwd sub
-            T sum = static_cast<T>(bp[i]);
-
+        Vector<N, T> pb = P*b;
+        
+        // Forward sub, Ly = Pb
+        Vector<N, T> y;
+        for(uint8_t i = 0; i < N; i++) {
+            T sum = static_cast<T>(0.0f);
             for(uint8_t j = 0; j < i; j++) {
-                sum -= L(i,j) * y[j];
-            }
-
-            y[i] = sum;
+                sum += L(i, j) * y[j];
+            } 
+            y[i] = pb[i] - sum;
         }
 
-         
-        for(int i = N-1; i >= 0; i--) { // Solve for U*x = y, bcwd sub
-            T sum = y[i];
-
+        // Back sub, Ux = y
+        for(int8_t i = N-1; i >= 0; i--) {
+            T sum = static_cast<T>(0.0f);
             for(uint8_t j = i+1; j < N; j++) {
-                sum -= U(i,j) * x[j];
-            }
-
-            if(static_cast<T>(std::abs(U(i, i))) < static_cast<T>(MATRIX_EQUAL_THRESHOLD)) { return false; } // Singular
-
-            x[i] = sum / U(i, i);
+                sum += U(i, j) * x[j];
+            } 
+            x[i] = (y[i] - sum) / U(i, i);
         }
 
         return true;

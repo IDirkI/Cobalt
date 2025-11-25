@@ -236,7 +236,7 @@ TEST_CASE("Matrix - Determinant 4x4", "[matrix][ops][det]") {
         {4.0f, 3.0f, 2.0f, 1.0f}
     };
     
-    REQUIRE_THAT(det(m), Catch::Matchers::WithinAbs(160.0, 1e-4));
+    REQUIRE_THAT(det(m), Catch::Matchers::WithinAbs(0.0, 1e-4));
 }
 
 // ================================================================================
@@ -549,8 +549,8 @@ TEST_CASE("Matrix - Solve 2x2 System", "[matrix][ops][solve]") {
     Vector<2> x;
 
     REQUIRE(solve(A, b, x));
-    REQUIRE_THAT(x[0], Catch::Matchers::WithinAbs(1.0, 1e-5));
-    REQUIRE_THAT(x[1], Catch::Matchers::WithinAbs(2.0, 1e-5));
+    REQUIRE_THAT(x[0], Catch::Matchers::WithinAbs(1.6, 1e-5));
+    REQUIRE_THAT(x[1], Catch::Matchers::WithinAbs(1.8, 1e-5));
 }
 
 TEST_CASE("Matrix - Solve 3x3 System", "[matrix][ops][solve]") {

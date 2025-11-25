@@ -51,7 +51,7 @@ template<uint8_t N, typename T = float>
 /**
  *  @brief Compute the left moore-penrose psuedo inverse of a matrix
  *  @param A Matrix to pseudo-invert
- *  @param Ainv Inverted output Matrix
+ *  @param Apinv Inverted output Matrix
  *  @return `true` if inversion succeeds, `false` if A is not-full column rank.
  * 
  *  DLS method is used to handle possible singular value A.
@@ -59,24 +59,16 @@ template<uint8_t N, typename T = float>
  *  @note Return value should not be ignored and handled properly if A is not-full column rank
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    [[nodiscard]] constexpr bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
+    [[nodiscard]] constexpr bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Apinv) {
         static_assert(N >= M, "Left pseudo-inverse onlt works for 'tall' matricies, not 'wide'.");
 
-        Matrix<N,N> U;
-        Matrix<N,M> S;
-        Matrix<M,M> V;
-        svd(A, U, S, V);
-        T sMax = S(0,0);
-        T sMin = S(M-1,M-1);
-        T lambda = static_cast<T>(MATRIX_PSEUDO_K) * (1 - sMin/sMax);
-
         Matrix<M,N,T> At = transpose(A);
-        Matrix<M,M,T> sym = (At*A + (lambda*lambda)*Matrix<M,M,T>::eye());
-        Matrix<M,M,T> AtAinv;
+        Matrix<M, M, T> AtA = At * A;
 
-        if(!inv(sym, AtAinv)) { return false; }
- 
-        Ainv = AtAinv * At;
+        Matrix<M, M, T> AtAinv;
+        if(!inv(AtA, AtAinv)) { return false; } // Singular
+
+        Apinv = AtAinv * At;
 
         return true;
     }
@@ -84,7 +76,7 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Compute the right moore-penrose psuedo inverse of a matrix
  *  @param A Matrix to pseudo-invert
- *  @param Ainv Inverted output Matrix
+ *  @param Apinv Inverted output Matrix
  *  @return `true` if inversion succeeds, `false` if A is not-full row rank.
  * 
  *  DLS method is used to handle possible singular value A.
@@ -92,24 +84,16 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Return value should not be ignored and handled properly if A is not-full row rank
  */
 template<uint8_t N, uint8_t M, typename T = float>
-    [[nodiscard]] constexpr bool pseudoR(const Matrix<N, M, T> &A, Matrix<M, N, T> &Ainv) {
+    [[nodiscard]] constexpr bool pseudoR(const Matrix<N, M, T> &A, Matrix<M, N, T> &Apinv) {
         static_assert(M >= N, "Right pseudo-inverse onlt works for 'wide' matricies, not 'tall'.");
 
-        Matrix<N,N> U;
-        Matrix<N,M> S;
-        Matrix<M,M> V;
-        svd(A, U, S, V);
-        T sMax = S(0,0);
-        T sMin = S(M-1,M-1);
-        T lambda = static_cast<T>(MATRIX_PSEUDO_K) * (1 - sMin/sMax);
-
         Matrix<M,N,T> At = transpose(A);
-        Matrix<M,M,T> sym = (A*At + (lambda*lambda)*Matrix<M,M,T>::eye());
-        Matrix<M,M,T> AAtinv;
+        Matrix<N, N, T> AAt = A * At;
 
-        if(!inv(sym, AAtinv)) { return false; }
- 
-        Ainv = At * AAtinv;
+        Matrix<M, M, T> AAtinv;
+        if(!inv(AAt, AAtinv)) { return false; } // Singular
+
+        Apinv = At * AAtinv;
 
         return true;
     }
@@ -264,15 +248,17 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to LU-decompose.
  *  @param L Lower triangular matrix (NxN) decomposion output.
  *  @param U Upper triangular matrix (NxN) decomposion output.
- *  @param P Permutation vector output.
+ *  @param P Permutation matrix output.
  *  @return `true` if decomposision succeeds, `false` if A is signular.
  *  @note Return value should not be ignored and handled properly if A is singular
  */
 template<uint8_t N, typename T = float>
-    [[nodiscard]] bool lu(const Matrix<N, N, T> &A, Matrix<N, N, T> &L, Matrix<N, N, T> &U, Vector<N, T> &P) {
+    [[nodiscard]] bool lu(const Matrix<N, N, T> &A, Matrix<N, N, T> &L, Matrix<N, N, T> &U, Matrix<N, N, T> &P, uint8_t &swapCount) {
+        P = Matrix<N, N, T>::eye();
         L = Matrix<N, N, T>::eye();
         U = A;
-        for(uint8_t i = 0; i < N; i++) P[i] = i;
+
+        swapCount = 0;
         
         for(uint8_t k = 0; k < N; k++) {
             // Get pivot
@@ -291,15 +277,16 @@ template<uint8_t N, typename T = float>
 
             // Swap rows
             if(pivot != k) {
+                swapCount++;
+
                 for(uint8_t j = 0; j < N; j++) {
                     std::swap(U(k, j), U(pivot, j));
+                    std::swap(P(k, j), P(pivot, j));
                 }
 
                 for(uint8_t j = 0; j < k; j++) {
                     std::swap(L(k, j), L(pivot, j));
                 }
-                
-                std::swap(P[k], P[pivot]);
             }
 
             // Elimination

@@ -20,35 +20,26 @@ TEST_CASE("Matrix - LU Decomposition", "[matrix][util]") {
         {4.0f, 3.0f, 3.0f},
         {8.0f, 7.0f, 9.0f}
     };
-    Matrix<3, 3> L, U;
-    Vector<3> P;
+    Matrix<3, 3> L, U, P;
+    uint8_t swapCount;
     
-    bool success = lu(A, L, U, P);
+    bool success = lu(A, L, U, P, swapCount);
     
     REQUIRE(success);
     
     // Reconstruct A with permutation
-    Matrix<3, 3> reconstructed;
-    for(uint8_t i = 0; i < 3; i++) {
-        for(uint8_t j = 0; j < 3; j++) {
-            float sum = 0.0f;
-            for(uint8_t k = 0; k < 3; k++) {
-                sum += L(i, k) * U(k, j);
-            }
-            reconstructed(i, j) = sum;
-        }
-    }
+    Matrix<3, 3> LU = L*U;
+    Matrix<3, 3> PA = P*A;
     
     // Check P*A ≈ L*U (check a few elements)
-    REQUIRE(std::abs(reconstructed(P[0], 0) - A(0, 0)) < 1e-4);
+    REQUIRE(PA(0,0) == LU(0,0));
 }
 
 TEST_CASE("Matrix - LU Decomposition Identity", "[matrix][util]") {
     Matrix<3, 3> A = Matrix<3, 3>::eye();
-    Matrix<3, 3> L, U;
-    Vector<3> P;
-    
-    bool success = lu(A, L, U, P);
+    Matrix<3, 3> L, U, P;
+    uint8_t swapCount;
+    bool success = lu(A, L, U, P, swapCount);
     
     REQUIRE(success);
     REQUIRE(L == Matrix<3, 3>::eye());
@@ -61,10 +52,10 @@ TEST_CASE("Matrix - LU Decomposition Singular", "[matrix][util]") {
         {2.0f, 4.0f, 6.0f},  // Row 2 = 2 * Row 1
         {4.0f, 5.0f, 6.0f}
     };
-    Matrix<3, 3> L, U;
-    Vector<3> P;
-    
-    bool success = lu(A, L, U, P);
+    Matrix<3, 3> L, U, P;
+    uint8_t swapCount;
+
+    bool success = lu(A, L, U, P, swapCount);
     
     REQUIRE_FALSE(success);
 }
