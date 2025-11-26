@@ -36,7 +36,7 @@ template<uint8_t N, uint8_t M, typename T = float>
 template<uint8_t N, typename T = float>
     constexpr Matrix<N, N, T> exp(const Matrix<N, N, T> &A, uint8_t terms = MATRIX_DEFAULT_EXP_TERMS) {
         Matrix<N, N, T> output = Matrix<N, N, T>::zero();
-        float powA = Matrix<N, N, T>::eye();
+        Matrix<N, N, T> powA = Matrix<N, N, T>::eye();
         float fact = 1;
 
         for(uint8_t i = 0; i < terms; i++) {
@@ -90,7 +90,7 @@ template<uint8_t N, uint8_t M, typename T = float>
         Matrix<M,N,T> At = transpose(A);
         Matrix<N, N, T> AAt = A * At;
 
-        Matrix<M, M, T> AAtinv;
+        Matrix<N, N, T> AAtinv;
         if(!inv(AAt, AAtinv)) { return false; } // Singular
 
         Apinv = At * AAtinv;
