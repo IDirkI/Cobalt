@@ -9,7 +9,38 @@
 
 namespace cobalt::math::linear_algebra {
 
-// ---------------- Non-member Utility ----------------
+// ---------------- Clamping ----------------
+/**
+ *  @brief Clamp the elements of a vector between an interval
+ *  @param v Vector to clamp.
+ *  @param min Lower clamp bound.
+ *  @param max Upper clamp bound.
+ *  @return Element wise clamped vector v between [min, max]
+ */
+template<uint8_t N, typename T = float>
+    constexpr Vector<N, T> clamp(const Vector<N, T> &v, T minVal, T maxVal) {
+        Vector<N, T> output;
+        for(uint8_t i = 0; i < N; i++) {
+            if(v[i] > maxVal)       { output[i] = maxVal; }
+            else if(v[i] < minVal)  { output[i] = minVal; }
+            else                    { output[i] = v[i]; }
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Clamp the elements of a vector between the absolute value of max
+ *  @param v Vector to clamp.
+ *  @param max Upper clamp bound.
+ *  @return Element wise clamped vector v between [-max, max]
+ */
+template<uint8_t N, typename T = float>
+    constexpr Vector<N, T> clamp(const Vector<N, T> &v, T maxVal) {
+        return clamp(v, -maxVal, maxVal);
+    }
+
+// ---------------- Element Wise ----------------
 /**
  *  @brief Compute smallest element of a vector
  *  @param v Vector to check.
@@ -43,9 +74,9 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute element wise absolute value on vector
- *  @param v Vector to absolute value.
- *  @return Vector with absolute valued elements
+ *  @brief Compute vector's element wise absolute value
+ *  @param v Vector to abs.
+ *  @return Vector with absolute value of each element of v
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> abs(const Vector<N, T> &v) {
@@ -59,7 +90,7 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Compute vector's element wise sign
- *  @param v Vector to sign check.
+ *  @param v Vector to sign.
  *  @return Vector with sign of each element of v
  */
 template<uint8_t N, typename T = float>
@@ -75,26 +106,9 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Clamp the elements of a vector between an interval
- *  @param v Vector to project.
- *  @param min Lower clamp bound.
- *  @param max Upper clamp bound.
- *  @return Element wise clamped vector v between [min, max]
- */
-template<uint8_t N, typename T = float>
-    constexpr Vector<N, T> clamp(const Vector<N, T> &v, T minVal, T maxVal) {
-        Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
-            if(v[i] > maxVal)       { output[i] = maxVal; }
-            else if(v[i] < minVal)  { output[i] = minVal; }
-            else                    { output[i] = v[i]; }
-        }
-
-        return output;
-    }
-
-/**
- *  @brief Element wise flooring of a vector
+ *  @brief Compute vector's element wise floored value
+ *  @param v Vector to floor.
+ *  @return Vector with floored value of each element of v
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> floor(const Vector<N, T> &v) {
@@ -106,7 +120,9 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Element wise ceiling of a vector
+ *  @brief Compute vector's element wise ceiled value
+ *  @param v Vector to ceil.
+ *  @return Vector with ceiled value of each element of v
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> ceil(const Vector<N, T> &v) {
@@ -119,6 +135,8 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Element wise rounding of a vector
+ *  @param v Vector to round.
+ *  @return Vector with rounded value of each element of v
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> round(const Vector<N, T> &v) {
@@ -132,6 +150,9 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Element wise minimum of two vectors
+ *  @param v First vector.
+ *  @param u Second vector.
+ *  @return Element wise minimum vector.
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> minElements(const Vector<N, T> &v, const Vector<N, T> &u) {
@@ -144,6 +165,9 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Element wise maximum of two vectors
+ *  @param v First vector.
+ *  @param u Second vector.
+ *  @return Element wise maximum vector.
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> maxElements(const Vector<N, T> &v, const Vector<N, T> &u) {
@@ -156,6 +180,8 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Compute index of the minimum element
+ *  @param v Vector to check.
+ *  @return Index of smallest vector element
  */
 template<uint8_t N, typename T = float>
     constexpr uint8_t argmin(const Vector<N, T> &v) {
@@ -172,6 +198,8 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Compute index of the maximum element
+ *  @param v Vector to check.
+ *  @return Index of largest vector element
  */
 template<uint8_t N, typename T = float>
     constexpr uint8_t argmax(const Vector<N, T> &v) {
@@ -187,10 +215,11 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute projection of a 3D-vector on to a plane (plane normal).
+ *  @brief Project vector v onto plane defined by normal n.
  *  @param v Vector to project.
- *  @param n Unit plane normal.
- *  @return Vector v projected onto the plane of n.
+ *  @param n Plane normal.
+ *  @return Projected vector of v onto the plane defined by n.
+ *  @note n should be a unit vector.
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> projectPlane(const Vector<N, T> &v, const Vector<N, T> &n) {
@@ -198,10 +227,11 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute component of one vector orthogonal to another.
- *  @param v Vector to reject.
- *  @param u Vector to reject from.
- *  @return Orthogonal component of v to u.
+ *  @brief Compute orthogonal component of v relative to u.
+ *  @param v Vector to compute orthogonal component of.
+ *  @param u Vector to compute orthogonal component relative to.
+ *  @return Orthogonal component of v relative to u.
+ *  @note If u is the zero vector, returns v.
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> ortho(const Vector<N, T> &v, const Vector<N, T> &u) {
@@ -209,10 +239,11 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute reflection of a vector across a plane normal.
+ *  @brief Reflect vector v about normal n.
  *  @param v Vector to reflect.
- *  @param n Unit plane normal.
- *  @return Reflected vector v relative to the plane of n
+ *  @param n Normal to reflect about.
+ *  @return Reflected vector.
+ *  @note n should be a unit vector.
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> reflect(const Vector<N, T> &v, const Vector<N, T> &n) {
@@ -222,6 +253,7 @@ template<uint8_t N, typename T = float>
 /**
  *  @brief Compute sum of all elements of a vector.
  *  @param v Vector to sum across.
+ *  @return Sum of all elements of v
  */
 template<uint8_t N, typename T = float>
     constexpr T sum(const Vector<N, T> &v) {
@@ -235,6 +267,7 @@ template<uint8_t N, typename T = float>
 /**
  *  @brief Compute product of all elements of a vector.
  *  @param v Vector to multiply across.
+ *  @return Product of all elements of v
  */
 template<uint8_t N, typename T = float>
     constexpr T product(const Vector<N, T> &v) {
@@ -246,7 +279,9 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute mean of all elements of a vector.
+ *  @brief Compute mean/average of all elements of a vector.
+ *  @param v Vector to average across.
+ *  @return Mean/average of all elements of v
  */
 template<uint8_t N, typename T = float>
     constexpr T mean(const Vector<N, T> &v) {
@@ -255,6 +290,9 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Compute variance in all elements of a vector.
+ *  @param v Vector to compute variance of.
+ *  @return Variance of all elements of v
+ *  @note Uses population variance.
  */
 template<uint8_t N, typename T = float>
     constexpr T variance(const Vector<N, T> &v) {
@@ -268,7 +306,10 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute the standard deviation in all elements of a vector.
+ *  @brief Compute standard deviation in all elements of a vector.
+ *  @param v Vector to compute standard deviation of.
+ *  @return Standard deviation of all elements of v
+ *  @note Uses population standard.
  */
 template<uint8_t N, typename T = float>
     constexpr T stdDev(const Vector<N, T> &v) {
@@ -277,6 +318,10 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Compute covariance between two vectors.
+ *  @param v First vector.
+ *  @param u Second vector.
+ *  @return Covariance between v and u
+ *  @note Uses population covariance.
  */
 template<uint8_t N, typename T = float>
     constexpr T covariance(const Vector<N, T> &v, const Vector<N, T> &u) {
@@ -289,12 +334,14 @@ template<uint8_t N, typename T = float>
         return sum/(static_cast<T>(N));
     }
 
+// ---------------- Interpolation ----------------
 /**
  *  @brief Linear interpolation between two vectors.
  *  @param v Start vector.
  *  @param u End vector.
- *  @param t Interpolation factor
- *  @return Interpolated vector between v and u.
+ *  @param t Interpolation factor (0.0 → v, 1.0 → u)
+ *  @return Linearly interpolated vector between v and u.
+ *  @note t is not clamped between 0.0 and 1.0.
  */
 template<uint8_t N, typename T = float>
 constexpr Vector<N, T> lerp(const Vector<N, T> &v, const Vector<N, T> &u, T t) {
@@ -302,11 +349,12 @@ constexpr Vector<N, T> lerp(const Vector<N, T> &v, const Vector<N, T> &u, T t) {
 }
 
 /**
- *  @brief Spherical interpolation between two vectors.
+ *  @brief Spherical linear interpolation between two vectors.
  *  @param v Start vector.
  *  @param u End vector.
  *  @param t Interpolation factor (0.0 → v, 1.0 → u)
  *  @return Spherically interpolated vector between v and u.
+ *  @note Both input vectors are normalized before interpolation.
  */
 template<uint8_t N, typename T = float>
 constexpr Vector<N, T> slerp(Vector<N, T> v, Vector<N, T> u, T t) {
@@ -325,7 +373,9 @@ constexpr Vector<N, T> slerp(Vector<N, T> v, Vector<N, T> u, T t) {
 
 // ---------------- Conversions ----------------
 /**
- *  @brief Convert a vector to std::array.
+ *  @brief Convert a vector to a std::array.
+ *  @param v Vector to convert.
+ *  @return std::array containing the vector elements.
  */
 template<uint8_t N, typename T = float>
 constexpr std::array<T, N> toArray(const Vector<N, T> &v) {
@@ -338,8 +388,10 @@ constexpr std::array<T, N> toArray(const Vector<N, T> &v) {
 }
 
 /**
- *  @brief Construct a skew-symmetric matrix(3x3)from a vector(3).
- *  @param v Vector to turn into a skew-symmetric matrix.
+ *  @brief Convert a 3D vector to a skew-symmetric matrix.
+ *  @param v 3D vector to convert.
+ *  @return 3x3 skew-symmetric matrix corresponding to v.
+ *  @note Only defined for 3D vectors.
  */
 template<typename T = float>
 constexpr Matrix<3, 3, T> toSkew(const Vector<3, T> &v) {
@@ -359,6 +411,7 @@ constexpr Matrix<3, 3, T> toSkew(const Vector<3, T> &v) {
 // ---------------- Checks ----------------
 /**
  *  @brief Check if a vector is normalized
+ *  @return `true` if the vector is normalized, `false` otherwise.
  */
 template<uint8_t N, typename T = float>
 constexpr bool isNormalized(const Vector<N, T> &v) {
@@ -366,7 +419,8 @@ constexpr bool isNormalized(const Vector<N, T> &v) {
 }
 
 /**
- *  @brief Check if a vector is zero
+ *  @brief Check if a vector is the zero vector
+ *  @return `true` if the vector is the zero vector, `false` otherwise.
  */
 template<uint8_t N, typename T = float>
 constexpr bool isZero(const Vector<N, T> &v) {
@@ -375,6 +429,7 @@ constexpr bool isZero(const Vector<N, T> &v) {
 
 /**
  *  @brief Check if two vectors are parallel
+ *  @return `true` if the vectors are parallel, `false` otherwise.
  */
 template<uint8_t N, typename T = float>
 constexpr bool isParallel(const Vector<N, T> &v, const Vector<N, T> &u) {
@@ -386,6 +441,7 @@ constexpr bool isParallel(const Vector<N, T> &v, const Vector<N, T> &u) {
 
 /**
  *  @brief Check if two vectors are orthogonal
+ *  @return `true` if the vectors are orthogonal, `false` otherwise.
  */
 template<uint8_t N, typename T = float>
 constexpr bool isOrthogonal(const Vector<N, T> &v, const Vector<N, T> &u) {
@@ -393,7 +449,8 @@ constexpr bool isOrthogonal(const Vector<N, T> &v, const Vector<N, T> &u) {
 }
 
 /**
- *  @brief Check if a vector's elements are finite numebrs
+ *  @brief Check if all elements of a vector are finite numbers
+ *  @return `true` if all elements are finite, `false` otherwise.
  */
 template<uint8_t N, typename T = float>
 constexpr bool isFinite(const Vector<N, T> &v) {

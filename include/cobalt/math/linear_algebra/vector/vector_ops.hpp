@@ -8,37 +8,37 @@ namespace cobalt::math::linear_algebra {
 
 // ---------------- Non-member Arithmetic Overloads ----------------
 /**
- *  @brief Vector addition.
+ *  @brief Vector addition
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> operator+(Vector<N, T> lhs, const Vector<N, T> &rhs) { lhs += rhs; return lhs; }
 
 /**
- *  @brief Vector subtraction.
+ *  @brief Vector subtraction
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> operator-(Vector<N, T> lhs, const Vector<N, T> &rhs) { lhs -= rhs; return lhs; }
 
 /**
- *  @brief Vector subtraction.
+ *  @brief Vector subtraction
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> operator*(Vector<N, T> v, T c) { v *= c; return v; }
 
 /**
- *  @brief Vector scalar multiplication.
+ *  @brief Vector scalar multiplication
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> operator*(T c, Vector<N, T> v) { return v * c; }
 
 /**
- *  @brief Vector scalar divison.
+ *  @brief Vector scalar divison
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> operator/(Vector<N, T> v, T c) { v /= c; return v; }
 
 /**
- *  @brief Flip the vector. Element wise negation.
+ *  @brief Flip the vector. Element wise negation
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> operator-(Vector<N, T> v) { v *= -1; return v; }
@@ -63,8 +63,8 @@ template<uint8_t N, typename T = float>
 
 // ---------------- Non-member Functions ----------------
 /**
- *  @brief Dot product between two vectors.
- *  @return Scalar dot product.
+ *  @brief Dot product between two vectors
+ *  @return Scalar dot product
  */
 template<uint8_t N, typename T = float>
     constexpr T dot(const Vector<N, T> &v, const Vector<N, T> &u) { 
@@ -76,8 +76,8 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Cross product between two 3D-vectors.
- *  @return Vector cross product.
+ *  @brief Cross product between two 3-vectors
+ *  @return Vector cross product
  */
 template<typename T = float>
     constexpr Vector<3, T> cross(const Vector<3, T> &v, const Vector<3, T> &u) { 
@@ -89,8 +89,8 @@ template<typename T = float>
     }
 
 /**
- *  @brief Hadamard product between two vectors (element wise).
- *  @return Vector hadamard product.
+ *  @brief Hadamard (element wise) product between two vectors
+ *  @return Vector Hadamard product
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> hadamard(const Vector<N, T> &v, const Vector<N, T> &u) { 
@@ -103,7 +103,7 @@ template<uint8_t N, typename T = float>
 
 /**
  *  @brief Triple product between three 3-vectors
- *  @return Scalar `v · (u ⨯ w)`
+ *  @return Scalar triple product (dot(v, cross(u, w)))
  */
 template<typename T = float>
     constexpr T tripleProduct(const Vector<3, T> &v, const Vector<3, T> &u, const Vector<3, T> &w) { 
@@ -112,22 +112,22 @@ template<typename T = float>
 
 
 /**
- *  @brief Compute vector norm.
- *  @return Norm/Magnitude of vector.
+ *  @brief Compute vector norm/magnitude
+ *  @return Norm/magnitude of vector
  */
 template<uint8_t N, typename T = float>
     constexpr float norm(const Vector<N, T> &v) { return std::sqrt(dot(v, v)); }
 
 /**
- *  @brief Compute square of vector norm.
- *  @return Squared norm/magnitude of vector.
+ *  @brief Compute squared vector norm/magnitude
+ *  @return Squared norm/magnitude of vector
  */
 template<uint8_t N, typename T = float>
     constexpr float normSqr(const Vector<N, T> &v) { return dot(v, v); }
 
 /**
- *  @brief Compute normalized vector.
- *  @return Normalized (unit) vector in the same direction as the vector.
+ *  @brief Normalize a vector to unit length
+ *  @return Normalized vector
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> normalize(const Vector<N, T> &v) {
@@ -138,31 +138,30 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute distance between two vectors.
- *  @return Scalar distance between the tips of the vectors.
+ *  @brief Compute the distance between two vectors
+ *  @return Scalar distance between the tips of the vectors
  */
 template<uint8_t N, typename T = float>
     constexpr float distance(const Vector<N, T> &v, const Vector<N, T> &u) { return norm(v - u); }
 
 /**
- *  @brief Compute the distance squared between two vectors.
- *  @return Scalar squared distance between the tips of the vectors.
+ *  @brief Compute the squared distance between two vectors
+ *  @return Squared distance between the tips of the vectors
  */
 template<uint8_t N, typename T = float>
     constexpr float distanceSqr(const Vector<N, T> &v, const Vector<N, T> &u) { return dot(v - u, v - u); }
 
 /**
- *  @brief Compute angle between two vectors.
- *  @return Angle between two vectors in their shared plane (radians)
+ *  @brief Compute the angle between two vectors in radians
+ *  @return Angle between the vectors in radians
  */
 template<uint8_t N, typename T = float>
     constexpr float angle(const Vector<N, T> &v, const Vector<N, T> &u) { return std::acos(dot(v, u)/(norm(v)*norm(u))); }
 
 /**
- *  @brief Compute projection of one vector onto another.
- *  @param v Vector to project.
- *  @param u Vector to project onto.
- *  @return Projected component of v.
+ *  @brief Project vector v onto vector u
+ *  @return Projected vector
+ *  @note If u is the zero vector, returns the zero vector
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> project(const Vector<N, T> &v, const Vector<N, T> &u) {

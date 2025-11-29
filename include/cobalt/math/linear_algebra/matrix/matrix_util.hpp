@@ -9,33 +9,13 @@
 
 namespace cobalt::math::linear_algebra {
 
-// ---------------- Non-member Utility ----------------
-
-/**
- *  @brief Compute the hadamard (element-wise) product of two matrices
- */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> hadamard(const Matrix<N, M, T> &A, const Matrix<N, M, T> &B) {
-        Matrix<N, M, T> output = Matrix<N, M, T>::zero();
-        
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
-                output(i,j) = A(i,j) * B(i,j);
-            }
-        }
-
-        return output;
-    }
-
+// ---------------- Pseudo-Inverse ----------------
 /**
  *  @brief Compute the left moore-penrose psuedo inverse of a matrix
  *  @param A Matrix to pseudo-invert
  *  @param Apinv Inverted output Matrix
- *  @return `true` if inversion succeeds, `false` if A is not-full column rank.
- * 
- *  DLS method is used to handle possible singular value A.
- *  
- *  @note Return value should not be ignored and handled properly if A is not-full column rank
+ *  @return `true` if inversion succeeds, `false` otherwise
+ *  @warning If function returns `false`, Apinv is not modified and is not a valid pseudo-inverse. Return value should be handled properly
  */
 template<uint8_t N, uint8_t M, typename T = float>
     [[nodiscard]] constexpr bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Apinv) {
@@ -56,11 +36,8 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @brief Compute the right moore-penrose psuedo inverse of a matrix
  *  @param A Matrix to pseudo-invert
  *  @param Apinv Inverted output Matrix
- *  @return `true` if inversion succeeds, `false` if A is not-full row rank.
- * 
- *  DLS method is used to handle possible singular value A.
- *  
- *  @note Return value should not be ignored and handled properly if A is not-full row rank
+ *  @return `true` if inversion succeeds, `false` otherwise
+ *  @warning If function returns `false`, Apinv is not modified and is not a valid pseudo-inverse. Return value should be handled properly
  */
 template<uint8_t N, uint8_t M, typename T = float>
     [[nodiscard]] constexpr bool pseudoR(const Matrix<N, M, T> &A, Matrix<M, N, T> &Apinv) {
@@ -77,17 +54,17 @@ template<uint8_t N, uint8_t M, typename T = float>
         return true;
     }
 
+// ---------------- Eigen Val & Vector ----------------
 /**
- *  @brief Extract eigenvalue and eigenvectors of a symmetric matrix
- * 
- * 
- *  @param A Matrix to extract eigenvalue and eigenvectors of.
- *  @param e Vector with eigenvalue elements in decreasing order.
- *  @param V Eigen vector V matrix(NxN) output.
- *  @param maxIterations (optional) The maximum number of iterations to compute for.
- *  @return `iterations` The number of iterations it ran to converge.
- * 
- *  @note `A` has to be symmetric otherwise the results are not correct.
+ *  @brief Compute eigenvalues and eigenvectors of a symmetric matrix using the Jacobi method
+ *  @param A Symmetric matrix to compute eigenvalues/vectors of (modified in-place)
+ *  @param e Eigenvalue vector output
+ *  @param V Eigenvector matrix output
+ *  @param maxIterations (optional) The maximum number of iterations to compute for
+ *  @return `iterations` The number of iterations it ran to converge
+ *  @note A must be symmetric
+ *  @note Eigenvalues are stored in descending order in e, with corresponding eigenvectors in V
+ *  @warning Computationally expensive for large matrices
  */
 template<uint8_t N, typename T>
     size_t jacobi(Matrix<N, N, T> &A, Vector<N, T> &e, Matrix<N, N, T> &V,  size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
@@ -165,19 +142,16 @@ template<uint8_t N, typename T>
         return iteration;
     }
 
+// ---------------- Decompositions ----------------
 /**
- *  @brief Compute the Single Value Decomposion of a matrix.
- * 
- *  Decomposes A into U, Σ & V  matricies such that A = U*Σ*Vᵀ. 
- * 
- *  @param A Matrix to single value decompose.
- *  @param U Orthogonal U matrix(NxN) output
- *  @param S Diagonal eigenvalue Σ matrix(NxM) output
- *  @param V Eigen vector V matrix(MxM) output.
+ *  @brief Compute the Singular Value Decomposition (SVD) of a matrix
+ *  @param A Matrix to compute SVD of
+ *  @param U Left singular vectors (NxN) output
+ *  @param S Singular values (NxM) output
+ *  @param V Right singular vectors (MxM) output
  *  @param maxIterations (optional) The maximum number of iterations to compute for
- * 
- *  @return `iterations` The number of iterations it ran to converge.
- *  @note SVD always converges so it cannot fail.
+ *  @return `iterations` The number of iterations it ran to converge
+ *  @warning Computationally expensive for large matrices
  */
 template<uint8_t N, uint8_t M, typename T = float>
     size_t svd(const Matrix<N, M, T> &A, Matrix<N, N, T> &U, Matrix<N, M, T> &S, Matrix<M, M, T> &V, size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
@@ -220,16 +194,17 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Compute the LU-decomposion of a matrix.
- * 
- *  Decomposes A into L & U matricies such that P*A = L*U. 
- * 
- *  @param A Matrix to LU-decompose.
- *  @param L Lower triangular matrix (NxN) decomposion output.
- *  @param U Upper triangular matrix (NxN) decomposion output.
- *  @param P Permutation matrix output.
- *  @return `true` if decomposision succeeds, `false` if A is signular.
- *  @note Return value should not be ignored and handled properly if A is singular
+ *  @brief Compute the LU-decomposition of a matrix with partial pivoting
+ *  Decomposes `A` into lower triangular `L` and upper triangular `U` matrices such that PA = LU,
+ *  where `P` is a permutation matrix representing row swaps
+ *  @param A Matrix to LU-decompose (NxN)
+ *  @param L Lower triangular matrix L (NxN) decomposition output
+ *  @param U Upper triangular matrix U (NxN) decomposition output
+ *  @param P Permutation matrix P (NxN) decomposition output
+ *  @param swapCount Output number of row swaps performed during decomposition
+ *  @return `true` if A is non-singular and decomposition succeeded, `false` otherwise
+ *  @note Only defined for square matrices
+ *  @warning If function returns `false`, L, U, and P are not modified and do not represent a valid decomposition. Return value should be handled properly
  */
 template<uint8_t N, typename T = float>
     [[nodiscard]] bool lu(const Matrix<N, N, T> &A, Matrix<N, N, T> &L, Matrix<N, N, T> &U, Matrix<N, N, T> &P, uint8_t &swapCount) {
@@ -283,14 +258,12 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute the QR-decomposition of a matrix.
- * 
- *  Decomposes `A` into orthonormal `Q` (NxN) & upper triangular `R` (NxM) such that A = QR. 
- * 
- *  @param A Matrix to QR-decompose (NxM).
- *  @param Q Orthonormal matrix Q (NxN) decomposition output.
- *  @param R Upper triangular matrix R (NxM) decomposition output.
- *  @return `true` if A's columns were independent, `false` otherwise.
+ *  @brief Compute the QR-decomposition of a matrix using the Gram-Schmidt process
+ *  Decomposes `A` into orthogonal matrix `Q` and upper triangular matrix `R` such that A = QR
+ *  @param A Matrix to QR-decompose (NxM)
+ *  @param Q Orthogonal matrix Q (NxN) decomposition output
+ *  @param R Upper triangular matrix R (NxM) decomposition output
+ *  @return `true` if A's columns are linearly independent, `false` otherwise
  */
 template<uint8_t N, uint8_t M, typename T = float>
     bool qr(const Matrix<N, M, T> &A, Matrix<N, N, T> &Q, Matrix<N, M, T> &R) {
@@ -306,11 +279,11 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @brief Extract a full orthonormal basis from a column vector matrix
  * 
  *  Creates an orthonormal set of vectors from the column vectors of `A` as the 
- *  first M columns of Q. If M < N, extends to a full orthonormal basis.
- * 
- *  @param A Matrix with column vectors to orthonormalize (NxM).
- *  @param Q Output matrix with orthonormal columns (NxN).
- *  @return `true` if input vectors were linearly independent, `false` otherwise.
+ *  first M columns of Q. If M < N, extends to a full orthonormal basis
+ *
+ *  @param A Matrix with column vectors to orthonormalize (NxM)
+ *  @param Q Output matrix with orthonormal columns (NxN)
+ *  @return `true` if input vectors were linearly independent, `false` otherwise
  */
 template<uint8_t N, uint8_t M, typename T = float>
     bool gramSchmidt(const Matrix<N, M, T> &A, Matrix<N, N, T> &Q) {
@@ -370,11 +343,11 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Orthonormalize the columns of a matrix (reduced QR)
  * 
- *  Creates orthonormal columns from A's columns (NxM output).
+ *  Creates orthonormal columns from A's columns (NxM output)
  * 
- *  @param A Matrix with column vectors to orthonormalize (NxM).
- *  @param Q Output matrix with orthonormal columns (NxM).
- *  @return `true` if input vectors were linearly independent.
+ *  @param A Matrix with column vectors to orthonormalize (NxM)
+ *  @param Q Output matrix with orthonormal columns (NxM)
+ *  @return `true` if input vectors were linearly independent
  */
 template<uint8_t N, uint8_t M, typename T = float>
     bool gramSchmidtReduced(const Matrix<N, M, T> &A, Matrix<N, M, T> &Q) {
@@ -406,8 +379,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @brief Convert a matrix into a vector. Row first order
  * 
  *  @param A Matrix to convert to a vector
- *  @return Vector of size `N*M`
- * 
+ *  @return Vector of size N*M
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr Vector<N*M, T> vectorize(const Matrix<N, M, T> &A) {
@@ -424,8 +396,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @brief Convert a vector into a matrix. Row first order
  * 
  *  @param v Vector to convert to a matrix
- *  @return Matrix of size `NxM`
- * 
+ *  @return Matrix of size NxM
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr Matrix<N, M, T> reshape(const Vector<N*M, T> &v) {

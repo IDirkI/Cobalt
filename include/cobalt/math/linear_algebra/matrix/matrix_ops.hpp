@@ -103,8 +103,10 @@ template<uint8_t N, uint8_t M, typename T = float>
 
 // ---------------- Non-member Functions ----------------
 /**
- *  @brief Compute determinant of a matrix(NxN)
- *  @param A Matrix to get determinant of
+ *  @brief Compute determinant of a matrix
+ *  @param A Matrix to compute determinant of
+ *  @return Determinant of A
+ *  @note Only defined for square matrices
  */
 template<uint8_t N, typename T = float>
     constexpr T det(const Matrix<N, N, T> &A) {
@@ -137,8 +139,9 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute transpose of a matrix(NxN)
+ *  @brief Compute transpose of a matrix
  *  @param A Matrix to transpose
+ *  @return Transposed matrix A^T 
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr Matrix<M, N, T> transpose(const Matrix<N, M, T> &A) {
@@ -155,10 +158,11 @@ template<uint8_t N, uint8_t M, typename T = float>
 
 /**
  *  @brief Compute inverse of a matrix
- *  @param A Matrix to invert
- *  @param Ainv Inverted output Matrix
- *  @return `true` if inversion succeeds, `false` if A is signular.
- *  @note Return value should not be ignored and handled properly if A is singular
+ *  @param A Matrix to compute inverse of
+ *  @param Ainv Inverse matrix A^-1 output
+ *  @return `true` if A is invertible, `false` otherwise
+ *  @note Only defined for square matrices
+ *  @warning If function returns `false`, Ainv is not modified and is not a valid matrix. Return value should be handled properly.
  */
 template<uint8_t N, typename T = float>
     [[nodiscard]] constexpr bool inv(const Matrix<N, N, T> &A, Matrix<N, N, T> &Ainv) {
@@ -219,8 +223,9 @@ template<uint8_t N, typename T = float>
     }
 
 /**
- *  @brief Compute rank of matrix
- *  @param A Matrix to compute rank of 
+ *  @brief Compute the rank of a matrix
+ *  @param A Matrix to compute rank of
+ *  @return Rank of A
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr uint8_t rank(const Matrix<N, M, T> &A) {
@@ -240,8 +245,9 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Compute matrix trace
- *  @param A Matrix to compute trace of 
+ *  @brief Compute matrix trace (sum of diagonal elements)
+ *  @param A Matrix to compute trace of
+ *  @return Trace of A
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr T trace(const Matrix<N, M, T> &A) {
@@ -255,8 +261,9 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Compute matrix trace product/geometric trace/diagonal product
- *  @param A Matrix to compute trace product of 
+ *  @brief Compute product of a matrix's diagonal elements (trace product)
+ *  @param A Matrix to compute trace product of
+ *  @return Trace product of A
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr T traceProduct(const Matrix<N, M, T> &A) {
@@ -270,9 +277,28 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
+ *  @brief Compute the hadamard (element-wise) product of two matrices
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> hadamard(const Matrix<N, M, T> &A, const Matrix<N, M, T> &B) {
+        Matrix<N, M, T> output = Matrix<N, M, T>::zero();
+        
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i,j) = A(i,j) * B(i,j);
+            }
+        }
+
+        return output;
+    }
+
+/**
  *  @brief Compute the matrix logarithm approximation of a matrix
  *  @param A Matrix to logarithmize
  *  @param terms Number of terms to approximate with
+ *  @return Matrix logarithm of A
+ *  @note Only defined for square matrices
+ *  @warning Converges only for matrices where ||A - I|| < 1
  */
 template<uint8_t N, typename T = float>
     constexpr Matrix<N, N, T> log(const Matrix<N, N, T> &A, uint16_t terms = MATRIX_DEFAULT_LOG_TERMS) {
@@ -293,6 +319,8 @@ template<uint8_t N, typename T = float>
  *  @brief Compute the matrix exponential approximation of a matrix
  *  @param A Matrix to exponentiate
  *  @param terms Number of terms to approximate with
+ *  @return Matrix exponential of A
+ *  @note Only defined for square matrices
  */
 template<uint8_t N, typename T = float>
     constexpr Matrix<N, N, T> exp(const Matrix<N, N, T> &A, uint16_t terms = MATRIX_DEFAULT_EXP_TERMS) {
@@ -311,9 +339,13 @@ template<uint8_t N, typename T = float>
 
 
 /**
- *  @brief Compute the power of a matrix
+ *  @brief Compute the matrix power of a matrix raised to a scalar exponent
  *  @param A Matrix to exponentiate
- *  @param c Power to raise matrix to
+ *  @param c Scalar exponent
+ *  @param terms Number of terms to approximate with
+ *  @return Matrix A raised to the power of c
+ *  @note Only defined for square matrices
+ *  @warning Converges only for matrices where ||A - I|| < 1
  */
 template<uint8_t N, typename T = float>
     constexpr Matrix<N, N, T> pow(const Matrix<N, N, T> &A, float c, uint16_t terms = MATRIX_DEFAULT_POW_TERMS) {
@@ -321,7 +353,29 @@ template<uint8_t N, typename T = float>
     }
 
 /**
+ *  @brief Compute the matrix power of a matrix raised to an integer exponent
+ *  @param A Matrix to exponentiate
+ *  @param n Integer exponent (>= 0)
+ *  @param terms Number of terms to approximate with
+ *  @return Matrix A raised to the power of n
+ *  @note Only defined for square matrices
+ */
+template<uint8_t N, typename T = float>
+    constexpr Matrix<N, N, T> powInt(const Matrix<N, N, T> &A, uint16_t n, uint16_t terms = MATRIX_DEFAULT_POW_TERMS) {
+        Matrix<N, N, T> output = Matrix<N, N, T>::eye();
+        Matrix<N, N, T> powA = A;
+        
+        for(uint8_t i = 0; i < n; i++) {
+            output *= powA;
+        }
+
+        return output;
+    }
+
+/**
  *  @brief Compute the Frobenius norm of a matrix
+ *  @param A Matrix to compute Frobenius norm of
+ *  @return Frobenius norm of A
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr T normFrobenius(const Matrix<N, M, T> &A) {
@@ -337,7 +391,9 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Compute the inf-norm of a matrix (Largest row sum)
+ *  @brief Compute the infinity norm of a matrix (Largest row sum)
+ *  @param A Matrix to compute infinity norm of
+ *  @return Infinity norm of A
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr T normInf(const Matrix<N, M, T> &A) {
@@ -355,7 +411,9 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Compute the 1-norm of a matrix (Largest column sum)
+ *  @brief Compute the infinity norm of a matrix (Largest row sum)
+ *  @param A Matrix to compute infinity norm of
+ *  @return Infinity norm of A
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr T norm1(const Matrix<N, M, T> &A) {
@@ -373,7 +431,11 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Compute the 2-norm of a matrix (Largest singular value)
+ *  @brief Compute the 2-norm (spectral norm) of a matrix
+ *  @param A Matrix to compute 2-norm of
+ *  @return 2-norm of A
+ *  @note Computed via singular value decomposition (SVD)
+ *  @warning Computationally expensive for large matrices
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr T norm2(const Matrix<N, M, T> &A) {
@@ -387,6 +449,10 @@ template<uint8_t N, uint8_t M, typename T = float>
 
 /**
  *  @brief Compute the condition number of a matrix
+ *  @param A Matrix to compute condition number of
+ *  @return Condition number of A
+ *  @note Computed via singular value decomposition (SVD)
+ *  @warning Computationally expensive for large matrices
  */
 template<uint8_t N, uint8_t M, typename T = float>
     constexpr T conditionNum(const Matrix<N, M, T> &A) {
@@ -400,12 +466,13 @@ template<uint8_t N, uint8_t M, typename T = float>
 
 
 /**
- *  @brief Solve the linear system A * x = b.
- *  @param A Coefficient matrix.
- *  @param b Right-hand side vector.
- *  @param x Output, solution vector.
- *  @return Whether the solution was successful. If not, A is singular thus no composion is possible.
- *  @note Return value should not be ignored and handled properly if A is singular.
+ *  @brief Solve the linear system Ax = b using LU decomposition
+ *  @param A Coefficient matrix
+ *  @param b Right-hand side vector
+ *  @param x Solution vector output
+ *  @return `true` if the system has a unique solution, `false` otherwise
+ *  @note Only defined for square matrices
+ *  @warning If function returns `false`, x is not modified and is not a valid solution. Return value should be handled properly.
  */
 template<uint8_t N, typename T = float>
     [[nodiscard]] inline bool solve(const Matrix<N, N, T> &A, const Vector<N, T> &b, Vector<N, T> &x) {

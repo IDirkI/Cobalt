@@ -21,6 +21,7 @@ add_executable(cobalt_tests
         ## ----- Quaternion -----
         ./math/geometry/quaternion/quaternion_core_test.cpp
         ./math/geometry/quaternion/quaternion_ops_test.cpp
+        ./math/geometry/quaternion/quaternion_util_test.cpp
 
         ## ----- Transform -----
         #./math/geometry/transform_test.cpp

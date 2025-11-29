@@ -12,6 +12,8 @@ namespace cobalt::math::geometry {
 
 constexpr float QUATERNION_EQUAL_THRESHOLD = 1e-5;
 
+constexpr float QUATERNION_SLERP_THRESHOLD = 0.9995;
+
 // --------------------------------------
 //             Quaternion    
 // --------------------------------------
@@ -36,7 +38,7 @@ struct Quaternion {
          *  @param y Second imaginary part
          */
         template<typename T = float>
-        Quaternion(T w, T x = 0.0f, T y = 0.0f, T z = 0.0f) noexcept : w_(static_cast<float>(w)), x_(static_cast<float>(x)), y_(static_cast<float>(y)), z_(static_cast<float>(z)) {}
+        Quaternion(T w, T x = static_cast<T>(0.0f), T y = static_cast<T>(0.0f), T z = static_cast<T>(0.0f)) noexcept : w_(static_cast<float>(w)), x_(static_cast<float>(x)), y_(static_cast<float>(y)), z_(static_cast<float>(z)) {}
 
         /**
          *  @brief Constructor from a complex number (sets j and k components to zero)

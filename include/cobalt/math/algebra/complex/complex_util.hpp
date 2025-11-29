@@ -29,6 +29,7 @@ inline Complex clampMagnitude(const Complex &z, float maxMagnitude) {
 
 /**
  *  @brief Round the real and imaginary parts of a complex number
+ *  @param z Complex number to round
  */
 inline Complex round(const Complex &z) {
     return Complex(std::round(z.real()), std::round(z.imag()));
@@ -36,6 +37,7 @@ inline Complex round(const Complex &z) {
 
 /**
  *  @brief Ceil the real and imaginary parts of a complex number
+ *  @param z Complex number to ceil
  */
 inline Complex ceil(const Complex &z) {
     return Complex(std::ceil(z.real()), std::ceil(z.imag()));
@@ -43,19 +45,21 @@ inline Complex ceil(const Complex &z) {
 
 /**
  *  @brief Floor the real and imaginary parts of a complex number
+ *  @param z Complex number to floor
  */
 inline Complex floor(const Complex &z) {
     return Complex(std::floor(z.real()), std::floor(z.imag()));
 }
 
 /**
- *  @brief Sets the real and imaginary parts of a complex number to a clean zero if they are very close to zero
+ *  @brief Sets the components of a complex number to a clean zero if they are very close to zero
+ *  @param z Complex number to clean
  */
 inline Complex cleanZero(const Complex &z) {
-    float re = (std::abs(z.real()) < COMPLEX_EQUAL_THRESHOLD) ?0.0f :z.real();
-    float im = (std::abs(z.imag()) < COMPLEX_EQUAL_THRESHOLD) ?0.0f :z.imag();
-
-    return Complex(re, im);
+    return Complex(
+        (std::abs(z.real()) < COMPLEX_EQUAL_THRESHOLD) ?0.0f :z.real(),
+        (std::abs(z.imag()) < COMPLEX_EQUAL_THRESHOLD) ?0.0f :z.imag()
+    );
 }
 
 // ---------------- Math Extention ----------------
