@@ -21,9 +21,7 @@ template<uint8_t N, typename T = float>
     constexpr Vector<N, T> clamp(const Vector<N, T> &v, T minVal, T maxVal) {
         Vector<N, T> output;
         for(uint8_t i = 0; i < N; i++) {
-            if(v[i] > maxVal)       { output[i] = maxVal; }
-            else if(v[i] < minVal)  { output[i] = minVal; }
-            else                    { output[i] = v[i]; }
+            output[i] = (v[i] > maxVal) ?maxVal :((v[i] < minVal) ?minVal :v[i]);
         }
 
         return output;
@@ -82,7 +80,7 @@ template<uint8_t N, typename T = float>
     constexpr Vector<N, T> abs(const Vector<N, T> &v) {
         Vector<N, T> output;
         for(uint8_t i = 0; i < N; i++) {
-            output[i] = (v[i] >= static_cast<T>(0.0f)) ?v[i] :-v[i];
+            output[i] = std::abs(v[i]);
         }
 
         return output;
@@ -97,9 +95,7 @@ template<uint8_t N, typename T = float>
     constexpr Vector<N, T> sign(const Vector<N, T> &v) {
         Vector<N, T> output;
         for(uint8_t i = 0; i < N; i++) {
-            if(v[i] > static_cast<T>(0.0f))         { output[i] = static_cast<T>(1); }
-            else if(v[i] < static_cast<T>(0.0f))    { output[i] = static_cast<T>(-1); }
-            else                                    { output[i] = static_cast<T>(0); }
+            output[i] = (std::abs(v[i]) < VECTOR_EQUAL_THRESHOLD) ?static_cast<T>(0.0f) :((v[i] > 0) ?static_cast<T>(1.0f) :static_cast<T>(-1.0f));
         }
 
         return output;
@@ -112,11 +108,11 @@ template<uint8_t N, typename T = float>
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> floor(const Vector<N, T> &v) {
-        Vector<N, T> res;
+        Vector<N, T> output;
         for(uint8_t i = 0; i < N; i++) {
-            res[i] = std::floor(v[i]);
+            output[i] = std::floor(v[i]);
         }
-        return res;
+        return output;
     }
 
 /**
@@ -126,11 +122,11 @@ template<uint8_t N, typename T = float>
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> ceil(const Vector<N, T> &v) {
-        Vector<N, T> res;
+        Vector<N, T> output;
         for(uint8_t i = 0; i < N; i++) {
-            res[i] = std::ceil(v[i]);
+            output[i] = std::ceil(v[i]);
         }
-        return res;
+        return output;
     }
 
 /**
@@ -140,11 +136,11 @@ template<uint8_t N, typename T = float>
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> round(const Vector<N, T> &v) {
-        Vector<N, T> res;
+        Vector<N, T> output;
         for(uint8_t i = 0; i < N; i++) {
-            res[i] = std::round(v[i]);
+            output[i] = std::round(v[i]);
         }
-        return res;
+        return output;
     }
 
 
@@ -156,11 +152,11 @@ template<uint8_t N, typename T = float>
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> minElements(const Vector<N, T> &v, const Vector<N, T> &u) {
-        Vector<N, T> res;
+        Vector<N, T> output;
         for(uint8_t i = 0; i < N; i++) {
-            res[i] = (v[i] < u[i]) ?v[i] :u[i];
+            output[i] = (v[i] < u[i]) ?v[i] :u[i];
         }
-        return res;
+        return output;
     }
 
 /**
@@ -171,11 +167,11 @@ template<uint8_t N, typename T = float>
  */
 template<uint8_t N, typename T = float>
     constexpr Vector<N, T> maxElements(const Vector<N, T> &v, const Vector<N, T> &u) {
-        Vector<N, T> res;
+        Vector<N, T> output;
         for(uint8_t i = 0; i < N; i++) {
-            res[i] = (v[i] > u[i]) ?v[i] :u[i];
+            output[i] = (v[i] > u[i]) ?v[i] :u[i];
         }
-        return res;
+        return output;
     }
 
 /**

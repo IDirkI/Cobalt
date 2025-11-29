@@ -9,6 +9,159 @@
 
 namespace cobalt::math::linear_algebra {
 
+// ---------------- Clamping ----------------
+/**
+ *  @brief Clamp the elements of a maxtrix between an interval
+ *  @param A Matrix to clamp.
+ *  @param min Lower clamp bound.
+ *  @param max Upper clamp bound.
+ *  @return Element wise clamped matrix A between [min, max]
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> clamp(const Matrix<N, M, T> &A, T minVal, T maxVal) {
+        Matrix<N, M, T> output;
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = (A(i, j) > maxVal) ?maxVal :((A(i, j) < minVal) ?minVal :A(i, j));
+            }
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Clamp the elements of a maxtrix between the absolute value of max
+ *  @param A Matrix to clamp.
+ *  @param max Upper clamp bound.
+ *  @return Element wise clamped matrix A between [-max, max]
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> clamp(const Matrix<N, M, T> &A, T maxVal) {
+        return clamp(A, -maxVal, maxVal);
+    }
+
+// ---------------- Element Wise ----------------
+/**
+ *  @brief Compute smallest element of a matrix
+ *  @param A Matrix to check.
+ *  @return Smallest matrix element
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr T min(const Matrix<N, M, T> &A) {
+        T output = A(0,0);
+
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                if(A(i, j) < output ) { output = A(i, j); }
+            }
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Compute largest element of a matrix
+ *  @param A Matrix to check.
+ *  @return Largest matrix element
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr T max(const Matrix<N, M, T> &A) {
+        T output = A(0,0);
+
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                if(A(i, j) > output ) { output = A(i, j); }
+            }
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Compute matrix's element wise absolute value
+ *  @param A Matrix to abs.
+ *  @return Matrix with absolute value of each element of A
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> abs(const Matrix<N, M, T> &A) {
+        Matrix<N, M, T> output;
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = std::abs(A(i, j));
+            }
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Compute matrix's element wise sign
+ *  @param A Matrix to sign.
+ *  @return Matrix with sign of each element of A
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> sign(const Matrix<N, M, T> &A) {
+        Matrix<N, M, T> output;
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = (std::abs(A(i,j)) < MATRIX_EQUAL_THRESHOLD) ?static_cast<T>(0.0f) :((A(i,j) > 0) ?static_cast<T>(1.0f) :static_cast<T>(-1.0f));
+            }
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Compute matrix's element wise floored value
+ *  @param A Matrix to floor.
+ *  @return Matrix with floored value of each element of A
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> floor(const Matrix<N, M, T> &A) {
+        Matrix<N, M, T> output;
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = std::floor(A(i, j));
+            }
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Compute matrix's element wise ceiled value
+ *  @param A Matrix to ceil.
+ *  @return Matrix with ceiled value of each element of A
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> ceil(const Matrix<N, M, T> &A) {
+        Matrix<N, M, T> output;
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = std::ceil(A(i, j));
+            }
+        }
+
+        return output;
+    }
+
+/**
+ *  @brief Compute matrix's element wise rounded value
+ *  @param A Matrix to round.
+ *  @return Matrix with rounded value of each element of A
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> round(const Matrix<N, M, T> &A) {
+        Matrix<N, M, T> output;
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = std::round(A(i, j));
+            }
+        }
+
+        return output;
+    }
+
 // ---------------- Pseudo-Inverse ----------------
 /**
  *  @brief Compute the left moore-penrose psuedo inverse of a matrix
