@@ -270,19 +270,55 @@ template<uint8_t N, uint8_t M, typename T = float>
     }
 
 /**
- *  @brief Compute power of A to c (A^c)
- *  @param A Matrix to compute power of 
- *  @param c Power of the matrix
+ *  @brief Compute the matrix logarithm approximation of a matrix
+ *  @param A Matrix to logarithmize
+ *  @param terms Number of terms to approximate with
  */
 template<uint8_t N, typename T = float>
-    constexpr Matrix<N, N, T> pow(const Matrix<N, N, T> &A, uint8_t c) {
-        Matrix<N, N, T> output = Matrix<N, N, T>::eye();
+    constexpr Matrix<N, N, T> log(const Matrix<N, N, T> &A, uint16_t terms = MATRIX_DEFAULT_LOG_TERMS) {
+        Matrix<N, N, T> output = Matrix<N, N, T>::zero();
+        Matrix<N, N, T> AmI = A - Matrix<N, N, T>::eye();;
+        Matrix<N, N, T> powAmI = AmI;
 
-        for(uint8_t i = 0; i < c; i++) { output *= A; }
-        
+        for(uint8_t i = 1; i <= terms; i++) {
+            T coeff = (i % 2 == 1) ?static_cast<T>(1.0f/i) :static_cast<T>(-1.0f/i);
+            output += coeff * powAmI;
+            powAmI *= AmI;
+        }
+
         return output;
     }
 
+/**
+ *  @brief Compute the matrix exponential approximation of a matrix
+ *  @param A Matrix to exponentiate
+ *  @param terms Number of terms to approximate with
+ */
+template<uint8_t N, typename T = float>
+    constexpr Matrix<N, N, T> exp(const Matrix<N, N, T> &A, uint16_t terms = MATRIX_DEFAULT_EXP_TERMS) {
+        Matrix<N, N, T> output = Matrix<N, N, T>::zero();
+        Matrix<N, N, T> powA = Matrix<N, N, T>::eye();
+        float fact = 1;
+
+        for(uint8_t i = 0; i < terms; i++) {
+            output += static_cast<T>(1.0f/fact) * powA;
+            powA *= A;
+            fact *= (i+1);
+        }
+
+        return output;
+    }
+
+
+/**
+ *  @brief Compute the power of a matrix
+ *  @param A Matrix to exponentiate
+ *  @param c Power to raise matrix to
+ */
+template<uint8_t N, typename T = float>
+    constexpr Matrix<N, N, T> pow(const Matrix<N, N, T> &A, float c, uint16_t terms = MATRIX_DEFAULT_POW_TERMS) {
+        return exp(log(A, terms) * static_cast<T>(c), terms);
+    }
 
 /**
  *  @brief Compute the Frobenius norm of a matrix

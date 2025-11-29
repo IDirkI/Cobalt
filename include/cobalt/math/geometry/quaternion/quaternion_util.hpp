@@ -28,10 +28,10 @@ inline cobalt::math::linear_algebra::Vector<3> toVector(const Quaternion &q) {
  *  @brief Check if a quaternion is zero (0 + 0i + 0j + 0k)
  */
 bool isZero(const Quaternion &q) { 
-    if(fabsf(q.w()) > QUATERNION_ZERO_THRESHOLD) { return false; }
-    if(fabsf(q.x()) > QUATERNION_ZERO_THRESHOLD) { return false; }
-    if(fabsf(q.y()) > QUATERNION_ZERO_THRESHOLD) { return false; }
-    if(fabsf(q.z()) > QUATERNION_ZERO_THRESHOLD) { return false; }
+    if(fabsf(q.w()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+    if(fabsf(q.x()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+    if(fabsf(q.y()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+    if(fabsf(q.z()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
     return true;
 }
 

@@ -2,36 +2,37 @@
 add_executable(cobalt_tests
     sanity_test.cpp
 
-    # ===== Math =====
-        # ----- Vector -----
-        #./math/linear_algebra/vector/vector_core_test.cpp
-        #./math/linear_algebra/vector/vector_ops_test.cpp
-        #./math/linear_algebra/vector/vector_util_test.cpp
+    ### ===== Math =====
+        ## ----- Vector -----
+        ./math/linear_algebra/vector/vector_core_test.cpp
+        ./math/linear_algebra/vector/vector_ops_test.cpp
+        ./math/linear_algebra/vector/vector_util_test.cpp
 
-        # ----- Matrix -----
-        #./math/linear_algebra/matrix/matrix_core_test.cpp
-        #./math/linear_algebra/matrix/matrix_ops_test.cpp
-        #./math/linear_algebra/matrix/matrix_util_test.cpp
+        ## ----- Matrix -----
+        ./math/linear_algebra/matrix/matrix_core_test.cpp
+        ./math/linear_algebra/matrix/matrix_ops_test.cpp
+        ./math/linear_algebra/matrix/matrix_util_test.cpp
 
-        # ----- Complex -----
+        ## ----- Complex -----
         ./math/algebra/complex/complex_core_test.cpp
         ./math/algebra/complex/complex_ops_test.cpp
         ./math/algebra/complex/complex_util_test.cpp
 
-        # ----- Quaternion -----
-        #./math/geometry/quaternion_test.cpp
+        ## ----- Quaternion -----
+        ./math/geometry/quaternion/quaternion_core_test.cpp
+        ./math/geometry/quaternion/quaternion_ops_test.cpp
 
-        # ----- Transform -----
+        ## ----- Transform -----
         #./math/geometry/transform_test.cpp
 
-    # ===== Control =====
+    ### ===== Control =====
     #./control/controller/pid_test.cpp
 
-    # ===== Kinematics =====
+    ### ===== Kinematics =====
     #./kinematics/kinematics_test.cpp
     #./kinematics/ik_graphic_test.cpp
 
-    # ===== Utility =====
+    ### ===== Utility =====
     #./util/meta_test.cpp
 )
 

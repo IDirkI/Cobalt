@@ -15,6 +15,8 @@ constexpr float   MATRIX_EQUAL_THRESHOLD = 1e-6;
 constexpr float MATRIX_PSEUDO_K= 0.5;
 
 constexpr uint8_t MATRIX_DEFAULT_EXP_TERMS = 20;
+constexpr uint8_t MATRIX_DEFAULT_LOG_TERMS = 20;
+constexpr uint8_t MATRIX_DEFAULT_POW_TERMS = 20;
 constexpr uint8_t MATRIX_DEFAULT_SVD_ITERATIONS = 100;
 
 // --------------------------------------

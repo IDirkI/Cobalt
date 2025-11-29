@@ -27,27 +27,6 @@ template<uint8_t N, uint8_t M, typename T = float>
         return output;
     }
 
-
-/**
- *  @brief Compute the matrix exponential approximation of a matrix
- *  @param A Matrix to exponentiate
- *  @param terms Number of terms to approximate with
- */
-template<uint8_t N, typename T = float>
-    constexpr Matrix<N, N, T> exp(const Matrix<N, N, T> &A, uint8_t terms = MATRIX_DEFAULT_EXP_TERMS) {
-        Matrix<N, N, T> output = Matrix<N, N, T>::zero();
-        Matrix<N, N, T> powA = Matrix<N, N, T>::eye();
-        float fact = 1;
-
-        for(uint8_t i = 0; i < terms; i++) {
-            output += static_cast<T>(1.0f/fact) * powA;
-            powA *= A;
-            fact *= (i+1);
-        }
-
-        return output;
-    }
-
 /**
  *  @brief Compute the left moore-penrose psuedo inverse of a matrix
  *  @param A Matrix to pseudo-invert
