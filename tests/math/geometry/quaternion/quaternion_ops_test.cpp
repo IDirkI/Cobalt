@@ -21,10 +21,10 @@ TEST_CASE("Quaternion - Binary Addition", "[quaternion][ops][binary]") {
     
     Quaternion result = q1 + q2;
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(6.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(8.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(10.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(12.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(6.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(8.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(10.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(12.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Binary Addition Commutativity", "[quaternion][ops][binary]") {
@@ -43,10 +43,10 @@ TEST_CASE("Quaternion - Binary Subtraction", "[quaternion][ops][binary]") {
     
     Quaternion result = q1 - q2;
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(4.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(5.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(6.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(7.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(4.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(5.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(6.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(7.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Binary Subtraction Self", "[quaternion][ops][binary]") {
@@ -54,10 +54,10 @@ TEST_CASE("Quaternion - Binary Subtraction Self", "[quaternion][ops][binary]") {
     
     Quaternion result = q - q;
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Binary Multiplication", "[quaternion][ops][binary]") {
@@ -66,10 +66,10 @@ TEST_CASE("Quaternion - Binary Multiplication", "[quaternion][ops][binary]") {
     
     Quaternion result = qi * qj;  // i * j = k
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Binary Multiplication Quaternion * Scalar", "[quaternion][ops][binary]") {
@@ -77,10 +77,10 @@ TEST_CASE("Quaternion - Binary Multiplication Quaternion * Scalar", "[quaternion
     
     Quaternion result = q * 2.0f;
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(4.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(6.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(8.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(4.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(6.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(8.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Binary Multiplication Scalar * Quaternion", "[quaternion][ops][binary]") {
@@ -88,10 +88,10 @@ TEST_CASE("Quaternion - Binary Multiplication Scalar * Quaternion", "[quaternion
     
     Quaternion result = 2.0f * q;
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(4.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(6.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(8.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(4.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(6.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(8.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Binary Division Quaternion / Scalar", "[quaternion][ops][binary]") {
@@ -99,10 +99,10 @@ TEST_CASE("Quaternion - Binary Division Quaternion / Scalar", "[quaternion][ops]
     
     Quaternion result = q / 2.0f;
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(3.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(4.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(5.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(3.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(4.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(5.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Binary Division Scalar / Quaternion", "[quaternion][ops][binary]") {
@@ -110,10 +110,10 @@ TEST_CASE("Quaternion - Binary Division Scalar / Quaternion", "[quaternion][ops]
     
     Quaternion result = 2.0f / q;
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Unary Negation", "[quaternion][ops][unary]") {
@@ -121,10 +121,10 @@ TEST_CASE("Quaternion - Unary Negation", "[quaternion][ops][unary]") {
     
     Quaternion result = -q;
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(-1.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(-2.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(-3.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(-4.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(-1.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(-2.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(-3.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(-4.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Double Negation", "[quaternion][ops][unary]") {
@@ -161,10 +161,10 @@ TEST_CASE("Quaternion - Conjugate Basic", "[quaternion][ops][conj]") {
     
     Quaternion result = conj(q);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(-2.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(-3.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(-4.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(-2.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(-3.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(-4.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Double Conjugate", "[quaternion][ops][conj]") {
@@ -188,7 +188,7 @@ TEST_CASE("Quaternion - Norm Unit Quaternion", "[quaternion][ops][norm]") {
     
     float result = norm(q);
     
-    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Norm Basic", "[quaternion][ops][norm]") {
@@ -196,7 +196,7 @@ TEST_CASE("Quaternion - Norm Basic", "[quaternion][ops][norm]") {
     
     float result = norm(q);
     
-    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(3.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(3.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Norm Squared", "[quaternion][ops][norm]") {
@@ -204,7 +204,7 @@ TEST_CASE("Quaternion - Norm Squared", "[quaternion][ops][norm]") {
     
     float result = normSqr(q);
     
-    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(9.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(9.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Norm Squared Consistency", "[quaternion][ops][norm]") {
@@ -213,7 +213,7 @@ TEST_CASE("Quaternion - Norm Squared Consistency", "[quaternion][ops][norm]") {
     float n = norm(q);
     float nSq = normSqr(q);
     
-    REQUIRE_THAT(n * n, Catch::Matchers::WithinAbs(nSq, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(n * n, Catch::Matchers::WithinAbs(nSq, 1e-6));
 }
 
 TEST_CASE("Quaternion - Normalize Unit", "[quaternion][ops][normalize]") {
@@ -229,7 +229,7 @@ TEST_CASE("Quaternion - Normalize Creates Unit", "[quaternion][ops][normalize]")
     
     Quaternion result = normalize(q);
     
-    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Normalize Zero Returns Identity", "[quaternion][ops][normalize]") {
@@ -277,7 +277,7 @@ TEST_CASE("Quaternion - Dot Product Same", "[quaternion][ops][dot]") {
     
     float result = dot(q, q);
     
-    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(normSqr(q), QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(normSqr(q), 1e-6));
 }
 
 TEST_CASE("Quaternion - Dot Product Orthogonal", "[quaternion][ops][dot]") {
@@ -286,7 +286,7 @@ TEST_CASE("Quaternion - Dot Product Orthogonal", "[quaternion][ops][dot]") {
     
     float result = dot(q1, q2);
     
-    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Dot Product Commutativity", "[quaternion][ops][dot]") {
@@ -296,7 +296,7 @@ TEST_CASE("Quaternion - Dot Product Commutativity", "[quaternion][ops][dot]") {
     float d1 = dot(q1, q2);
     float d2 = dot(q2, q1);
     
-    REQUIRE_THAT(d1, Catch::Matchers::WithinAbs(d2, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(d1, Catch::Matchers::WithinAbs(d2, 1e-6));
 }
 
 TEST_CASE("Quaternion - Log of Identity", "[quaternion][ops][log]") {
@@ -304,10 +304,10 @@ TEST_CASE("Quaternion - Log of Identity", "[quaternion][ops][log]") {
     
     Quaternion result = log(q);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Exp of Zero", "[quaternion][ops][exp]") {
@@ -315,10 +315,10 @@ TEST_CASE("Quaternion - Exp of Zero", "[quaternion][ops][exp]") {
     
     Quaternion result = exp(q);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Exp Log Inverse", "[quaternion][ops][exp]") {
@@ -371,9 +371,9 @@ TEST_CASE("Quaternion - Rotate Vector Identity", "[quaternion][ops][rotate]") {
     
     Vector<3> result = rotate(q, v);
     
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(v.x(), QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(v.y(), QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(v.z(), QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(v.x(), 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(v.y(), 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(v.z(), 1e-6));
 }
 
 TEST_CASE("Quaternion - Rotate Vector 90-deg Z-Axis", "[quaternion][ops][rotate]") {
@@ -429,7 +429,7 @@ TEST_CASE("Quaternion - Normalized Rotation Preserves Norm", "[quaternion][integ
     Quaternion q(2.0f, 3.0f, 4.0f, 5.0f);
     Quaternion qNorm = normalize(q);
     
-    REQUIRE_THAT(norm(qNorm), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(norm(qNorm), Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Composition of Rotations", "[quaternion][integration]") {

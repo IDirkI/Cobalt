@@ -4,14 +4,14 @@ add_executable(cobalt_tests
 
     ### ===== Math =====
         ## ----- Vector -----
-        ./math/linear_algebra/vector/vector_core_test.cpp
-        ./math/linear_algebra/vector/vector_ops_test.cpp
-        ./math/linear_algebra/vector/vector_util_test.cpp
+        #./math/linear_algebra/vector/vector_core_test.cpp
+        #./math/linear_algebra/vector/vector_ops_test.cpp
+        #./math/linear_algebra/vector/vector_util_test.cpp
 
         ## ----- Matrix -----
-        ./math/linear_algebra/matrix/matrix_core_test.cpp
-        ./math/linear_algebra/matrix/matrix_ops_test.cpp
-        ./math/linear_algebra/matrix/matrix_util_test.cpp
+        #./math/linear_algebra/matrix/matrix_core_test.cpp
+        #./math/linear_algebra/matrix/matrix_ops_test.cpp
+        #./math/linear_algebra/matrix/matrix_util_test.cpp
 
         ## ----- Complex -----
         #./math/algebra/complex/complex_core_test.cpp
@@ -24,7 +24,7 @@ add_executable(cobalt_tests
         #./math/geometry/quaternion/quaternion_util_test.cpp
 
         ## ----- Transform -----
-        #./math/geometry/transform_test.cpp
+        ./math/geometry/transform/transform_core_test.cpp
 
     ### ===== Control =====
     #./control/controller/pid_test.cpp

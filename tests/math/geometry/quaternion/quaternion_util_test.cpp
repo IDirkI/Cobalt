@@ -109,9 +109,9 @@ TEST_CASE("Quaternion - toRotationVector Zero Rotation", "[quaternion][util][con
     
     Vector<3> result = toRotationVector(q);
     
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - toRotationVector Round-Trip", "[quaternion][util][convert]") {
@@ -130,7 +130,7 @@ TEST_CASE("Quaternion - toAngle Identity", "[quaternion][util][convert]") {
     
     float angle = toAngle(q);
     
-    REQUIRE_THAT(angle, Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(angle, Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - toAngle 90 Degrees", "[quaternion][util][convert]") {
@@ -158,7 +158,7 @@ TEST_CASE("Quaternion - toAxis Identity Returns Arbitrary", "[quaternion][util][
     
     // Should return some normalized axis (arbitrary for zero rotation)
     float axisNorm = std::sqrt(axis.x()*axis.x() + axis.y()*axis.y() + axis.z()*axis.z());
-    REQUIRE_THAT(axisNorm, Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(axisNorm, Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - clamp Within Range", "[quaternion][util][clamp]") {
@@ -174,10 +174,10 @@ TEST_CASE("Quaternion - clamp Outside Range", "[quaternion][util][clamp]") {
     
     Quaternion result = clamp(q, 1.5f);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1.5f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(-1.5f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(1.5f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(-1.5f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1.5f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(-1.5f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(1.5f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(-1.5f, 1e-6));
 }
 
 TEST_CASE("Quaternion - round Basic", "[quaternion][util][round]") {
@@ -185,10 +185,10 @@ TEST_CASE("Quaternion - round Basic", "[quaternion][util][round]") {
     
     Quaternion result = round(q);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(2.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(4.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(4.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(2.0f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(2.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(4.0f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(4.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - cleanZero All Below Threshold", "[quaternion][util][round]") {
@@ -204,10 +204,10 @@ TEST_CASE("Quaternion - cleanZero Some Above Threshold", "[quaternion][util][rou
     
     Quaternion result = cleanZero(q);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1e-3f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(2e-3f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1e-3f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(2e-3f, 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - angledDistance Same Rotation", "[quaternion][util][distance]") {
@@ -256,8 +256,8 @@ TEST_CASE("Quaternion - shortestPath Opposite Sign", "[quaternion][util][rotate]
     Quaternion result = shortestPath(q1, q2);
     
     // Should return -q2 (dot product < 0)
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.9f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.1f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.9f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.1f, 1e-6));
 }
 
 TEST_CASE("Quaternion - swingTwist Z-Axis", "[quaternion][util][rotate]") {
@@ -279,9 +279,9 @@ TEST_CASE("Quaternion - toAngularVelocity Static", "[quaternion][util][rotate]")
     Vector<3> omega = angularVelocity(q, qDot);
     
     // No rotation, zero velocity
-    REQUIRE_THAT(omega.x(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(omega.y(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(omega.z(), Catch::Matchers::WithinAbs(0.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(omega.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(omega.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(omega.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - Full Rotation Cycle Check", "[quaternion][integration]") {
@@ -308,7 +308,7 @@ TEST_CASE("Quaternion - Angular Distance Symmetry", "[quaternion][integration]")
     float d1 = angledDistance(q1, q2);
     float d2 = angledDistance(q2, q1);
     
-    REQUIRE_THAT(d1, Catch::Matchers::WithinAbs(d2, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(d1, Catch::Matchers::WithinAbs(d2, 1e-6));
 }
 
 TEST_CASE("Quaternion - Difference Composition", "[quaternion][integration]") {
@@ -327,10 +327,10 @@ TEST_CASE("Quaternion - SLERP Start", "[quaternion][util][interp]") {
     
     Quaternion result = slerp(q1, q2, 0.0f);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(q1.w(), QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(q1.x(), QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(q1.y(), QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(q1.z(), QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(q1.w(), 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(q1.x(), 1e-6));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(q1.y(), 1e-6));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(q1.z(), 1e-6));
 }
 
 TEST_CASE("Quaternion - SLERP End", "[quaternion][util][interp]") {
@@ -360,7 +360,7 @@ TEST_CASE("Quaternion - SLERP Unit Quaternion Output", "[quaternion][util][inter
     
     Quaternion result = slerp(q1, q2, 0.3f);
     
-    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - SLERP Handles Opposite Quaternions", "[quaternion][util][interp]") {
@@ -370,7 +370,7 @@ TEST_CASE("Quaternion - SLERP Handles Opposite Quaternions", "[quaternion][util]
     Quaternion result = slerp(q1, q2, 0.5f);
     
     // Should still produce valid unit quaternion
-    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - SLERP Very Close Quaternions", "[quaternion][util][interp]") {
@@ -380,7 +380,7 @@ TEST_CASE("Quaternion - SLERP Very Close Quaternions", "[quaternion][util][inter
     Quaternion result = slerp(q1, q2, 0.5f);
     
     // Should still work (falls back to lerp)
-    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - SLERP Constant Angular Velocity", "[quaternion][util][interp]") {
@@ -407,7 +407,7 @@ TEST_CASE("Quaternion - NLERP Start", "[quaternion][util][interp]") {
     
     Quaternion result = nlerp(q1, q2, 0.0f);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(q1.w(), QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(q1.w(), 1e-6));
 }
 
 TEST_CASE("Quaternion - NLERP End", "[quaternion][util][interp]") {
@@ -426,7 +426,7 @@ TEST_CASE("Quaternion - NLERP Produces Unit Quaternion", "[quaternion][util][int
     
     Quaternion result = nlerp(q1, q2, 0.5f);
     
-    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - NLERP Similar to SLERP for Small Angles", "[quaternion][util][interp]") {
@@ -452,7 +452,7 @@ TEST_CASE("Quaternion - NLERP Handles Opposite Sign", "[quaternion][util][interp
     Quaternion result = nlerp(q1, q2, 0.5f);
     
     // Should take shorter path
-    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(1.0f, 1e-6));
 }
 
 TEST_CASE("Quaternion - NLERP Multiple Steps", "[quaternion][util][interp]") {
@@ -489,8 +489,8 @@ TEST_CASE("Quaternion - shortestPath Opposite Sign", "[quaternion][util][path]")
     Quaternion result = shortestPath(q1, q2);
     
     // Should return -q2 (dot product < 0)
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.9f, QUATERNION_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.1f, QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(0.9f, 1e-6));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.1f, 1e-6));
 }
 
 TEST_CASE("Quaternion - shortestPath Prevents 360-deg Rotation", "[quaternion][util][path]") {
@@ -512,7 +512,7 @@ TEST_CASE("Quaternion - shortestPath Preserves Magnitude", "[quaternion][util][p
     
     Quaternion result = shortestPath(q1, q2);
     
-    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(norm(q2), QUATERNION_EQUAL_THRESHOLD));
+    REQUIRE_THAT(norm(result), Catch::Matchers::WithinAbs(norm(q2), 1e-6));
 }
 
 TEST_CASE("Quaternion - shortestPath Idempotent", "[quaternion][util][path]") {
@@ -573,7 +573,7 @@ TEST_CASE("Quaternion - clampRotation Preserves Axis", "[quaternion][util][clamp
     // Extract axis from result
     float sinHalf = std::sqrt(1.0f - result.w() * result.w());
     
-    if(sinHalf > QUATERNION_EQUAL_THRESHOLD) {
+    if(sinHalf > 1e-6) {
         Vector<3> resultAxis{
             result.x() / sinHalf,
             result.y() / sinHalf,
