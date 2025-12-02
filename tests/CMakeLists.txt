@@ -25,6 +25,7 @@ add_executable(cobalt_tests
 
         ## ----- Transform -----
         ./math/geometry/transform/transform_core_test.cpp
+        ./math/geometry/transform/transform_ops_test.cpp
 
     ### ===== Control =====
     #./control/controller/pid_test.cpp

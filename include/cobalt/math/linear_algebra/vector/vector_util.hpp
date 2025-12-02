@@ -330,6 +330,21 @@ template<uint8_t N, typename T = float>
         return sum/(static_cast<T>(N));
     }
 
+/**
+ *  @brief Sets the components of a vector to a clean zero if they are very close to zero
+ *  @param v Vector to clean
+ */
+template<uint8_t N, typename T = float>
+    constexpr Vector<N, T> cleanZero(const Vector<N, T> &v) {
+        Vector<N, T> output = Vector<N, T>::zero();
+        
+        for(uint8_t i = 0; i < N; i++) {
+            output[i] = (std::abs(v[i]) < VECTOR_EQUAL_THRESHOLD) ?static_cast<T>(0.0f) :v[i];
+        }
+
+        return output;
+    }
+
 // ---------------- Interpolation ----------------
 /**
  *  @brief Linear interpolation between two vectors.

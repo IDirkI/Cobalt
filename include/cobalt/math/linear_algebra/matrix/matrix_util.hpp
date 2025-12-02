@@ -162,6 +162,23 @@ template<uint8_t N, uint8_t M, typename T = float>
         return output;
     }
 
+/**
+ *  @brief Sets the components of a matrix to a clean zero if they are very close to zero
+ *  @param A Matrix to clean
+ */
+template<uint8_t N, uint8_t M, typename T = float>
+    constexpr Matrix<N, M, T> cleanZero(const Matrix<N, M, T> &A) {
+        Matrix<N, M, T> output = Matrix<N, M, T>::zero();
+        
+        for(uint8_t i = 0; i < N; i++) {
+            for(uint8_t j = 0; j < M; j++) {
+                output(i, j) = (std::abs(A(i, j)) < MATRIX_EQUAL_THRESHOLD) ?static_cast<T>(0.0f) :A(i, j);
+            }
+        }
+
+        return output;
+    }
+
 // ---------------- Pseudo-Inverse ----------------
 /**
  *  @brief Compute the left moore-penrose psuedo inverse of a matrix

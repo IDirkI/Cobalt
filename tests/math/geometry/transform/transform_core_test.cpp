@@ -15,7 +15,7 @@ using namespace cobalt::math::geometry;
 using namespace cobalt::math::linear_algebra;
 
 // ============================================================================
-// Constructor Tests
+// Transform Core Tests (transform.hpp)
 // ============================================================================
 
 TEST_CASE("Transform - Default Constructor Identity", "[transform][core]") {
@@ -44,10 +44,6 @@ TEST_CASE("Transform - Constructor from R and t", "[transform][core]") {
     REQUIRE(T.rotation() == R);
     REQUIRE(T.translation() == t);
 }
-
-// ============================================================================
-// Static Factory Tests
-// ============================================================================
 
 TEST_CASE("Transform - Identity Factory", "[transform][core][factory]") {
     Transform<> T = Transform<>::eye();
@@ -149,10 +145,6 @@ TEST_CASE("Transform - Rotation Z", "[transform][core][factory]") {
     REQUIRE_THAT(result[2], Catch::Matchers::WithinAbs(0.0f, 1e-5f));
 }
 
-// ============================================================================
-// Accessor Tests
-// ============================================================================
-
 TEST_CASE("Transform - Get Rotation", "[transform][core][accessor]") {
     Matrix<3, 3> R = Matrix<3, 3>::eye();
     R(0,1) = 0.5f;
@@ -192,10 +184,6 @@ TEST_CASE("Transform - Set Translation", "[transform][core][accessor]") {
     
     REQUIRE(T.translation() == t);
 }
-
-// ============================================================================
-// Transform Point/Vector Tests
-// ============================================================================
 
 TEST_CASE("Transform - Transform Point Identity", "[transform][core][transform]") {
     Transform<> T = Transform<>::eye();
@@ -249,10 +237,6 @@ TEST_CASE("Transform - Transform Vector Rotation", "[transform][core][transform]
     REQUIRE_THAT(result[0], Catch::Matchers::WithinAbs(0.0f, 1e-5f));
     REQUIRE_THAT(result[1], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
 }
-
-// ============================================================================
-// Composition Tests
-// ============================================================================
 
 TEST_CASE("Transform - Composition With Identity", "[transform][core][compose]") {
     Vector<3> t = {1.0f, 2.0f, 3.0f};
@@ -311,10 +295,6 @@ TEST_CASE("Transform - Composition Order Matters", "[transform][core][compose]")
     
     REQUIRE(different);
 }
-
-// ============================================================================
-// Integration Tests
-// ============================================================================
 
 TEST_CASE("Transform - Robot Arm Forward Kinematics", "[transform][integration]") {
     // Simple 2-joint planar arm

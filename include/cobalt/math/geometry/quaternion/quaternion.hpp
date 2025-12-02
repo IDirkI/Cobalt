@@ -5,6 +5,9 @@
 #include "../../linear_algebra/vector/vector.hpp"
 #include "../../linear_algebra/vector/vector_ops.hpp"
 
+#include "../../linear_algebra/matrix/matrix.hpp"
+#include "../../linear_algebra/matrix/matrix_ops.hpp"
+
 #include "../../algebra/complex/complex.hpp"
 
 
@@ -61,9 +64,10 @@ struct Quaternion {
             *  @brief Create a purely imaginary quaternion from a 3-Vector
             *   @param v 3-Vector to convert
          */
-        static inline Quaternion pure(const cobalt::math::linear_algebra::Vector<3> &v) {
-            return Quaternion(0.0f, v.x(), v.y(), v.z());
-        }
+        template<typename T>
+            static inline Quaternion pure(const cobalt::math::linear_algebra::Vector<3, T> &v) {
+                return Quaternion(0.0f, v.x(), v.y(), v.z());
+            }
 
         /**
          *  @brief Create a quaternion from an axis-angle representation
@@ -71,26 +75,49 @@ struct Quaternion {
          *  @param angle Rotation angle in radians
          *  @note `axis` is assumed to be normalized
          */
-        static inline Quaternion axisAngle(const cobalt::math::linear_algebra::Vector<3> &axis, float angle) {
-            cobalt::math::linear_algebra::Vector<3> u = normalize(axis);
-            float halfAngle = angle * 0.5f;
-            float s = std::sin(halfAngle);
-            return Quaternion(std::cos(halfAngle), u.x() * s, u.y() * s, u.z() * s);
-        }
+        template<typename T>
+            static inline Quaternion axisAngle(const cobalt::math::linear_algebra::Vector<3, T> &axis, float angle) {
+                cobalt::math::linear_algebra::Vector<3> u = normalize(axis);
+                float halfAngle = angle * 0.5f;
+                float s = std::sin(halfAngle);
+                return Quaternion(std::cos(halfAngle), u.x() * s, u.y() * s, u.z() * s);
+            }
 
         /**
          *  @brief Create a quaternion from an 3-Vector
          *  @param v 3-Vector representing axis-angle rotation
          *  @note The direction of `v` is the rotation axis, and `|v|` is the rotation angle in radians
          */
-        static inline Quaternion rotationVector(const cobalt::math::linear_algebra::Vector<3> &v) {
-            cobalt::math::linear_algebra::Vector<3> axis = normalize(v);
-            float angle = norm(v);
+        template<typename T>
+            static inline Quaternion rotationVector(const cobalt::math::linear_algebra::Vector<3, T> &v) {
+                cobalt::math::linear_algebra::Vector<3> axis = normalize(v);
+                float angle = norm(v);
 
-            if(angle < QUATERNION_EQUAL_THRESHOLD) { return Quaternion::eye(); }
+                if(angle < QUATERNION_EQUAL_THRESHOLD) { return Quaternion::eye(); }
 
-            return axisAngle(axis, angle);
-        }
+                return axisAngle(axis, angle);
+            }
+
+        /**
+         *  @brief Create a quaternion from an 3x3 Rotation Matrix
+         *  @param R 3x3 Rotation matrix 
+         *  @note R must be a proper rotation matrix
+         */
+        template<typename T>
+            static inline Quaternion fromRotationMatrix(const cobalt::math::linear_algebra::Matrix<3,3, T> &R) {
+                T diag = trace(R);
+                float s1 = (R(2,1) - R(1, 2) > 0) ?1.0f :-1.0f;
+                float s2 = (R(0,2) - R(2, 0) > 0) ?1.0f :-1.0f;
+                float s3 = (R(1,0) - R(0, 1) > 0) ?1.0f :-1.0f;
+
+                return Quaternion(
+                    0.5*std::sqrt(static_cast<T>(1) + diag),
+                    0.5*std::sqrt(static_cast<T>(1) + diag)*s1;
+                    0.5*std::sqrt(static_cast<T>(1) - diag)*s2;
+                    0.5*std::sqrt(static_cast<T>(1) - diag)*s3;
+                );
+
+            }
 
         /**
          *  @brief Create a quaternion from Euler angles (roll, pitch, yaw)

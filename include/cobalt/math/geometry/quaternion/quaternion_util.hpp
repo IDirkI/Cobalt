@@ -360,6 +360,19 @@ inline cobalt::math::linear_algebra::Vector<3> toAxis(const Quaternion &q) {
     return cobalt::math::linear_algebra::Vector<3>{qn.x()/s, qn.y()/s, qn.z()/s};
 }
 
+/**
+ *  @brief Convert a quaternion to its euler angles
+ *  @param q Unit quaternion to convert
+*   @note (r,p,y) in ZYX sequence 
+ */
+inline void toEuler(const Quaternion &q, float &roll, float &pitch, float &yaw) {
+    Quaternion qn = normalize(q);
+
+    roll = std::atan2(2*(q.w()*q.x() + q.y()*q.z()), 1 - 2*(q.x()*q.x() + q.y()*q.y()));
+    pitch = std::asin(2*(q.w()*q.y() - q.x()*q.z()));
+    yaw = std::atan2(2*(q.w()*q.z() + q.x()*q.y()), 1 - 2*(q.y()*q.y() + q.z()*q.z()));
+}
+
 // ---------------- Checks ----------------
 /**
  *  @brief Check if a quaternion is zero (0 + 0i + 0j + 0k)
