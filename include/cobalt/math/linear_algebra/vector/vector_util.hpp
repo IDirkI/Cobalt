@@ -17,10 +17,10 @@ namespace cobalt::math::linear_algebra {
  *  @param max Upper clamp bound.
  *  @return Element wise clamped vector v between [min, max]
  */
-template<uint8_t N, typename T = float>
-    constexpr Vector<N, T> clamp(const Vector<N, T> &v, T minVal, T maxVal) {
+template<types::index_t N, typename T = float>
+    constexpr Vector<N, T> clamp(const Vector<N, T> &v, T minVal, T maxVal) noexcept {
         Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = (v[i] > maxVal) ?maxVal :((v[i] < minVal) ?minVal :v[i]);
         }
 
@@ -33,8 +33,8 @@ template<uint8_t N, typename T = float>
  *  @param max Upper clamp bound.
  *  @return Element wise clamped vector v between [-max, max]
  */
-template<uint8_t N, typename T = float>
-    constexpr Vector<N, T> clamp(const Vector<N, T> &v, T maxVal) {
+template<types::index_t N, typename T = float>
+    constexpr Vector<N, T> clamp(const Vector<N, T> &v, T maxVal) noexcept {
         return clamp(v, -maxVal, maxVal);
     }
 
@@ -44,11 +44,11 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to check.
  *  @return Smallest vector element
  */
-template<uint8_t N, typename T = float>
-    constexpr T min(const Vector<N, T> &v) {
+template<types::index_t N, typename T = float>
+    constexpr T min(const Vector<N, T> &v) noexcept {
         T output = v[0];
 
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             if(v[i] < output ) { output = v[i]; }
         }
 
@@ -60,11 +60,11 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to check.
  *  @return Largest vector element
  */
-template<uint8_t N, typename T = float>
-    constexpr T max(const Vector<N, T> &v) {
+template<types::index_t N, typename T = float>
+    constexpr T max(const Vector<N, T> &v) noexcept {
         T output = v[0];
 
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             if(v[i] > output ) { output = v[i]; }
         }
 
@@ -76,10 +76,10 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to abs.
  *  @return Vector with absolute value of each element of v
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> abs(const Vector<N, T> &v) {
         Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = std::abs(v[i]);
         }
 
@@ -91,11 +91,11 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to sign.
  *  @return Vector with sign of each element of v
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> sign(const Vector<N, T> &v) {
         Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
-            output[i] = (std::abs(v[i]) < VECTOR_EQUAL_THRESHOLD) ?static_cast<T>(0.0f) :((v[i] > 0) ?static_cast<T>(1.0f) :static_cast<T>(-1.0f));
+        for(types::index_t i = 0; i < N; i++) {
+            output[i] = (std::abs(v[i]) < VECTOR_EPSILON<T>) ?static_cast<T>(0) :((v[i] > 0) ?static_cast<T>(1) :static_cast<T>(-1));
         }
 
         return output;
@@ -106,10 +106,10 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to floor.
  *  @return Vector with floored value of each element of v
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> floor(const Vector<N, T> &v) {
         Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = std::floor(v[i]);
         }
         return output;
@@ -120,10 +120,10 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to ceil.
  *  @return Vector with ceiled value of each element of v
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> ceil(const Vector<N, T> &v) {
         Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = std::ceil(v[i]);
         }
         return output;
@@ -134,10 +134,10 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to round.
  *  @return Vector with rounded value of each element of v
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> round(const Vector<N, T> &v) {
         Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = std::round(v[i]);
         }
         return output;
@@ -150,10 +150,10 @@ template<uint8_t N, typename T = float>
  *  @param u Second vector.
  *  @return Element wise minimum vector.
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> minElements(const Vector<N, T> &v, const Vector<N, T> &u) {
         Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = (v[i] < u[i]) ?v[i] :u[i];
         }
         return output;
@@ -165,10 +165,10 @@ template<uint8_t N, typename T = float>
  *  @param u Second vector.
  *  @return Element wise maximum vector.
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> maxElements(const Vector<N, T> &v, const Vector<N, T> &u) {
         Vector<N, T> output;
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = (v[i] > u[i]) ?v[i] :u[i];
         }
         return output;
@@ -179,11 +179,11 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to check.
  *  @return Index of smallest vector element
  */
-template<uint8_t N, typename T = float>
-    constexpr uint8_t argmin(const Vector<N, T> &v) {
-        uint8_t index = 0;
+template<types::index_t N, typename T = float>
+    constexpr types::index_t argmin(const Vector<N, T> &v) {
+        types::index_t index = 0;
         T minVal = v[0];
-        for(uint8_t i = 1; i < N; i++) {
+        for(types::index_t i = 1; i < N; i++) {
             if(v[i] < minVal) {
                 minVal = v[i];
                 index = i;
@@ -197,11 +197,11 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to check.
  *  @return Index of largest vector element
  */
-template<uint8_t N, typename T = float>
-    constexpr uint8_t argmax(const Vector<N, T> &v) {
-        uint8_t index = 0;
+template<types::index_t N, typename T = float>
+    constexpr types::index_t argmax(const Vector<N, T> &v) {
+        types::index_t index = 0;
         T maxVal = v[0];
-        for(uint8_t i = 1; i < N; i++) {
+        for(types::index_t i = 1; i < N; i++) {
             if(v[i] > maxVal) {
                 maxVal = v[i];
                 index = i;
@@ -217,7 +217,7 @@ template<uint8_t N, typename T = float>
  *  @return Projected vector of v onto the plane defined by n.
  *  @note n should be a unit vector.
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> projectPlane(const Vector<N, T> &v, const Vector<N, T> &n) {
         return v - dot(v, n)*n;
     }
@@ -229,7 +229,7 @@ template<uint8_t N, typename T = float>
  *  @return Orthogonal component of v relative to u.
  *  @note If u is the zero vector, returns v.
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> ortho(const Vector<N, T> &v, const Vector<N, T> &u) {
         return v - project(v, u);
     }
@@ -241,9 +241,9 @@ template<uint8_t N, typename T = float>
  *  @return Reflected vector.
  *  @note n should be a unit vector.
  */
-template<uint8_t N, typename T = float>
-    constexpr Vector<N, T> reflect(const Vector<N, T> &v, const Vector<N, T> &n) {
-        return v - static_cast<T>(2.0f)*dot(v, n)*n;
+template<types::index_t N, typename T = float>
+    constexpr Vector<N, T> reflect(const Vector<N, T> &v, const Vector<N, T> &n) noexcept {
+        return v - static_cast<T>(2)*dot(v, n)*n;
     }
 
 /**
@@ -251,10 +251,10 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to sum across.
  *  @return Sum of all elements of v
  */
-template<uint8_t N, typename T = float>
-    constexpr T sum(const Vector<N, T> &v) {
+template<types::index_t N, typename T = float>
+    constexpr T sum(const Vector<N, T> &v) noexcept {
         T output = static_cast<T>(0);
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output += v[i];
         } 
         return output;
@@ -265,10 +265,10 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to multiply across.
  *  @return Product of all elements of v
  */
-template<uint8_t N, typename T = float>
-    constexpr T product(const Vector<N, T> &v) {
+template<types::index_t N, typename T = float>
+    constexpr T product(const Vector<N, T> &v) noexcept {
         T output = static_cast<T>(1);
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output *= v[i];
         } 
         return output;
@@ -279,8 +279,8 @@ template<uint8_t N, typename T = float>
  *  @param v Vector to average across.
  *  @return Mean/average of all elements of v
  */
-template<uint8_t N, typename T = float>
-    constexpr T mean(const Vector<N, T> &v) {
+template<types::index_t N, typename T = float>
+    constexpr T mean(const Vector<N, T> &v) noexcept {
         return sum(v)/(static_cast<T>(N));
     }
 
@@ -290,11 +290,11 @@ template<uint8_t N, typename T = float>
  *  @return Variance of all elements of v
  *  @note Uses population variance.
  */
-template<uint8_t N, typename T = float>
-    constexpr T variance(const Vector<N, T> &v) {
+template<types::index_t N, typename T = float>
+    constexpr T variance(const Vector<N, T> &v) noexcept {
         T sqrSum = static_cast<T>(0);
         T m = mean(v);
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             T diff = (v[i] - m);
             sqrSum += diff * diff;
         }
@@ -307,8 +307,8 @@ template<uint8_t N, typename T = float>
  *  @return Standard deviation of all elements of v
  *  @note Uses population standard.
  */
-template<uint8_t N, typename T = float>
-    constexpr T stdDev(const Vector<N, T> &v) {
+template<types::index_t N, typename T = float>
+    constexpr T stdDev(const Vector<N, T> &v) noexcept {
         return std::sqrt(variance(v));
     }
 
@@ -319,12 +319,12 @@ template<uint8_t N, typename T = float>
  *  @return Covariance between v and u
  *  @note Uses population covariance.
  */
-template<uint8_t N, typename T = float>
-    constexpr T covariance(const Vector<N, T> &v, const Vector<N, T> &u) {
+template<types::index_t N, typename T = float>
+    constexpr T covariance(const Vector<N, T> &v, const Vector<N, T> &u) noexcept {
         T sum = static_cast<T>(0);
         T vm = mean(v);
         T um = mean(u);
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             sum += (v[i] - vm)*(u[i] - um);
         }
         return sum/(static_cast<T>(N));
@@ -334,12 +334,12 @@ template<uint8_t N, typename T = float>
  *  @brief Sets the components of a vector to a clean zero if they are very close to zero
  *  @param v Vector to clean
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> cleanZero(const Vector<N, T> &v) {
         Vector<N, T> output = Vector<N, T>::zero();
         
-        for(uint8_t i = 0; i < N; i++) {
-            output[i] = (std::abs(v[i]) < VECTOR_EQUAL_THRESHOLD) ?static_cast<T>(0.0f) :v[i];
+        for(types::index_t i = 0; i < N; i++) {
+            output[i] = (std::abs(v[i]) < VECTOR_EPSILON<T>) ?static_cast<T>(0) :v[i];
         }
 
         return output;
@@ -354,7 +354,7 @@ template<uint8_t N, typename T = float>
  *  @return Linearly interpolated vector between v and u.
  *  @note t is not clamped between 0.0 and 1.0.
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
 constexpr Vector<N, T> lerp(const Vector<N, T> &v, const Vector<N, T> &u, T t) {
     return v*(1.0f - t) + u*t;
 }
@@ -367,15 +367,15 @@ constexpr Vector<N, T> lerp(const Vector<N, T> &v, const Vector<N, T> &u, T t) {
  *  @return Spherically interpolated vector between v and u.
  *  @note Both input vectors are normalized before interpolation.
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
 constexpr Vector<N, T> slerp(Vector<N, T> v, Vector<N, T> u, T t) {
     v = normalize(v);
     u = normalize(u);
 
-    float dotVU = dot(v, u);
+    T dotVU = dot(v, u);
     dotVU = std::clamp(dotVU, -1.0f, 1.0f);
 
-    float theta = std::acos(dotVU) * t;
+    T theta = std::acos(dotVU) * t;
 
     Vector<N, T> relative = normalize(u - v*dotVU);
 
@@ -388,10 +388,10 @@ constexpr Vector<N, T> slerp(Vector<N, T> v, Vector<N, T> u, T t) {
  *  @param v Vector to convert.
  *  @return std::array containing the vector elements.
  */
-template<uint8_t N, typename T = float>
-constexpr std::array<T, N> toArray(const Vector<N, T> &v) {
+template<types::index_t N, typename T = float>
+constexpr std::array<T, N> toArray(const Vector<N, T> &v) noexcept {
     std::array<T, N> arr{};
-    for(uint8_t i = 0; i < N; i++) {
+    for(types::index_t i = 0; i < N; i++) {
         arr[i] = v[i];
     }
 
@@ -405,7 +405,7 @@ constexpr std::array<T, N> toArray(const Vector<N, T> &v) {
  *  @note Only defined for 3D vectors.
  */
 template<typename T = float>
-constexpr Matrix<3, 3, T> toSkew(const Vector<3, T> &v) {
+constexpr Matrix<3, 3, T> toSkew(const Vector<3, T> &v) noexcept {
     Matrix<3, 3, T> output = Matrix<3, 3, T>::zero();
 
     output(0, 1) = -v.z();
@@ -424,48 +424,48 @@ constexpr Matrix<3, 3, T> toSkew(const Vector<3, T> &v) {
  *  @brief Check if a vector is normalized
  *  @return `true` if the vector is normalized, `false` otherwise.
  */
-template<uint8_t N, typename T = float>
-constexpr bool isNormalized(const Vector<N, T> &v) {
-    return (std::abs(norm(v) - static_cast<T>(1.0f)) < VECTOR_EQUAL_THRESHOLD);
+template<types::index_t N, typename T = float>
+constexpr bool isNormalized(const Vector<N, T> &v) noexcept {
+    return (std::abs(norm(v) - static_cast<T>(1)) < VECTOR_EPSILON<T>);
 }
 
 /**
  *  @brief Check if a vector is the zero vector
  *  @return `true` if the vector is the zero vector, `false` otherwise.
  */
-template<uint8_t N, typename T = float>
-constexpr bool isZero(const Vector<N, T> &v) {
-    return (normSqr(v) < (VECTOR_EQUAL_THRESHOLD * VECTOR_EQUAL_THRESHOLD));
+template<types::index_t N, typename T = float>
+constexpr bool isZero(const Vector<N, T> &v) noexcept {
+    return (normSqr(v) < (VECTOR_EPSILON<T> * VECTOR_EPSILON<T>));
 }
 
 /**
  *  @brief Check if two vectors are parallel
  *  @return `true` if the vectors are parallel, `false` otherwise.
  */
-template<uint8_t N, typename T = float>
-constexpr bool isParallel(const Vector<N, T> &v, const Vector<N, T> &u) {
+template<types::index_t N, typename T = float>
+constexpr bool isParallel(const Vector<N, T> &v, const Vector<N, T> &u) noexcept {
     Vector<N, T> vn = normalize(v);
     Vector<N, T> un = normalize(u);
     T prod = std::abs(dot(vn, un));
-    return (std::abs(prod - static_cast<T>(1.0f)) < VECTOR_EQUAL_THRESHOLD);
+    return (std::abs(prod - static_cast<T>(1)) < VECTOR_EPSILON<T>);
 }
 
 /**
  *  @brief Check if two vectors are orthogonal
  *  @return `true` if the vectors are orthogonal, `false` otherwise.
  */
-template<uint8_t N, typename T = float>
-constexpr bool isOrthogonal(const Vector<N, T> &v, const Vector<N, T> &u) {
-    return (std::abs(dot(v, u)) < VECTOR_EQUAL_THRESHOLD);
+template<types::index_t N, typename T = float>
+constexpr bool isOrthogonal(const Vector<N, T> &v, const Vector<N, T> &u) noexcept {
+    return (std::abs(dot(v, u)) < VECTOR_EPSILON<T>);
 }
 
 /**
  *  @brief Check if all elements of a vector are finite numbers
  *  @return `true` if all elements are finite, `false` otherwise.
  */
-template<uint8_t N, typename T = float>
-constexpr bool isFinite(const Vector<N, T> &v) {
-    for(uint8_t i = 0; i < N; i++) {
+template<types::index_t N, typename T = float>
+constexpr bool isFinite(const Vector<N, T> &v) noexcept {
+    for(types::index_t i = 0; i < N; i++) {
         if(!std::isfinite(v[i])) return false;
     }
     return true;

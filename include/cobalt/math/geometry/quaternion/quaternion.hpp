@@ -13,7 +13,8 @@
 
 namespace cobalt::math::geometry {
 
-constexpr float QUATERNION_EQUAL_THRESHOLD = 1e-5;
+template<typename T = float>
+    constexpr float QUATERNION_EPSILON = static_cast<T>(1e-6);
 
 constexpr float QUATERNION_SLERP_THRESHOLD = 0.9995;
 
@@ -53,19 +54,19 @@ struct Quaternion {
         /**
          *  @brief Create a zero-quaternion
          */
-        static inline Quaternion zero() { return Quaternion(0.0f, 0.0f, 0.0f, 0.0f); }
+        static inline Quaternion zero() noexcept { return Quaternion(0.0f, 0.0f, 0.0f, 0.0f); }
 
         /**
          *  @brief Create the identity quaternion
          */
-        static inline Quaternion eye() { return Quaternion(1.0f, 0.0f, 0.0f, 0.0f); }
+        static inline Quaternion eye() noexcept { return Quaternion(1.0f, 0.0f, 0.0f, 0.0f); }
 
         /**
             *  @brief Create a purely imaginary quaternion from a 3-Vector
             *   @param v 3-Vector to convert
          */
         template<typename T>
-            static inline Quaternion pure(const cobalt::math::linear_algebra::Vector<3, T> &v) {
+            static inline Quaternion pure(const cobalt::math::linear_algebra::Vector<3, T> &v) noexcept {
                 return Quaternion(0.0f, v.x(), v.y(), v.z());
             }
 
@@ -76,7 +77,7 @@ struct Quaternion {
          *  @note `axis` is assumed to be normalized
          */
         template<typename T>
-            static inline Quaternion fromAxisAngle(const cobalt::math::linear_algebra::Vector<3, T> &axis, float angle) {
+            static inline Quaternion fromAxisAngle(const cobalt::math::linear_algebra::Vector<3, T> &axis, float angle) noexcept {
                 cobalt::math::linear_algebra::Vector<3> u = normalize(axis);
                 float halfAngle = angle * 0.5f;
                 float s = std::sin(halfAngle);
@@ -89,11 +90,11 @@ struct Quaternion {
          *  @note The direction of `v` is the rotation axis, and `|v|` is the rotation angle in radians
          */
         template<typename T>
-            static inline Quaternion fromRotationVector(const cobalt::math::linear_algebra::Vector<3, T> &v) {
+            static inline Quaternion fromRotationVector(const cobalt::math::linear_algebra::Vector<3, T> &v) noexcept {
                 cobalt::math::linear_algebra::Vector<3> axis = normalize(v);
                 float angle = norm(v);
 
-                if(angle < QUATERNION_EQUAL_THRESHOLD) { return Quaternion::eye(); }
+                if(angle < QUATERNION_EPSILON<>) { return Quaternion::eye(); }
 
                 return fromAxisAngle(axis, angle);
             }
@@ -104,7 +105,7 @@ struct Quaternion {
          *  @note R must be a proper rotation matrix
          */
         template<typename T>
-            static inline Quaternion fromRotationMatrix(const cobalt::math::linear_algebra::Matrix<3,3, T> &R) {
+            static inline Quaternion fromRotationMatrix(const cobalt::math::linear_algebra::Matrix<3,3, T> &R) noexcept {
                 T diag = trace(R);
                 float s1 = (R(2,1) - R(1, 2) > 0) ?1.0f :-1.0f;
                 float s2 = (R(0,2) - R(2, 0) > 0) ?1.0f :-1.0f;
@@ -126,7 +127,7 @@ struct Quaternion {
          *  @param yaw   Rotation around the z-axis in radians
          *  @note Uses the ZYX rotation order (yaw-pitch-roll)
          */
-        static inline Quaternion fromEuler(float roll, float pitch, float yaw) {
+        static inline Quaternion fromEuler(float roll, float pitch, float yaw) noexcept {
             float cr = std::cos(roll * 0.5f);
             float sr = std::sin(roll * 0.5f);
             float cp = std::cos(pitch * 0.5f);
@@ -146,22 +147,22 @@ struct Quaternion {
         /**
          * @brief Const access to w element
          */
-        constexpr float w() const { return w_; }
+        constexpr float w() const noexcept { return w_; }
 
         /**
          * @brief Const access to x element
          */
-        constexpr float x() const { return x_; }
+        constexpr float x() const noexcept { return x_; }
 
         /**
          * @brief Const access to y element
          */
-        constexpr float y() const { return y_; }
+        constexpr float y() const noexcept { return y_; }
 
         /**
          * @brief Const access to z element
          */
-        constexpr float z() const { return z_; }
+        constexpr float z() const noexcept { return z_; }
 
         /**
          * @brief Const access to the vector part as a 3-Vector
@@ -192,7 +193,7 @@ struct Quaternion {
         /**
          * @brief Set the vector part from a 3-Vector
          */
-        constexpr void vector(cobalt::math::linear_algebra::Vector<3, float> &v) { 
+        constexpr void vector(cobalt::math::linear_algebra::Vector<3, float> &v) noexcept { 
             x_ = v.x();
             y_ = v.y();
             z_ = v.z();
@@ -200,7 +201,7 @@ struct Quaternion {
 
         // ---------------- Overloads ----------------
 
-        constexpr Quaternion &operator+=(const Quaternion &rhs) {
+        constexpr Quaternion &operator+=(const Quaternion &rhs) noexcept {
             w_ += rhs.w_;
             x_ += rhs.x_;
             y_ += rhs.y_;
@@ -208,7 +209,7 @@ struct Quaternion {
             return *this;
         }
 
-        constexpr Quaternion &operator-=(const Quaternion &rhs) {
+        constexpr Quaternion &operator-=(const Quaternion &rhs) noexcept {
             w_ -= rhs.w_;
             x_ -= rhs.x_;
             y_ -= rhs.y_;
@@ -216,7 +217,7 @@ struct Quaternion {
             return *this;
         }
 
-        constexpr Quaternion &operator*=(const Quaternion &rhs) {
+        constexpr Quaternion &operator*=(const Quaternion &rhs) noexcept {
             float tempW = w_*rhs.w_ - x_*rhs.x_ - y_*rhs.y_ - z_*rhs.z_;
             float tempX = w_*rhs.x_ + x_*rhs.w_ + y_*rhs.z_ - z_*rhs.y_;
             float tempY = w_*rhs.y_ - x_*rhs.z_ + y_*rhs.w_ + z_*rhs.x_;
@@ -230,7 +231,7 @@ struct Quaternion {
             return *this;
         }
 
-        constexpr Quaternion &operator/=(const Quaternion &rhs) {
+        constexpr Quaternion &operator/=(const Quaternion &rhs) noexcept {
             float normSquared = rhs.x_*rhs.x_ + rhs.y_*rhs.y_ + rhs.z_*rhs.z_ + rhs.w_*rhs.w_;
             float tempW = (w_*rhs.w_ + x_*rhs.x_ + y_*rhs.y_ + z_*rhs.z_) / normSquared;
             float tempX = (x_*rhs.w_ - w_*rhs.x_ - y_*rhs.z_ + z_*rhs.y_) / normSquared;
@@ -245,7 +246,7 @@ struct Quaternion {
             return *this;
         }
 
-        constexpr Quaternion &operator*=(float c) {
+        constexpr Quaternion &operator*=(float c) noexcept {
             w_ *= c;
             x_ *= c;
             y_ *= c;
@@ -253,7 +254,7 @@ struct Quaternion {
             return *this;
         }
 
-        constexpr Quaternion &operator/=(float c) {
+        constexpr Quaternion &operator/=(float c) noexcept {
             w_ /= c;
             x_ /= c;
             y_ /= c;

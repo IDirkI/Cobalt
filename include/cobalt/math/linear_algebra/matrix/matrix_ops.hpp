@@ -13,39 +13,39 @@ namespace cobalt::math::linear_algebra {
 /**
  *  @brief Matrix addition.
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> operator+(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) { lhs += rhs; return lhs; }
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Matrix<N, M, T> operator+(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) noexcept { lhs += rhs; return lhs; }
 
 /**
  *  @brief Matrix subtraction.
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) { lhs -= rhs; return lhs; }
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) noexcept { lhs -= rhs; return lhs; }
 
 /**
  *  @brief Scalar matrix multiplication.
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> operator*(Matrix<N, M, T> lhs, T c) { lhs *= c; return lhs; }
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Matrix<N, M, T> operator*(Matrix<N, M, T> lhs, T c) noexcept { lhs *= c; return lhs; }
 
 /**
  *  @brief Scalar matrix multiplication.
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> operator*(T c, Matrix<N, M, T> lhs) { lhs *= c; return lhs; }
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Matrix<N, M, T> operator*(T c, Matrix<N, M, T> lhs) noexcept { lhs *= c; return lhs; }
 
 /**
  *  @brief Matrix multiplication.
  */
-template<uint8_t N, uint8_t M, uint8_t K, typename T = float>
-    constexpr Matrix<N, K, T> operator*(Matrix<N, M, T> lhs, const Matrix<M, K, T> &rhs) { 
+template<types::index_t N, types::index_t M, types::index_t K, typename T = float>
+    constexpr Matrix<N, K, T> operator*(Matrix<N, M, T> lhs, const Matrix<M, K, T> &rhs) noexcept { 
         Matrix<N, K, T> output{};
 
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < K; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < K; j++) {
                 output(i, j) = static_cast<T>(0);
 
-                for(uint8_t k = 0; k < M; k++) {
+                for(types::index_t k = 0; k < M; k++) {
                     output(i, j) += lhs(i, k) * rhs(k, j);
                 }
             }
@@ -57,12 +57,12 @@ template<uint8_t N, uint8_t M, uint8_t K, typename T = float>
 /**
  *  @brief Vector right-multiplication.
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Vector<N, T> operator*(const Matrix<N, M, T> &A, const Vector<M, T> &v) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Vector<N, T> operator*(const Matrix<N, M, T> &A, const Vector<M, T> &v) noexcept {
         Vector<N, T> output{};
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = static_cast<T>(0);
-            for(uint8_t j = 0; j < M; j++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output[i] += v[j]*A(i, j);
             }
         }
@@ -72,23 +72,23 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Unary negation
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> A) { A *= -1; return A; }
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> A) noexcept { A *= -1; return A; }
 
 /**
  *  @brief Scalar matrix divison.
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> operator/(Matrix<N, M, T> lhs, T c) { lhs /= c; return lhs; }
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Matrix<N, M, T> operator/(Matrix<N, M, T> lhs, T c) noexcept { lhs /= c; return lhs; }
 
 /**
  *  @brief Matrix equality.
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr inline bool operator==(const Matrix<N, M, T> &lhs, const Matrix<N, M, T> &rhs) { 
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
-                if(std::abs(lhs(i, j) - rhs(i, j)) > static_cast<T>(MATRIX_EQUAL_THRESHOLD)) return false;
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
+                if(std::abs(lhs(i, j) - rhs(i, j)) > MATRIX_EPSILON<T>) return false;
             }
         }
 
@@ -98,8 +98,8 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Matrix inequality.
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr inline bool operator!=(const Matrix<N, M, T> &lhs, const Matrix<N, M, T> &rhs) { return (!(lhs == rhs)); }
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr inline bool operator!=(const Matrix<N, M, T> &lhs, const Matrix<N, M, T> &rhs) noexcept { return (!(lhs == rhs)); }
 
 // ---------------- Non-member Functions ----------------
 /**
@@ -108,7 +108,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @return Determinant of A
  *  @note Only defined for square matrices
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr T det(const Matrix<N, N, T> &A) {
         T output = static_cast<T>(0);
 
@@ -126,7 +126,7 @@ template<uint8_t N, typename T = float>
             }
             default: {
                 Matrix<N, N, T> L, U, P;
-                uint8_t swapCount = 0;
+                types::index_t swapCount = 0;
                 if(!lu(A, L, U, P, swapCount)) { return static_cast<T>(0.0f); } // Singualr => det(A) = 0
 
                 output = (swapCount % 2 == 0) ?static_cast<T>(1) :static_cast<T>(-1);
@@ -143,12 +143,12 @@ template<uint8_t N, typename T = float>
  *  @param A Matrix to transpose
  *  @return Transposed matrix A^T 
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<M, N, T> transpose(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Matrix<M, N, T> transpose(const Matrix<N, M, T> &A) noexcept {
         Matrix<M, N, T> output{};
 
-        for(uint8_t i = 0; i < M; i++) {
-            for(uint8_t j = 0; j < N; j++) {
+        for(types::index_t i = 0; i < M; i++) {
+            for(types::index_t j = 0; j < N; j++) {
                 output(i, j) = A(j, i);
             }
         }
@@ -164,18 +164,18 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Only defined for square matrices
  *  @warning If function returns `false`, Ainv is not modified and is not a valid matrix. Return value should be handled properly.
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     [[nodiscard]] constexpr bool inv(const Matrix<N, N, T> &A, Matrix<N, N, T> &Ainv) {
         switch(N) {
             case 1: { 
-                if(std::abs(A(0, 0)) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                if(std::abs(A(0, 0)) < MATRIX_EPSILON<T>) { return false; }    // Singular
                 Ainv(0, 0) = 1.0f / A(0, 0); 
 
                 return true; 
             }
             case 2: { 
                 T denom = static_cast<T>(det(A));
-                if(std::abs(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                if(std::abs(denom) < MATRIX_EPSILON<T>) { return false; }    // Singular
                 Ainv(0, 0) = A(1, 1) / denom;
                 Ainv(0, 1) = -A(0, 1) / denom;
                 Ainv(1, 0) = -A(1, 0) / denom;
@@ -185,7 +185,7 @@ template<uint8_t N, typename T = float>
             }
             case 3: { 
                 T denom = static_cast<T>(det(A));
-                if(std::abs(denom) < MATRIX_EQUAL_THRESHOLD) { return false; }    // Singular
+                if(std::abs(denom) < MATRIX_EPSILON<T>) { return false; }    // Singular
 
                 Ainv(0, 0) =  (A(1,1)*A(2,2) - A(1,2)*A(2,1)) / denom;
                 Ainv(0, 1) = -(A(0,1)*A(2,2) - A(0,2)*A(2,1)) / denom;
@@ -203,16 +203,16 @@ template<uint8_t N, typename T = float>
             }
             default: { 
                 Matrix<N, N, T> L, U, P;
-                uint8_t swapCount;
+                types::index_t swapCount;
                 if(!lu(A, L, U, P, swapCount)) { return false; } // Singular
 
-                for(uint8_t j = 0; j < N; j++) {
+                for(types::index_t j = 0; j < N; j++) {
                     Vector<N, T> e{}, x{};
                     e[j] = static_cast<T>(1);
 
                     if(!solve(A, e, x)) { return false; }   // Singular
 
-                    for(uint8_t i = 0; i < N; i++) {
+                    for(types::index_t i = 0; i < N; i++) {
                         Ainv(i, j) = x[i];
                     }
                 }
@@ -227,16 +227,16 @@ template<uint8_t N, typename T = float>
  *  @param A Matrix to compute rank of
  *  @return Rank of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr uint8_t rank(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr types::index_t rank(const Matrix<N, M, T> &A) {
         Matrix<N, M, T> Q;
         gramSchmidt(A, Q);
         
-        uint8_t rankNum = 0;
-        for(uint8_t j = 0; j < M; j++) {
+        types::index_t rankNum = 0;
+        for(types::index_t j = 0; j < M; j++) {
             Vector<N, T> colVec = getColumn(Q, j);
             
-            if(norm(colVec) > static_cast<T>(MATRIX_EQUAL_THRESHOLD)) {
+            if(norm(colVec) > MATRIX_EPSILON<T>) {
                 rankNum++;
             }
         }
@@ -249,11 +249,11 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to compute trace of
  *  @return Trace of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr T trace(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr T trace(const Matrix<N, M, T> &A) noexcept {
         T output = static_cast<T>(0);
 
-        for(uint8_t i = 0; i < M; i++) {
+        for(types::index_t i = 0; i < M; i++) {
             output += A(i, i);
         }
         
@@ -265,11 +265,11 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to compute trace product of
  *  @return Trace product of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr T traceProduct(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr T traceProduct(const Matrix<N, M, T> &A) noexcept {
         T output = static_cast<T>(1);
 
-        for(uint8_t i = 0; i < M; i++) {
+        for(types::index_t i = 0; i < M; i++) {
             output *= A(i, i);
         }
         
@@ -279,12 +279,12 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Compute the hadamard (element-wise) product of two matrices
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Matrix<N, M, T> hadamard(const Matrix<N, M, T> &A, const Matrix<N, M, T> &B) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Matrix<N, M, T> hadamard(const Matrix<N, M, T> &A, const Matrix<N, M, T> &B) noexcept {
         Matrix<N, M, T> output = Matrix<N, M, T>::zero();
         
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output(i,j) = A(i,j) * B(i,j);
             }
         }
@@ -300,13 +300,13 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Only defined for square matrices
  *  @warning Converges only for matrices where ||A - I|| < 1
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Matrix<N, N, T> log(const Matrix<N, N, T> &A, uint16_t terms = MATRIX_DEFAULT_LOG_TERMS) {
         Matrix<N, N, T> output = Matrix<N, N, T>::zero();
         Matrix<N, N, T> AmI = A - Matrix<N, N, T>::eye();;
         Matrix<N, N, T> powAmI = AmI;
 
-        for(uint8_t i = 1; i <= terms; i++) {
+        for(types::index_t i = 1; i <= terms; i++) {
             T coeff = (i % 2 == 1) ?static_cast<T>(1.0f/i) :static_cast<T>(-1.0f/i);
             output += coeff * powAmI;
             powAmI *= AmI;
@@ -322,13 +322,13 @@ template<uint8_t N, typename T = float>
  *  @return Matrix exponential of A
  *  @note Only defined for square matrices
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Matrix<N, N, T> exp(const Matrix<N, N, T> &A, uint16_t terms = MATRIX_DEFAULT_EXP_TERMS) {
         Matrix<N, N, T> output = Matrix<N, N, T>::zero();
         Matrix<N, N, T> powA = Matrix<N, N, T>::eye();
         float fact = 1;
 
-        for(uint8_t i = 0; i < terms; i++) {
+        for(types::index_t i = 0; i < terms; i++) {
             output += static_cast<T>(1.0f/fact) * powA;
             powA *= A;
             fact *= (i+1);
@@ -347,7 +347,7 @@ template<uint8_t N, typename T = float>
  *  @note Only defined for square matrices
  *  @warning Converges only for matrices where ||A - I|| < 1
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Matrix<N, N, T> pow(const Matrix<N, N, T> &A, float c, uint16_t terms = MATRIX_DEFAULT_POW_TERMS) {
         return exp(log(A, terms) * static_cast<T>(c), terms);
     }
@@ -360,12 +360,12 @@ template<uint8_t N, typename T = float>
  *  @return Matrix A raised to the power of n
  *  @note Only defined for square matrices
  */
-template<uint8_t N, typename T = float>
-    constexpr Matrix<N, N, T> powInt(const Matrix<N, N, T> &A, uint16_t n, uint16_t terms = MATRIX_DEFAULT_POW_TERMS) {
+template<types::index_t N, typename T = float>
+    constexpr Matrix<N, N, T> powInt(const Matrix<N, N, T> &A, uint16_t n, uint16_t terms = MATRIX_DEFAULT_POW_TERMS) noexcept {
         Matrix<N, N, T> output = Matrix<N, N, T>::eye();
         Matrix<N, N, T> powA = A;
         
-        for(uint8_t i = 0; i < n; i++) {
+        for(types::index_t i = 0; i < n; i++) {
             output *= powA;
         }
 
@@ -377,12 +377,12 @@ template<uint8_t N, typename T = float>
  *  @param A Matrix to compute Frobenius norm of
  *  @return Frobenius norm of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr T normFrobenius(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr T normFrobenius(const Matrix<N, M, T> &A) noexcept {
         T sum = static_cast<T>(0.0f);
 
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 sum += A(i, j) * A(i, j);
             }
         }
@@ -395,13 +395,13 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to compute infinity norm of
  *  @return Infinity norm of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr T normInf(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr T normInf(const Matrix<N, M, T> &A) noexcept {
         T max = static_cast<T>(0.0f);
 
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             T sum = static_cast<T>(0.0f);
-            for(uint8_t j = 0; j < M; j++) {
+            for(types::index_t j = 0; j < M; j++) {
                 sum += A(i,j);
             }
             max = (max < sum) ?sum :max;
@@ -415,13 +415,13 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to compute infinity norm of
  *  @return Infinity norm of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr T norm1(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr T norm1(const Matrix<N, M, T> &A) noexcept {
         T max = static_cast<T>(0.0f);
 
-        for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t j = 0; j < M; j++) {
             T sum = static_cast<T>(0.0f);
-            for(uint8_t i = 0; i < N; i++) {
+            for(types::index_t i = 0; i < N; i++) {
                 sum += A(i,j);
             }
             max = (max < sum) ?sum :max;
@@ -437,8 +437,8 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Computed via singular value decomposition (SVD)
  *  @warning Computationally expensive for large matrices
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr T norm2(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr T norm2(const Matrix<N, M, T> &A) noexcept {
         Matrix<N, N, T> U;
         Matrix<N, M, T> S;
         Matrix<M, M, T> V;
@@ -454,8 +454,8 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Computed via singular value decomposition (SVD)
  *  @warning Computationally expensive for large matrices
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr T conditionNum(const Matrix<N, M, T> &A) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr T conditionNum(const Matrix<N, M, T> &A) noexcept {
         Matrix<N, N, T> U;
         Matrix<N, M, T> S;
         Matrix<M, M, T> V;
@@ -474,10 +474,10 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Only defined for square matrices
  *  @warning If function returns `false`, x is not modified and is not a valid solution. Return value should be handled properly.
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     [[nodiscard]] inline bool solve(const Matrix<N, N, T> &A, const Vector<N, T> &b, Vector<N, T> &x) {
         Matrix<N, N, T> L, U, P;
-        uint8_t swapCount;
+        types::index_t swapCount;
         
         if(!lu(A, L, U, P, swapCount)) { return false; }    // Singular
 
@@ -485,9 +485,9 @@ template<uint8_t N, typename T = float>
         
         // Forward sub, Ly = Pb
         Vector<N, T> y;
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             T sum = static_cast<T>(0.0f);
-            for(uint8_t j = 0; j < i; j++) {
+            for(types::index_t j = 0; j < i; j++) {
                 sum += L(i, j) * y[j];
             } 
             y[i] = pb[i] - sum;
@@ -496,7 +496,7 @@ template<uint8_t N, typename T = float>
         // Back sub, Ux = y
         for(int8_t i = N-1; i >= 0; i--) {
             T sum = static_cast<T>(0.0f);
-            for(uint8_t j = i+1; j < N; j++) {
+            for(types::index_t j = i+1; j < N; j++) {
                 sum += U(i, j) * x[j];
             } 
             x[i] = (y[i] - sum) / U(i, i);

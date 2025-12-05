@@ -8,17 +8,17 @@
 namespace cobalt::math::algebra {
 // ---------------- Non-member Overloads ----------------
 
-inline Complex operator+(Complex lhs, const Complex &rhs) { lhs += rhs; return lhs; }
-inline Complex operator+(Complex lhs, float c) { lhs += c; return lhs; }
-inline Complex operator+(float c, Complex lhs) { lhs += c; return lhs; }
+inline Complex operator+(Complex lhs, const Complex &rhs) noexcept { lhs += rhs; return lhs; }
+inline Complex operator+(Complex lhs, float c) noexcept { lhs += c; return lhs; }
+inline Complex operator+(float c, Complex lhs) noexcept { lhs += c; return lhs; }
 
-inline Complex operator-(Complex lhs, const Complex &rhs) { lhs -= rhs; return lhs; }
-inline Complex operator-(Complex lhs, float c) { lhs -= c; return lhs; }
-inline Complex operator-(float c, Complex lhs) { return Complex(c) - lhs; }
+inline Complex operator-(Complex lhs, const Complex &rhs) noexcept { lhs -= rhs; return lhs; }
+inline Complex operator-(Complex lhs, float c) noexcept { lhs -= c; return lhs; }
+inline Complex operator-(float c, Complex lhs) noexcept { return Complex(c) - lhs; }
 
-inline Complex operator*(Complex lhs, const Complex &rhs) { lhs *= rhs; return lhs; }
-inline Complex operator*(Complex lhs, float c) { lhs *= c; return lhs; }
-inline Complex operator*(float c, Complex lhs) { lhs *= c; return lhs; }
+inline Complex operator*(Complex lhs, const Complex &rhs) noexcept { lhs *= rhs; return lhs; }
+inline Complex operator*(Complex lhs, float c) noexcept { lhs *= c; return lhs; }
+inline Complex operator*(float c, Complex lhs) noexcept { lhs *= c; return lhs; }
 
 inline Complex operator/(Complex lhs, const Complex &rhs) { lhs /= rhs; return lhs; }
 inline Complex operator/(Complex lhs, float c) { lhs /= c; return lhs; }
@@ -27,19 +27,19 @@ inline Complex operator/(float c, Complex rhs) {
     return Complex((c*rhs.real())/denom, (-c*rhs.imag())/denom);
 }
 
-inline Complex operator-(Complex z) { z *= -1; return z; }
+inline Complex operator-(Complex z) noexcept { z *= -1; return z; }
 
-inline bool operator==(Complex lhs, const Complex &rhs) { 
-    if(std::abs(lhs.real() - rhs.real()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(lhs.imag() - rhs.imag()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
+inline bool operator==(Complex lhs, const Complex &rhs) noexcept { 
+    if(std::abs(lhs.real() - rhs.real()) > COMPLEX_EPSILON<>) { return false; }
+    if(std::abs(lhs.imag() - rhs.imag()) > COMPLEX_EPSILON<>) { return false; }
     return true;
 }
-inline bool operator==(Complex lhs, float c) { return (lhs == Complex(c)); }
-inline bool operator==(float c, Complex lhs) { return (lhs == c); }
+inline bool operator==(Complex lhs, float c) noexcept { return (lhs == Complex(c)); }
+inline bool operator==(float c, Complex lhs) noexcept { return (lhs == c); }
 
-inline bool operator!=(Complex lhs, const Complex &rhs) { return !(lhs == rhs); }
-inline bool operator!=(Complex lhs, float c) { return !(lhs == c); }
-inline bool operator!=(float c, Complex lhs) { return (lhs != c); }
+inline bool operator!=(Complex lhs, const Complex &rhs) noexcept { return !(lhs == rhs); }
+inline bool operator!=(Complex lhs, float c) noexcept { return !(lhs == c); }
+inline bool operator!=(float c, Complex lhs) noexcept { return (lhs != c); }
 
 
 // ---------------- Non-member Functions ----------------
@@ -47,25 +47,25 @@ inline bool operator!=(float c, Complex lhs) { return (lhs != c); }
  *  @brief Get the norm/absolute value of a complex number
  *  @return `|z|` The norm of the complex number
  */
-constexpr inline float norm(const Complex &z) { return std::sqrt(z.real()*z.real() + z.imag()*z.imag()); }
+constexpr inline float norm(const Complex &z) noexcept { return std::sqrt(z.real()*z.real() + z.imag()*z.imag()); }
 
 /**
  *  @brief Get the square of the norm/absolute value of a complex number
  *  @return `|z|²` The squared norm of the complex number
  */
-constexpr inline float normSqr(const Complex &z) { return (z.real()*z.real() + z.imag()*z.imag()); }
+constexpr inline float normSqr(const Complex &z) noexcept { return (z.real()*z.real() + z.imag()*z.imag()); }
 
 /**
  *  @brief Get the argument/angle of a complex number
  *  @return `∠z` The argument of the complex number
  */
-constexpr inline float arg(const Complex &z) { return std::atan2(z.imag(), z.real()); }
+constexpr inline float arg(const Complex &z) noexcept { return std::atan2(z.imag(), z.real()); }
 
 /**
  *  @brief Get the conjugate of a complex number
  *  @return `z̄` Conjugate of the compex number
  */
-inline Complex conj(const Complex &z) { return Complex(z.real(), -z.imag()); }
+inline Complex conj(const Complex &z) noexcept { return Complex(z.real(), -z.imag()); }
 
 /**
  *  @brief Get the multiplicative inverse of the complex number

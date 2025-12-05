@@ -30,8 +30,8 @@ template<typename T = float>
     constexpr cobalt::math::linear_algebra::Matrix<4, 4, T> toMatrix(const Transform<T> &H) {
         cobalt::math::linear_algebra::Matrix<4, 4, T> output = cobalt::math::linear_algebra::Matrix<4, 4, T>::eye();
 
-        for(uint8_t i = 0; i < 3; i++) {
-            for(uint8_t j = 0; j < 3; j++) {
+        for(types::index_t i = 0; i < 3; i++) {
+            for(types::index_t j = 0; j < 3; j++) {
                 output(i, j) = (H.rotation())(i, j);
             }
         }

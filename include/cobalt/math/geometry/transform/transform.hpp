@@ -2,16 +2,18 @@
 
 #include <array>
 
+#include "../../types.hpp"
+
 #include "../quaternion/quaternion.hpp"
 #include "../quaternion/quaternion_ops.hpp"
-
 
 #include "../../linear_algebra/matrix/matrix.hpp"
 #include "../../linear_algebra/vector/vector.hpp"
 
 namespace cobalt::math::geometry {
 
-constexpr float TRANSFORM_EQUAL_THRESHOLD = 1e-6;
+template<typename T = float>
+    constexpr T TRANSFORM_EPSILON = static_cast<T>(1e-6);
 
 // --------------------------------------
 //      Homogeneous Transformations    
@@ -151,18 +153,6 @@ struct Transform {
         
             return Transform<T>(R, cobalt::math::linear_algebra::Vector<3, T>::zero());
         }
-
-
-        // ---------------- Getters ----------------
-        /**
-         *  @brief Return the row number of the transformation matrix.
-         */
-        constexpr uint8_t rows() const { return 4; }
-
-        /**
-         *  @brief Return the column number of the transformation matrix.
-         */
-        constexpr uint8_t cols() const { return 4; }
 
         // ---------------- Accessors ----------------
         /**

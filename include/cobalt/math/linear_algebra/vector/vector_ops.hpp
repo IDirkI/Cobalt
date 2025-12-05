@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 
 #include "vector.hpp"
 
@@ -10,46 +11,46 @@ namespace cobalt::math::linear_algebra {
 /**
  *  @brief Vector addition
  */
-template<uint8_t N, typename T = float>
-    constexpr Vector<N, T> operator+(Vector<N, T> lhs, const Vector<N, T> &rhs) { lhs += rhs; return lhs; }
+template<types::index_t N, typename T = float>
+    constexpr Vector<N, T> operator+(Vector<N, T> lhs, const Vector<N, T> &rhs) noexcept { lhs += rhs; return lhs; }
 
 /**
  *  @brief Vector subtraction
  */
-template<uint8_t N, typename T = float>
-    constexpr Vector<N, T> operator-(Vector<N, T> lhs, const Vector<N, T> &rhs) { lhs -= rhs; return lhs; }
+template<types::index_t N, typename T = float>
+    constexpr Vector<N, T> operator-(Vector<N, T> lhs, const Vector<N, T> &rhs) noexcept { lhs -= rhs; return lhs; }
 
 /**
  *  @brief Vector subtraction
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> operator*(Vector<N, T> v, T c) { v *= c; return v; }
 
 /**
  *  @brief Vector scalar multiplication
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> operator*(T c, Vector<N, T> v) { return v * c; }
 
 /**
  *  @brief Vector scalar divison
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> operator/(Vector<N, T> v, T c) { v /= c; return v; }
 
 /**
  *  @brief Flip the vector. Element wise negation
  */
-template<uint8_t N, typename T = float>
-    constexpr Vector<N, T> operator-(Vector<N, T> v) { v *= -1; return v; }
+template<types::index_t N, typename T = float>
+    constexpr Vector<N, T> operator-(Vector<N, T> v) noexcept { v *= -1; return v; }
 
 /**
  *  @brief Check vector equality within a threshold (default 1e-5)
  */
-template<uint8_t N, typename T = float>
-    constexpr bool operator==(const Vector<N, T> &lhs, const Vector<N, T> &rhs) {
-        for(uint8_t i = 0; i < N; i++) {
-            if(std::abs(lhs[i] - rhs[i]) > static_cast<T>(VECTOR_EQUAL_THRESHOLD)) return false;
+template<types::index_t N, typename T = float>
+    constexpr bool operator==(const Vector<N, T> &lhs, const Vector<N, T> &rhs) noexcept {
+        for(types::index_t i = 0; i < N; i++) {
+            if(std::abs(lhs[i] - rhs[i]) > VECTOR_EPSILON<T>) return false;
         }
         return true;
     }
@@ -57,8 +58,8 @@ template<uint8_t N, typename T = float>
 /**
  *  @brief Check vector non-equality within a threshold (default 1e-5)
  */
-template<uint8_t N, typename T = float>
-    constexpr bool operator!=(const Vector<N, T> &lhs, const Vector<N, T> &rhs) { return !(lhs == rhs); }
+template<types::index_t N, typename T = float>
+    constexpr bool operator!=(const Vector<N, T> &lhs, const Vector<N, T> &rhs) noexcept { return !(lhs == rhs); }
 
 
 // ---------------- Non-member Functions ----------------
@@ -66,10 +67,10 @@ template<uint8_t N, typename T = float>
  *  @brief Dot product between two vectors
  *  @return Scalar dot product
  */
-template<uint8_t N, typename T = float>
-    constexpr T dot(const Vector<N, T> &v, const Vector<N, T> &u) { 
-        T output = static_cast<T>(0.0f);
-        for(uint8_t i = 0; i < N; i++) {
+template<types::index_t N, typename T = float>  
+    constexpr T dot(const Vector<N, T> &v, const Vector<N, T> &u) noexcept { 
+        T output = static_cast<T>(0);
+        for(types::index_t i = 0; i < N; i++) {
             output += v[i] * u[i];
         }
         return output;
@@ -80,7 +81,7 @@ template<uint8_t N, typename T = float>
  *  @return Vector cross product
  */
 template<typename T = float>
-    constexpr Vector<3, T> cross(const Vector<3, T> &v, const Vector<3, T> &u) { 
+    constexpr Vector<3, T> cross(const Vector<3, T> &v, const Vector<3, T> &u) noexcept { 
         return Vector<3, T> {
             v.y()*u.z() - v.z()*u.y(),
             v.z()*u.x() - v.x()*u.z(),
@@ -92,10 +93,10 @@ template<typename T = float>
  *  @brief Hadamard (element wise) product between two vectors
  *  @return Vector Hadamard product
  */
-template<uint8_t N, typename T = float>
-    constexpr Vector<N, T> hadamard(const Vector<N, T> &v, const Vector<N, T> &u) { 
+template<types::index_t N, typename T = float>
+    constexpr Vector<N, T> hadamard(const Vector<N, T> &v, const Vector<N, T> &u) noexcept { 
         Vector<N, T> output{};
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = v[i]*u[i];
         }
         return output;
@@ -106,7 +107,7 @@ template<uint8_t N, typename T = float>
  *  @return Scalar triple product (dot(v, cross(u, w)))
  */
 template<typename T = float>
-    constexpr T tripleProduct(const Vector<3, T> &v, const Vector<3, T> &u, const Vector<3, T> &w) { 
+    constexpr T tripleProduct(const Vector<3, T> &v, const Vector<3, T> &u, const Vector<3, T> &w) noexcept { 
         return dot(v, cross(u, w));
     }
 
@@ -115,25 +116,25 @@ template<typename T = float>
  *  @brief Compute vector norm/magnitude
  *  @return Norm/magnitude of vector
  */
-template<uint8_t N, typename T = float>
-    constexpr float norm(const Vector<N, T> &v) { return std::sqrt(dot(v, v)); }
+template<types::index_t N, typename T = float>
+    constexpr T norm(const Vector<N, T> &v) noexcept { return std::sqrt(dot(v, v)); }
 
 /**
  *  @brief Compute squared vector norm/magnitude
  *  @return Squared norm/magnitude of vector
  */
-template<uint8_t N, typename T = float>
-    constexpr float normSqr(const Vector<N, T> &v) { return dot(v, v); }
+template<types::index_t N, typename T = float>
+    constexpr T normSqr(const Vector<N, T> &v) noexcept { return dot(v, v); }
 
 /**
  *  @brief Normalize a vector to unit length
  *  @return Normalized vector
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> normalize(const Vector<N, T> &v) {
-        float mag = norm(v);
+        T mag = norm(v);
         Vector<N, T> output = v;
-        output = (mag > VECTOR_EQUAL_THRESHOLD) ?(output /= mag) :(Vector<N, T>::zero());
+        output = (mag > VECTOR_EPSILON<T>) ?(output /= mag) :(Vector<N, T>::zero());
         return output;
     }
 
@@ -141,32 +142,41 @@ template<uint8_t N, typename T = float>
  *  @brief Compute the distance between two vectors
  *  @return Scalar distance between the tips of the vectors
  */
-template<uint8_t N, typename T = float>
-    constexpr float distance(const Vector<N, T> &v, const Vector<N, T> &u) { return norm(v - u); }
+template<types::index_t N, typename T = float>
+    constexpr T distance(const Vector<N, T> &v, const Vector<N, T> &u) noexcept  { return norm(v - u); }
 
 /**
  *  @brief Compute the squared distance between two vectors
  *  @return Squared distance between the tips of the vectors
  */
-template<uint8_t N, typename T = float>
-    constexpr float distanceSqr(const Vector<N, T> &v, const Vector<N, T> &u) { return dot(v - u, v - u); }
+template<types::index_t N, typename T = float>
+    constexpr T distanceSqr(const Vector<N, T> &v, const Vector<N, T> &u) noexcept { return dot(v - u, v - u); }
 
 /**
  *  @brief Compute the angle between two vectors in radians
  *  @return Angle between the vectors in radians
  */
-template<uint8_t N, typename T = float>
-    constexpr float angle(const Vector<N, T> &v, const Vector<N, T> &u) { return std::acos(dot(v, u)/(norm(v)*norm(u))); }
+template<types::index_t N, typename T = float>
+    constexpr T angle(const Vector<N, T> &v, const Vector<N, T> &u) { 
+        T nv = norm(v);
+        T nu = norm(u);
+
+        if(nv == static_cast<T>(0) || nu == static_cast<T>(0)) return static_cast<T>(0);
+
+        T cosang = dot(v, u)/(nv*nu);
+        cosang = std::clamp(cosang, static_cast<T>(-1), static_cast<T>(1));
+        return std::acos(cosang);
+    }
 
 /**
  *  @brief Project vector v onto vector u
  *  @return Projected vector
  *  @note If u is the zero vector, returns the zero vector
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
     constexpr Vector<N, T> project(const Vector<N, T> &v, const Vector<N, T> &u) {
         T denom = dot(u, u);
-        if(std::abs(denom) < static_cast<T>(VECTOR_EQUAL_THRESHOLD)) { return Vector<N, T>::zero(); }
+        if(std::abs(denom) < VECTOR_EPSILON<T>) { return Vector<N, T>::zero(); }
 
         T scale = dot(v, u) / denom;
         return u * scale;

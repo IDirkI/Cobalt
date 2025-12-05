@@ -4,9 +4,12 @@
 #include <cmath>
 #include <string>
 
+#include "../../types.hpp"
+
 namespace cobalt::math::algebra {
 
-constexpr float COMPLEX_EQUAL_THRESHOLD = 1e-5;
+template<typename T = float>
+    constexpr float COMPLEX_EPSILON = static_cast<T>(1e-5);
 
 // --------------------------------------
 //          Complex Number    
@@ -61,30 +64,30 @@ struct Complex {
          *  @brief Const access to the real part.
          *  @return Const reference to real part.
          */
-        constexpr float real() const { return re_; }
+        constexpr float real() const noexcept { return re_; }
 
         /**
          *  @brief Const access to the imaginary part.
          *  @return Const reference to imaginary part.
          */
-        constexpr float imag() const { return im_; }
+        constexpr float imag() const noexcept { return im_; }
 
         /**
          *  @brief Sets the real element
          */
-        void real(float re) { re_ = re; }
+        void real(float re) noexcept { re_ = re; }
 
         /**
          *  @brief Sets the imaginary element
          */
-        void imag(float im) { im_ = im; }
+        void imag(float im) noexcept{ im_ = im; }
 
 
         // ---------------- Operator Overloads ----------------
         /**
          *  @brief Add another complex number to this complex number.
          */
-        constexpr Complex &operator+=(const Complex &rhs) {
+        constexpr Complex &operator+=(const Complex &rhs) noexcept {
             re_ += rhs.re_;
             im_ += rhs.im_;
 
@@ -94,7 +97,7 @@ struct Complex {
         /**
          *  @brief Add a real number to this complex number.
          */
-        constexpr Complex &operator+=(float c) {
+        constexpr Complex &operator+=(float c) noexcept{
             re_ += c;
 
             return *this;
@@ -103,7 +106,7 @@ struct Complex {
         /**
          *  @brief Subtract another complex number from this complex number.
          */
-        constexpr Complex &operator-=(const Complex &rhs) {
+        constexpr Complex &operator-=(const Complex &rhs) noexcept {
             re_ -= rhs.re_;
             im_ -= rhs.im_;
 
@@ -113,7 +116,7 @@ struct Complex {
         /**
          *  @brief Subtract a real number from this complex number.
          */
-        constexpr Complex &operator-=(float c) {
+        constexpr Complex &operator-=(float c) noexcept {
             re_ -= c;
 
             return *this;
@@ -122,7 +125,7 @@ struct Complex {
         /**
          *  @brief Multiply this complex number by another complex number.
          */
-        constexpr Complex &operator*=(const Complex &rhs) {
+        constexpr Complex &operator*=(const Complex &rhs) noexcept {
             
             float tempRe = re_*rhs.re_ - im_*rhs.im_;
             float tempIm = re_*rhs.im_ + im_*rhs.re_;
@@ -136,7 +139,7 @@ struct Complex {
         /**
          *  @brief Multiply this complex number by a scalar
          */
-        constexpr Complex &operator*=(float c) {
+        constexpr Complex &operator*=(float c) noexcept {
             re_ *= c;
             im_ *= c;
 

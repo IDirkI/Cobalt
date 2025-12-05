@@ -33,9 +33,9 @@ TEST_CASE("Transform - Binary Multiplication Two Translations", "[transform][ops
     Transform<> result = T1 * T2;
     
     Vector<3> t = result.translation();
-    REQUIRE_THAT(t[0], Catch::Matchers::WithinAbs(1.0f, TRANSFORM_EQUAL_THRESHOLD));
-    REQUIRE_THAT(t[1], Catch::Matchers::WithinAbs(2.0f, TRANSFORM_EQUAL_THRESHOLD));
-    REQUIRE_THAT(t[2], Catch::Matchers::WithinAbs(0.0f, TRANSFORM_EQUAL_THRESHOLD));
+    REQUIRE_THAT(t[0], Catch::Matchers::WithinAbs(1.0f, 1e-6));
+    REQUIRE_THAT(t[1], Catch::Matchers::WithinAbs(2.0f, 1e-6));
+    REQUIRE_THAT(t[2], Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Transform - Binary Multiplication Two Rotations", "[transform][ops][multiply]") {
@@ -159,9 +159,9 @@ TEST_CASE("Transform - Vector Multiplication Translation", "[transform][ops][vec
     
     Vector<3> result = T * v;
     
-    REQUIRE_THAT(result[0], Catch::Matchers::WithinAbs(6.0f, TRANSFORM_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result[1], Catch::Matchers::WithinAbs(12.0f, TRANSFORM_EQUAL_THRESHOLD));
-    REQUIRE_THAT(result[2], Catch::Matchers::WithinAbs(18.0f, TRANSFORM_EQUAL_THRESHOLD));
+    REQUIRE_THAT(result[0], Catch::Matchers::WithinAbs(6.0f, 1e-6));
+    REQUIRE_THAT(result[1], Catch::Matchers::WithinAbs(12.0f, 1e-6));
+    REQUIRE_THAT(result[2], Catch::Matchers::WithinAbs(18.0f, 1e-6));
 }
 
 TEST_CASE("Transform - Vector Multiplication Rotation", "[transform][ops][vector]") {
@@ -273,9 +273,9 @@ TEST_CASE("Transform - Inverse Identity", "[transform][ops][inverse]") {
     Transform<> T_inv = inv(T);
     
     REQUIRE(T_inv.rotation() == Matrix<3, 3>::eye());
-    REQUIRE_THAT(T_inv.translation()[0], Catch::Matchers::WithinAbs(0.0f, TRANSFORM_EQUAL_THRESHOLD));
-    REQUIRE_THAT(T_inv.translation()[1], Catch::Matchers::WithinAbs(0.0f, TRANSFORM_EQUAL_THRESHOLD));
-    REQUIRE_THAT(T_inv.translation()[2], Catch::Matchers::WithinAbs(0.0f, TRANSFORM_EQUAL_THRESHOLD));
+    REQUIRE_THAT(T_inv.translation()[0], Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(T_inv.translation()[1], Catch::Matchers::WithinAbs(0.0f, 1e-6));
+    REQUIRE_THAT(T_inv.translation()[2], Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
 TEST_CASE("Transform - Inverse Pure Translation", "[transform][ops][inverse]") {
@@ -284,9 +284,9 @@ TEST_CASE("Transform - Inverse Pure Translation", "[transform][ops][inverse]") {
     Transform<> T_inv = inv(T);
     
     Vector<3> t_inv = T_inv.translation();
-    REQUIRE_THAT(t_inv[0], Catch::Matchers::WithinAbs(-1.0f, TRANSFORM_EQUAL_THRESHOLD));
-    REQUIRE_THAT(t_inv[1], Catch::Matchers::WithinAbs(-2.0f, TRANSFORM_EQUAL_THRESHOLD));
-    REQUIRE_THAT(t_inv[2], Catch::Matchers::WithinAbs(-3.0f, TRANSFORM_EQUAL_THRESHOLD));
+    REQUIRE_THAT(t_inv[0], Catch::Matchers::WithinAbs(-1.0f, 1e-6));
+    REQUIRE_THAT(t_inv[1], Catch::Matchers::WithinAbs(-2.0f, 1e-6));
+    REQUIRE_THAT(t_inv[2], Catch::Matchers::WithinAbs(-3.0f, 1e-6));
 }
 
 TEST_CASE("Transform - Inverse Pure Rotation", "[transform][ops][inverse]") {

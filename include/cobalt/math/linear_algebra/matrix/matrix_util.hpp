@@ -17,11 +17,11 @@ namespace cobalt::math::linear_algebra {
  *  @param max Upper clamp bound.
  *  @return Element wise clamped matrix A between [min, max]
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> clamp(const Matrix<N, M, T> &A, T minVal, T maxVal) {
         Matrix<N, M, T> output;
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output(i, j) = (A(i, j) > maxVal) ?maxVal :((A(i, j) < minVal) ?minVal :A(i, j));
             }
         }
@@ -35,7 +35,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param max Upper clamp bound.
  *  @return Element wise clamped matrix A between [-max, max]
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> clamp(const Matrix<N, M, T> &A, T maxVal) {
         return clamp(A, -maxVal, maxVal);
     }
@@ -46,12 +46,12 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to check.
  *  @return Smallest matrix element
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr T min(const Matrix<N, M, T> &A) {
         T output = A(0,0);
 
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 if(A(i, j) < output ) { output = A(i, j); }
             }
         }
@@ -64,12 +64,12 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to check.
  *  @return Largest matrix element
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr T max(const Matrix<N, M, T> &A) {
         T output = A(0,0);
 
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 if(A(i, j) > output ) { output = A(i, j); }
             }
         }
@@ -82,11 +82,11 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to abs.
  *  @return Matrix with absolute value of each element of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> abs(const Matrix<N, M, T> &A) {
         Matrix<N, M, T> output;
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output(i, j) = std::abs(A(i, j));
             }
         }
@@ -99,12 +99,12 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to sign.
  *  @return Matrix with sign of each element of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> sign(const Matrix<N, M, T> &A) {
         Matrix<N, M, T> output;
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
-                output(i, j) = (std::abs(A(i,j)) < MATRIX_EQUAL_THRESHOLD) ?static_cast<T>(0.0f) :((A(i,j) > 0) ?static_cast<T>(1.0f) :static_cast<T>(-1.0f));
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
+                output(i, j) = (std::abs(A(i,j)) < MATRIX_EPSILON<T>) ?static_cast<T>(0.0f) :((A(i,j) > 0) ?static_cast<T>(1.0f) :static_cast<T>(-1.0f));
             }
         }
 
@@ -116,11 +116,11 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to floor.
  *  @return Matrix with floored value of each element of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> floor(const Matrix<N, M, T> &A) {
         Matrix<N, M, T> output;
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output(i, j) = std::floor(A(i, j));
             }
         }
@@ -133,11 +133,11 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to ceil.
  *  @return Matrix with ceiled value of each element of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> ceil(const Matrix<N, M, T> &A) {
         Matrix<N, M, T> output;
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output(i, j) = std::ceil(A(i, j));
             }
         }
@@ -150,11 +150,11 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to round.
  *  @return Matrix with rounded value of each element of A
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> round(const Matrix<N, M, T> &A) {
         Matrix<N, M, T> output;
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output(i, j) = std::round(A(i, j));
             }
         }
@@ -166,13 +166,13 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @brief Sets the components of a matrix to a clean zero if they are very close to zero
  *  @param A Matrix to clean
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> cleanZero(const Matrix<N, M, T> &A) {
         Matrix<N, M, T> output = Matrix<N, M, T>::zero();
         
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
-                output(i, j) = (std::abs(A(i, j)) < MATRIX_EQUAL_THRESHOLD) ?static_cast<T>(0.0f) :A(i, j);
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
+                output(i, j) = (std::abs(A(i, j)) < MATRIX_EPSILON<T>) ?static_cast<T>(0.0f) :A(i, j);
             }
         }
 
@@ -187,7 +187,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @return `true` if inversion succeeds, `false` otherwise
  *  @warning If function returns `false`, Apinv is not modified and is not a valid pseudo-inverse. Return value should be handled properly
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     [[nodiscard]] constexpr bool pseudoL(const Matrix<N, M, T> &A, Matrix<M, N, T> &Apinv) {
         static_assert(N >= M, "Left pseudo-inverse onlt works for 'tall' matricies, not 'wide'.");
 
@@ -209,7 +209,7 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @return `true` if inversion succeeds, `false` otherwise
  *  @warning If function returns `false`, Apinv is not modified and is not a valid pseudo-inverse. Return value should be handled properly
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     [[nodiscard]] constexpr bool pseudoR(const Matrix<N, M, T> &A, Matrix<M, N, T> &Apinv) {
         static_assert(M >= N, "Right pseudo-inverse onlt works for 'wide' matricies, not 'tall'.");
 
@@ -236,29 +236,29 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Eigenvalues are stored in descending order in e, with corresponding eigenvectors in V
  *  @warning Computationally expensive for large matrices
  */
-template<uint8_t N, typename T>
+template<types::index_t N, typename T>
     size_t jacobi(Matrix<N, N, T> &A, Vector<N, T> &e, Matrix<N, N, T> &V,  size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
         int iteration = 0;
         V = Matrix<N, N>::eye();
 
-        for(uint8_t i = 0; i < maxIterations; i++) {
+        for(types::index_t i = 0; i < maxIterations; i++) {
             iteration++;
             bool converged = true;
 
-            for(uint8_t p = 0; p < N; p++) {
-                for(uint8_t q = p+1; q < N; q++) {
+            for(types::index_t p = 0; p < N; p++) {
+                for(types::index_t q = p+1; q < N; q++) {
                     T A_pp = A(p, p);
                     T A_pq = A(p, q);
                     T A_qq = A(q, q);
 
-                    if(std::abs(A_pq) > MATRIX_EQUAL_THRESHOLD) {
+                    if(std::abs(A_pq) > MATRIX_EPSILON<T>) {
                         converged = false;
 
                         T phi = static_cast<T>( 0.5f * std::atan2(static_cast<T>(2)*A_pq, A_qq - A_pp));
                         T c = static_cast<T>(std::cos(phi));
                         T s = static_cast<T>(std::sin(phi));
 
-                        for(uint8_t k = 0; k < N; k++) {
+                        for(types::index_t k = 0; k < N; k++) {
                             T V_kp = V(k, p);
                             T V_kq = V(k, q);
 
@@ -266,7 +266,7 @@ template<uint8_t N, typename T>
                             V(k, q) = s*V_kp + c*V_kq;
                         }
 
-                        for(uint8_t k = 0; k < N; k++) {
+                        for(types::index_t k = 0; k < N; k++) {
                             if(k != p && k != q) {
                                 T A_kp = A(k, p);
                                 T A_kq = A(k, q);
@@ -289,15 +289,15 @@ template<uint8_t N, typename T>
         }
 
         // Eigenvalue extraction
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             e[i] = A(i, i);
         }
 
         // Eigenvalue/vector ordering      high --> low
-        for(uint8_t i = 0; i < N; i++) {
-            uint8_t index = i;
+        for(types::index_t i = 0; i < N; i++) {
+            types::index_t index = i;
 
-            for(uint8_t j = i+1; j < N; j++) {
+            for(types::index_t j = i+1; j < N; j++) {
                 if(e[j] > e[index]) { index = j; }
             }
 
@@ -305,7 +305,7 @@ template<uint8_t N, typename T>
             if(index != i) {
                 std::swap(e[i], e[index]);
 
-                for(uint8_t k = 0; k < N; k++) { std::swap(V(k, i), V(k, index)); }
+                for(types::index_t k = 0; k < N; k++) { std::swap(V(k, i), V(k, index)); }
             }
         }
 
@@ -323,14 +323,14 @@ template<uint8_t N, typename T>
  *  @return `iterations` The number of iterations it ran to converge
  *  @warning Computationally expensive for large matrices
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     size_t svd(const Matrix<N, M, T> &A, Matrix<N, N, T> &U, Matrix<N, M, T> &S, Matrix<M, M, T> &V, size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
         static_assert(N >= M, "[MATRIX Error] : SVD only exists for matricies(NxM) with N >= M.");
 
         Matrix<M, M, T> AtA = transpose(A)*A;
 
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < N; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < N; j++) {
                 U(i, j) = (j < M) ?A(i, j) :static_cast<T>(0);
             }
         }
@@ -343,7 +343,7 @@ template<uint8_t N, uint8_t M, typename T = float>
 
         // Compute S, singular values
         Vector<M, T> sig{};
-        for(uint8_t i = 0; i < M; i++) {
+        for(types::index_t i = 0; i < M; i++) {
             sig[i] = static_cast<T>(std::sqrt(std::max(eigen[i], static_cast<T>(0))));
         }
         S = Matrix<N, M, T>::diagonal(sig);
@@ -352,9 +352,9 @@ template<uint8_t N, uint8_t M, typename T = float>
         // Compute U, A*V*S_inv
         Matrix<N, M, T> AV = A * V;
 
-        for(uint8_t j = 0; j < M; j++) {
-            if(static_cast<float>(sig[j]) > MATRIX_EQUAL_THRESHOLD) {
-                for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t j = 0; j < M; j++) {
+            if(static_cast<float>(sig[j]) > MATRIX_EPSILON<T>) {
+                for(types::index_t i = 0; i < N; i++) {
                     U(i, j) = AV(i, j) / sig[j];
                 }
             }
@@ -376,20 +376,20 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @note Only defined for square matrices
  *  @warning If function returns `false`, L, U, and P are not modified and do not represent a valid decomposition. Return value should be handled properly
  */
-template<uint8_t N, typename T = float>
-    [[nodiscard]] bool lu(const Matrix<N, N, T> &A, Matrix<N, N, T> &L, Matrix<N, N, T> &U, Matrix<N, N, T> &P, uint8_t &swapCount) {
+template<types::index_t N, typename T = float>
+    [[nodiscard]] bool lu(const Matrix<N, N, T> &A, Matrix<N, N, T> &L, Matrix<N, N, T> &U, Matrix<N, N, T> &P, types::index_t &swapCount) {
         P = Matrix<N, N, T>::eye();
         L = Matrix<N, N, T>::eye();
         U = A;
 
         swapCount = 0;
         
-        for(uint8_t k = 0; k < N; k++) {
+        for(types::index_t k = 0; k < N; k++) {
             // Get pivot
             T maxVal = static_cast<T>(std::abs(U(k, k)));
-            uint8_t pivot = k;
+            types::index_t pivot = k;
 
-            for(uint8_t i = k+1; i < N; i++) {
+            for(types::index_t i = k+1; i < N; i++) {
                 T val = static_cast<T>(std::abs(U(i, k)));
                 if(val > maxVal) {
                     maxVal = val;
@@ -397,28 +397,28 @@ template<uint8_t N, typename T = float>
                 }
             }
 
-            if(maxVal < static_cast<T>(MATRIX_EQUAL_THRESHOLD)) { return false; } // Singular matrix
+            if(maxVal < MATRIX_EPSILON<T>) { return false; } // Singular matrix
 
             // Swap rows
             if(pivot != k) {
                 swapCount++;
 
-                for(uint8_t j = 0; j < N; j++) {
+                for(types::index_t j = 0; j < N; j++) {
                     std::swap(U(k, j), U(pivot, j));
                     std::swap(P(k, j), P(pivot, j));
                 }
 
-                for(uint8_t j = 0; j < k; j++) {
+                for(types::index_t j = 0; j < k; j++) {
                     std::swap(L(k, j), L(pivot, j));
                 }
             }
 
             // Elimination
-            for(uint8_t i = k+1; i<N; i++) {
+            for(types::index_t i = k+1; i<N; i++) {
                 T factor = U(i, k) / U(k, k);
                 L(i, k) = factor;
 
-                for(uint8_t j = k; j < N; j++) {
+                for(types::index_t j = k; j < N; j++) {
                     U(i, j) -= factor * U(k, j);
                 }
             }
@@ -435,7 +435,7 @@ template<uint8_t N, typename T = float>
  *  @param R Upper triangular matrix R (NxM) decomposition output
  *  @return `true` if A's columns are linearly independent, `false` otherwise
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     bool qr(const Matrix<N, M, T> &A, Matrix<N, N, T> &Q, Matrix<N, M, T> &R) {
         
         bool isIndependent = gramSchmidt(A, Q);
@@ -455,44 +455,44 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param Q Output matrix with orthonormal columns (NxN)
  *  @return `true` if input vectors were linearly independent, `false` otherwise
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     bool gramSchmidt(const Matrix<N, M, T> &A, Matrix<N, N, T> &Q) {
         Q = Matrix<N, N, T>::zero();
         bool isIndependent = true;
 
-        for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t j = 0; j < M; j++) {
             Vector<N, T> vec = getColumn(A, j);
 
-            for(uint8_t i = 0; i < j; i++) {
+            for(types::index_t i = 0; i < j; i++) {
                 Vector<N, T> qi = getColumn(Q, i);
                 vec = ortho(vec, qi);
             }
 
             vec = normalize(vec);
 
-            if(norm(vec) < MATRIX_EQUAL_THRESHOLD) { isIndependent = false; } // Zero colummn
+            if(norm(vec) < MATRIX_EPSILON<T>) { isIndependent = false; } // Zero colummn
 
-            for(uint8_t i = 0; i < N; i++) { 
+            for(types::index_t i = 0; i < N; i++) { 
                 Q(i, j) = vec[i];
             }
         }
 
         if(M < N) {
-            for(uint8_t j = M; j < N; j++) {
+            for(types::index_t j = M; j < N; j++) {
                 Vector<N, T> vec = Vector<N, T>::zero();
                 vec[j] = static_cast<T>(1);
 
-                for(uint8_t i = 0; i < j; i++) {
+                for(types::index_t i = 0; i < j; i++) {
                     Vector<N, T> qi = getColumn(Q, i);
                     vec = ortho(vec, qi);
                 }
 
-                uint8_t attempt = 0;
-                while((norm(vec) < static_cast<T>(MATRIX_EQUAL_THRESHOLD)) && (attempt < N)) {
+                types::index_t attempt = 0;
+                while((norm(vec) < MATRIX_EPSILON<T>) && (attempt < N)) {
                     vec = Vector<N, T>::zero();
                     vec[(j + attempt) % N] = static_cast<T>(1);
                     
-                    for(uint8_t i = 0; i < j; i++) {
+                    for(types::index_t i = 0; i < j; i++) {
                         Vector<N, T> qi = getColumn(Q, i);
                         vec = ortho(vec, qi);
                     }
@@ -501,7 +501,7 @@ template<uint8_t N, uint8_t M, typename T = float>
 
                 vec = normalize(vec);
 
-                for(uint8_t i = 0; i < N; i++) { 
+                for(types::index_t i = 0; i < N; i++) { 
                     Q(i, j) = vec[i]; 
                 }
             }
@@ -519,24 +519,24 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param Q Output matrix with orthonormal columns (NxM)
  *  @return `true` if input vectors were linearly independent
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     bool gramSchmidtReduced(const Matrix<N, M, T> &A, Matrix<N, M, T> &Q) {
         Q = Matrix<N, M, T>::zero();
         bool isIndependent = true;
 
-        for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t j = 0; j < M; j++) {
             Vector<N, T> vec = getColumn(A, j);
 
-            for(uint8_t i = 0; i < j; i++) {
+            for(types::index_t i = 0; i < j; i++) {
                 Vector<N, T> qi = getColumn(Q, i);
                 vec = ortho(vec, qi);
             }
 
             vec = normalize(vec);
 
-            if(norm(vec) < MATRIX_EQUAL_THRESHOLD) { isIndependent = false; } // Zero colummn
+            if(norm(vec) < MATRIX_EPSILON<T>) { isIndependent = false; } // Zero colummn
 
-            for(uint8_t i = 0; i < N; i++) { 
+            for(types::index_t i = 0; i < N; i++) { 
                 Q(i, j) = vec[i];
             }
         }
@@ -551,12 +551,12 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param A Matrix to convert to a vector
  *  @return Vector of size N*M
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Vector<N*M, T> vectorize(const Matrix<N, M, T> &A) {
         Vector<N*M, T> output;
 
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output[i*M + j] = A(i, j);
             }   
         }
@@ -568,12 +568,12 @@ template<uint8_t N, uint8_t M, typename T = float>
  *  @param v Vector to convert to a matrix
  *  @return Matrix of size NxM
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Matrix<N, M, T> reshape(const Vector<N*M, T> &v) {
         Matrix<N, M, T> output;
 
-        for(uint8_t i = 0; i < N; i++) {
-            for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t i = 0; i < N; i++) {
+            for(types::index_t j = 0; j < M; j++) {
                 output(i, j) = v[i*M + j];
             }   
         }
@@ -582,11 +582,11 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Get the column of a matrix as a vector
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Vector<N, T> getColumn(const Matrix<N, M, T> &A, uint8_t column = 0) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Vector<N, T> getColumn(const Matrix<N, M, T> &A, types::index_t column = 0) {
         Vector<N, T> output;
 
-        for(uint8_t i = 0; i < N; i++) {
+        for(types::index_t i = 0; i < N; i++) {
             output[i] = A(i, column);
         }
 
@@ -596,11 +596,11 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Get the row of a matrix as a vector
  */
-template<uint8_t N, uint8_t M, typename T = float>
-    constexpr Vector<M, T> getRow(const Matrix<N, M, T> &A, uint8_t row = 0) {
+template<types::index_t N, types::index_t M, typename T = float>
+    constexpr Vector<M, T> getRow(const Matrix<N, M, T> &A, types::index_t row = 0) {
         Vector<M, T> output;
 
-        for(uint8_t j = 0; j < M; j++) {
+        for(types::index_t j = 0; j < M; j++) {
             output[j] = A(row, j);
         }
 
@@ -610,12 +610,12 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Get the main diagonal of a matrix as a vector
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
     constexpr Vector<(N < M) ?N :M, T> getDiagonal(const Matrix<N, M, T> &A) {
-        constexpr uint8_t minLength = (N < M) ?N :M;
+        constexpr types::index_t minLength = (N < M) ?N :M;
         Vector<minLength, T> output;
 
-        for(uint8_t i = 0; i < minLength; i++) {
+        for(types::index_t i = 0; i < minLength; i++) {
             output[i] = A(i, i);
         }
 
@@ -626,11 +626,11 @@ template<uint8_t N, uint8_t M, typename T = float>
 /**
  *  @brief Check if a matrix is the zero matrix
  */
-template<uint8_t N, uint8_t M, typename T = float>
+template<types::index_t N, types::index_t M, typename T = float>
 constexpr bool isZero(const Matrix<N, M, T> &A) {
-    for(uint8_t i = 0; i < N; i++) {
-        for(uint8_t j = 0; j < M; j++) {
-            if(std::abs(A(i,j)) > MATRIX_EQUAL_THRESHOLD) { return false; }
+    for(types::index_t i = 0; i < N; i++) {
+        for(types::index_t j = 0; j < M; j++) {
+            if(std::abs(A(i,j)) > MATRIX_EPSILON<T>) { return false; }
         }
     }
 
@@ -640,7 +640,7 @@ constexpr bool isZero(const Matrix<N, M, T> &A) {
 /**
  *  @brief Check if a matrix is the identity matrix
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
 constexpr bool isIdentity(const Matrix<N, N, T> &A) {
     return isZero(A - Matrix<N, N, T>::eye());
 }
@@ -648,7 +648,7 @@ constexpr bool isIdentity(const Matrix<N, N, T> &A) {
 /**
  *  @brief Check if a matrix is symmetric
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
 constexpr bool isSymmetric(const Matrix<N, N, T> &A) {
     return isZero(A - transpose(A));
 }
@@ -656,7 +656,7 @@ constexpr bool isSymmetric(const Matrix<N, N, T> &A) {
 /**
  *  @brief Check if a matrix is orthogonal
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
 constexpr bool isOrthogonal(const Matrix<N, N, T> &A) {
     return isZero(A*transpose(A));
 }
@@ -664,7 +664,7 @@ constexpr bool isOrthogonal(const Matrix<N, N, T> &A) {
 /**
  *  @brief Check if a matrix is diagonal
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
 constexpr bool isDiagonal(const Matrix<N, N, T> &A) {
     return isZero(A - Matrix<N, N, T>::diagonal(getDiagonal(A)));
 }
@@ -672,9 +672,9 @@ constexpr bool isDiagonal(const Matrix<N, N, T> &A) {
 /**
  *  @brief Check if a matrix is singular
  */
-template<uint8_t N, typename T = float>
+template<types::index_t N, typename T = float>
 constexpr bool isSingular(const Matrix<N, N, T> &A) {
-    return (std::abs(det(A)) < MATRIX_EQUAL_THRESHOLD);
+    return (std::abs(det(A)) < MATRIX_EPSILON<T>);
 }
 
 } // cobalt::math::linear_algebra

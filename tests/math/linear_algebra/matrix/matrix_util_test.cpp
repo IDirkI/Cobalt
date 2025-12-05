@@ -21,7 +21,7 @@ TEST_CASE("Matrix - LU Decomposition", "[matrix][util]") {
         {8.0f, 7.0f, 9.0f}
     };
     Matrix<3, 3> L, U, P;
-    uint8_t swapCount;
+    size_t swapCount;
     
     bool success = lu(A, L, U, P, swapCount);
     
@@ -38,7 +38,7 @@ TEST_CASE("Matrix - LU Decomposition", "[matrix][util]") {
 TEST_CASE("Matrix - LU Decomposition Identity", "[matrix][util]") {
     Matrix<3, 3> A = Matrix<3, 3>::eye();
     Matrix<3, 3> L, U, P;
-    uint8_t swapCount;
+    size_t swapCount;
     bool success = lu(A, L, U, P, swapCount);
     
     REQUIRE(success);
@@ -53,7 +53,7 @@ TEST_CASE("Matrix - LU Decomposition Singular", "[matrix][util]") {
         {4.0f, 5.0f, 6.0f}
     };
     Matrix<3, 3> L, U, P;
-    uint8_t swapCount;
+    size_t swapCount;
 
     bool success = lu(A, L, U, P, swapCount);
     

@@ -55,10 +55,10 @@ inline Complex floor(const Complex &z) {
  *  @brief Sets the components of a complex number to a clean zero if they are very close to zero
  *  @param z Complex number to clean
  */
-inline Complex cleanZero(const Complex &z) {
+inline Complex cleanZero(const Complex &z) noexcept {
     return Complex(
-        (std::abs(z.real()) < COMPLEX_EQUAL_THRESHOLD) ?0.0f :z.real(),
-        (std::abs(z.imag()) < COMPLEX_EQUAL_THRESHOLD) ?0.0f :z.imag()
+        (std::abs(z.real()) < COMPLEX_EPSILON<>) ?0.0f :z.real(),
+        (std::abs(z.imag()) < COMPLEX_EPSILON<>) ?0.0f :z.imag()
     );
 }
 
@@ -78,7 +78,7 @@ template<size_t N>
         
         float rootR = std::pow(r, 1.0f / N);
         
-        for(uint8_t k = 0; k < N; k++) {
+        for(types::index_t k = 0; k < N; k++) {
             float rootTheta = (theta + 2.0f * M_PI * k) / N;
             roots[k] = Complex::polar(rootR, rootTheta);
         }
@@ -87,7 +87,7 @@ template<size_t N>
 /**
  *  @brief Compute the distance between two complex numbers
  */
-inline float distance(const Complex &z, const Complex &w) {
+inline float distance(const Complex &z, const Complex &w) noexcept {
     float dRe = z.real() - w.real();
     float dIm = z.imag() - w.imag();
     return std::sqrt(dRe*dRe + dIm*dIm);
@@ -96,24 +96,24 @@ inline float distance(const Complex &z, const Complex &w) {
 /**
  *  @brief Project complex number onto real axis
  */
-inline Complex projectReal(const Complex &z) {
+inline Complex projectReal(const Complex &z) noexcept {
     return Complex(z.real(), 0.0f);
 }
 
 /**
  *  @brief Project complex number onto imaginary axis
  */
-inline Complex projectImag(const Complex &z) {
+inline Complex projectImag(const Complex &z) noexcept {
     return Complex(0.0f, z.imag());
 }
 
 /**
  *  @brief Project complex number onto unit circle
  */
-inline Complex projectUnit(const Complex &z) {
+inline Complex projectUnit(const Complex &z) noexcept {
     float mag = std::sqrt(z.real()*z.real() + z.imag()*z.imag());
     
-    if(mag < COMPLEX_EQUAL_THRESHOLD) {
+    if(mag < COMPLEX_EPSILON<>) {
         return Complex::one(); // Default to 1 if magnitude is zero
     }
     
@@ -128,7 +128,7 @@ inline Complex projectUnit(const Complex &z) {
  *  @param theta Rotation angle in radians
  *  @return Rotated complex number
  */
-inline Complex rotate(const Complex &z, float theta) {
+inline Complex rotate(const Complex &z, float theta) noexcept {
     Complex rotation = Complex::polar(1.0f, theta);
     Complex result = z;
     result *= rotation;
@@ -138,21 +138,21 @@ inline Complex rotate(const Complex &z, float theta) {
 /**
  *  @brief Rotate complex number 90 degrees counterclockwise (multiply by i)
  */
-inline Complex rotate90(const Complex &z) {
+inline Complex rotate90(const Complex &z) noexcept {
     return Complex(-z.imag(), z.real());
 }
 
 /**
  *  @brief Rotate complex number 180 degrees (negate)
  */
-inline Complex rotate180(const Complex &z) {
+inline Complex rotate180(const Complex &z) noexcept {
     return Complex(-z.real(), -z.imag());
 }
 
 /**
  *  @brief Rotate complex number 270 degrees counterclockwise (multiply by -i)
  */
-inline Complex rotate270(const Complex &z) {
+inline Complex rotate270(const Complex &z) noexcept {
     return Complex(z.imag(), -z.real());
 }
 
@@ -164,7 +164,7 @@ inline Complex rotate270(const Complex &z) {
  *  @param r Output norm/magnitude
  *  @param theta Output argument/angle
  */
-inline void toPolar(const Complex &z, float &r, float &theta) {
+inline void toPolar(const Complex &z, float &r, float &theta) noexcept {
     r = std::sqrt(z.real()*z.real() + z.imag()*z.imag());
     theta = std::atan2(z.imag(), z.real());
 }
@@ -220,42 +220,42 @@ inline Complex slerp(const Complex &z, const Complex &w, float t) {
 /**
  *  @brief Check if a complex number is zero (0 + 0j)
  */
-bool isZero(const Complex &z) { 
-    if(std::abs(z.real()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(z.imag()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
+bool isZero(const Complex &z) noexcept { 
+    if(std::abs(z.real()) > COMPLEX_EPSILON<>) { return false; }
+    if(std::abs(z.imag()) > COMPLEX_EPSILON<>) { return false; }
     return true;
 }
 
 /**
  *  @brief Check if a complex number is purely real
  */
-bool isReal(const Complex &z) { 
-    if(std::abs(z.imag()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
+bool isReal(const Complex &z) noexcept { 
+    if(std::abs(z.imag()) > COMPLEX_EPSILON<>) { return false; }
     return true;
 }
 
 /**
  *  @brief Check if a complex number is purely imaginary
  */
-bool isImag(const Complex &z) { 
-    if(std::abs(z.real()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(z.imag()) < COMPLEX_EQUAL_THRESHOLD) { return false; }
+bool isImag(const Complex &z) noexcept { 
+    if(std::abs(z.real()) > COMPLEX_EPSILON<>) { return false; }
+    if(std::abs(z.imag()) < COMPLEX_EPSILON<>) { return false; }
     return true;
 }
 
 /**
  *  @brief Check if a complex number is has a norm of 1
  */
-bool isUnit(const Complex &z) { 
-    return (std::abs(z.real()*z.real() + z.imag()*z.imag() - 1.0f) < COMPLEX_EQUAL_THRESHOLD);
+bool isUnit(const Complex &z) noexcept { 
+    return (std::abs(z.real()*z.real() + z.imag()*z.imag() - 1.0f) < COMPLEX_EPSILON<>);
 }
 
 /**
  *  @brief Check if two complex number are conjugates of eachother
  */
-bool isConjugate(const Complex &z, const Complex &w) { 
-    if(std::abs(z.real() - w.real()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(z.imag() + w.imag()) > COMPLEX_EQUAL_THRESHOLD) { return false; }
+bool isConjugate(const Complex &z, const Complex &w) noexcept { 
+    if(std::abs(z.real() - w.real()) > COMPLEX_EPSILON<>) { return false; }
+    if(std::abs(z.imag() + w.imag()) > COMPLEX_EPSILON<>) { return false; }
     return true;
 }
     

@@ -20,7 +20,7 @@ namespace cobalt::math::geometry {
  *  @return Clamped quaternion
  *  @note Asserts if minVal > maxVal. If this occurs, the identity quaternion is returned.
  */
-inline Quaternion clamp(const Quaternion &q, float minVal, float maxVal) {
+inline Quaternion clamp(const Quaternion &q, float minVal, float maxVal) noexcept {
     assert(minVal <= maxVal && "[QUATERNION Error] : Minimum clamp value is greater than maximum clamp value.");
 
     if(minVal > maxVal) { return Quaternion::eye(); }
@@ -39,7 +39,7 @@ inline Quaternion clamp(const Quaternion &q, float minVal, float maxVal) {
  *  @param maxVal Upper/Lower absolute clamp bound
  *  @return Clamped quaternion
  */
-inline Quaternion clamp(const Quaternion &q, float maxVal) {
+inline Quaternion clamp(const Quaternion &q, float maxVal) noexcept {
     return clamp(q, -maxVal, maxVal);
 }
 
@@ -51,7 +51,7 @@ inline Quaternion clamp(const Quaternion &q, float maxVal) {
  *  @return Clamped quaternion
  *  @note Asserts if minAngle > maxAngle. If this occurs, the identity quaternion is returned.
  */
-inline Quaternion clampRotation(const Quaternion &q, float minAngle, float maxAngle) {
+inline Quaternion clampRotation(const Quaternion &q, float minAngle, float maxAngle) noexcept {
     assert(minAngle <= maxAngle && "[QUATERNION Error] : Minimum clamp angle is greater than maximum clamp angle.");
 
     if(minAngle > maxAngle) { Quaternion::eye(); }
@@ -64,7 +64,7 @@ inline Quaternion clampRotation(const Quaternion &q, float minAngle, float maxAn
     float angle = 2.0f*std::acos(qn.w());
     cobalt::math::linear_algebra::Vector<3> axis;
 
-    if(s < QUATERNION_EQUAL_THRESHOLD) {
+    if(s < QUATERNION_EPSILON<>) {
         axis = cobalt::math::linear_algebra::Vector<3>::unitX();
     }
     else {
@@ -83,7 +83,7 @@ inline Quaternion clampRotation(const Quaternion &q, float minAngle, float maxAn
  *  @param maxAngle Maximum rotation angle in radians
  *  @return Clamped quaternion
  */
-inline Quaternion clampRotation(const Quaternion &q, float maxAngle) {
+inline Quaternion clampRotation(const Quaternion &q, float maxAngle) noexcept {
     return clampRotation(q, -maxAngle, maxAngle);
 }
 
@@ -92,7 +92,7 @@ inline Quaternion clampRotation(const Quaternion &q, float maxAngle) {
  *  @brief Round the components of a quaternion to the nearest integer
  *  @param q Quaternion to round
  */
-inline Quaternion round(const Quaternion &q) {
+inline Quaternion round(const Quaternion &q) noexcept {
     return Quaternion(std::round(q.w()),
                       std::round(q.x()),
                       std::round(q.y()),
@@ -104,7 +104,7 @@ inline Quaternion round(const Quaternion &q) {
  *  @brief Ceil the components of a quaternion to the nearest integer
  *  @param q Quaternion to ceil
  */
-inline Quaternion ceil(const Quaternion &q) {
+inline Quaternion ceil(const Quaternion &q) noexcept {
     return Quaternion(std::ceil(q.w()),
                       std::ceil(q.x()),
                       std::ceil(q.y()),
@@ -116,7 +116,7 @@ inline Quaternion ceil(const Quaternion &q) {
  *  @brief Floor the components of a quaternion to the nearest integer
  *  @param q Quaternion to floor
  */
-inline Quaternion floor(const Quaternion &q) {
+inline Quaternion floor(const Quaternion &q) noexcept {
     return Quaternion(std::floor(q.w()),
                       std::floor(q.x()),
                       std::floor(q.y()),
@@ -128,12 +128,12 @@ inline Quaternion floor(const Quaternion &q) {
  *  @brief Sets the components of a quaternion to a clean zero if they are very close to zero
  *  @param q Quaternion to clean
  */
-inline Quaternion cleanZero(const Quaternion &q) {
+inline Quaternion cleanZero(const Quaternion &q) noexcept {
     return Quaternion(
-        (std::abs(q.w()) < QUATERNION_EQUAL_THRESHOLD) ?0.0f :q.w(),
-        (std::abs(q.x()) < QUATERNION_EQUAL_THRESHOLD) ?0.0f :q.x(),
-        (std::abs(q.y()) < QUATERNION_EQUAL_THRESHOLD) ?0.0f :q.y(),
-        (std::abs(q.z()) < QUATERNION_EQUAL_THRESHOLD) ?0.0f :q.z()
+        (std::abs(q.w()) < QUATERNION_EPSILON<>) ?0.0f :q.w(),
+        (std::abs(q.x()) < QUATERNION_EPSILON<>) ?0.0f :q.x(),
+        (std::abs(q.y()) < QUATERNION_EPSILON<>) ?0.0f :q.y(),
+        (std::abs(q.z()) < QUATERNION_EPSILON<>) ?0.0f :q.z()
     );
 }
 
@@ -144,7 +144,7 @@ inline Quaternion cleanZero(const Quaternion &q) {
  *  @param p Second quaternion
  *  @return Angled distance in radians
 */
-inline float angledDistance(const Quaternion &q, const Quaternion &p) {
+inline float angledDistance(const Quaternion &q, const Quaternion &p) noexcept {
     Quaternion qn = normalize(q);
     Quaternion pn = normalize(p);
 
@@ -162,7 +162,7 @@ inline float angledDistance(const Quaternion &q, const Quaternion &p) {
  *  @param p Destination quaternion
  *  @return Difference quaternion (p * q^-1)
 */
-inline Quaternion difference(const Quaternion &q, const Quaternion &p) {
+inline Quaternion difference(const Quaternion &q, const Quaternion &p) noexcept {
     return p*inv(q);
 }
 
@@ -171,7 +171,7 @@ inline Quaternion difference(const Quaternion &q, const Quaternion &p) {
  *  @param q First quaternion
  *  @param p Second quaternion
  */
-inline Quaternion shortestPath(const Quaternion &q, const Quaternion &p) {
+inline Quaternion shortestPath(const Quaternion &q, const Quaternion &p) noexcept {
     if(dot(q, p) < 0.0f) { return -p; } 
     else { return p; }
 }
@@ -183,7 +183,7 @@ inline Quaternion shortestPath(const Quaternion &q, const Quaternion &p) {
  *  @param qDot Time derivative of the quaternion
  *  @return 3-Vector representing angular velocity in radians per second
 */
-inline cobalt::math::linear_algebra::Vector<3, float> angularVelocity(const Quaternion &q, const Quaternion &qDot) {
+inline cobalt::math::linear_algebra::Vector<3, float> angularVelocity(const Quaternion &q, const Quaternion &qDot) noexcept {
     Quaternion omega = 2.0f * qDot * conj(q);
     return omega.vector();
 }
@@ -195,21 +195,22 @@ inline cobalt::math::linear_algebra::Vector<3, float> angularVelocity(const Quat
  *  @param swing Output swing component
  *  @param twist Output twist component
  */
-inline void swingTwist(const Quaternion &q, const cobalt::math::linear_algebra::Vector<3> &axis, Quaternion &swing, Quaternion &twist) {
-    cobalt::math::linear_algebra::Vector<3, float> p = q.vector();
-    cobalt::math::linear_algebra::Vector<3, float> proj = dot(p, axis) * axis;
+template<typename T>
+    inline void swingTwist(const Quaternion &q, const cobalt::math::linear_algebra::Vector<3, T> &axis, Quaternion &swing, Quaternion &twist) noexcept {
+        cobalt::math::linear_algebra::Vector<3, T> p = q.vector();
+        cobalt::math::linear_algebra::Vector<3, T> proj = dot(p, axis) * axis;
 
-    twist = Quaternion(q.w(), proj.x(), proj.y(), proj.z());
-    float normTwist = norm(twist);
+        twist = Quaternion(q.w(), proj.x(), proj.y(), proj.z());
+        float normTwist = norm(twist);
 
-    if(normTwist < QUATERNION_EQUAL_THRESHOLD) {
-        twist = Quaternion::eye();
-        swing = q;
-    } else {
-        twist = twist / normTwist;
-        swing = q * conj(twist);
+        if(normTwist < QUATERNION_EPSILON<>) {
+            twist = Quaternion::eye();
+            swing = q;
+        } else {
+            twist = twist / normTwist;
+            swing = q * conj(twist);
+        }
     }
-}
 
 // ---------------- Interpolation ----------------
 /**
@@ -290,7 +291,7 @@ inline Quaternion lerp(const Quaternion &q, const Quaternion &p, float t) {
  *  @param q Quaternion to convert
  *  @return 3x3 rotation matrix
  */
-inline cobalt::math::linear_algebra::Matrix<3, 3, float> toRotationMatrix(const Quaternion &q) {
+inline cobalt::math::linear_algebra::Matrix<3, 3, float> toRotationMatrix(const Quaternion &q) noexcept {
     Quaternion qn = normalize(q);
 
     float w = qn.w();
@@ -319,16 +320,16 @@ inline cobalt::math::linear_algebra::Matrix<3, 3, float> toRotationMatrix(const 
  *  @param q Quaternion to convert
  *  @return 3-Vector representing axis-angle rotation
  */
-inline cobalt::math::linear_algebra::Vector<3> toRotationVector(const Quaternion &q) {
+inline cobalt::math::linear_algebra::Vector<3, float> toRotationVector(const Quaternion &q) noexcept {
     Quaternion qn = normalize(q);
 
     float angle = 2*std::acos(qn.w());
     float s = std::sqrt(1 - qn.w()*qn.w());
-    if(s < QUATERNION_EQUAL_THRESHOLD) {
-        return cobalt::math::linear_algebra::Vector<3>::zero();
+    if(s < QUATERNION_EPSILON<>) {
+        return cobalt::math::linear_algebra::Vector<3, float>::zero();
     }
 
-    cobalt::math::linear_algebra::Vector<3> axis = {qn.x()/s, qn.y()/s, qn.z()/s};
+    cobalt::math::linear_algebra::Vector<3, float> axis = {qn.x()/s, qn.y()/s, qn.z()/s};
 
     return axis * angle;
 }
@@ -337,7 +338,7 @@ inline cobalt::math::linear_algebra::Vector<3> toRotationVector(const Quaternion
  *  @brief Convert a quaternion to its rotation angle in radians
  *  @param q Quaternion to convert
  */
-inline float toAngle(const Quaternion &q) {
+inline float toAngle(const Quaternion &q) noexcept {
     Quaternion qn = normalize(q);
 
     return 2.0f*std::acos(qn.w());
@@ -349,15 +350,15 @@ inline float toAngle(const Quaternion &q) {
  *  @return 3-Vector representing the rotation axis
  *  @note If the quaternion represents no rotation, an arbitrary unit-x axis is returned
  */
-inline cobalt::math::linear_algebra::Vector<3> toAxis(const Quaternion &q) {
+inline cobalt::math::linear_algebra::Vector<3, float> toAxis(const Quaternion &q) noexcept {
     Quaternion qn = normalize(q);
 
     float s = std::sqrt(1 - qn.w()*qn.w());
-    if(s < QUATERNION_EQUAL_THRESHOLD) {
-        return cobalt::math::linear_algebra::Vector<3>::unitX();
+    if(s < QUATERNION_EPSILON<>) {
+        return cobalt::math::linear_algebra::Vector<3 ,float>::unitX();
     }
 
-    return cobalt::math::linear_algebra::Vector<3>{qn.x()/s, qn.y()/s, qn.z()/s};
+    return cobalt::math::linear_algebra::Vector<3, float>{qn.x()/s, qn.y()/s, qn.z()/s};
 }
 
 /**
@@ -365,7 +366,7 @@ inline cobalt::math::linear_algebra::Vector<3> toAxis(const Quaternion &q) {
  *  @param q Unit quaternion to convert
 *   @note (r,p,y) in ZYX sequence 
  */
-inline void toEuler(const Quaternion &q, float &roll, float &pitch, float &yaw) {
+inline void toEuler(const Quaternion &q, float &roll, float &pitch, float &yaw) noexcept {
     Quaternion qn = normalize(q);
 
     roll = std::atan2(2*(q.w()*q.x() + q.y()*q.z()), 1 - 2*(q.x()*q.x() + q.y()*q.y()));
@@ -377,49 +378,49 @@ inline void toEuler(const Quaternion &q, float &roll, float &pitch, float &yaw) 
 /**
  *  @brief Check if a quaternion is zero (0 + 0i + 0j + 0k)
  */
-inline bool isZero(const Quaternion &q) { 
-    if(std::abs(q.w()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(q.x()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(q.y()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(q.z()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+inline bool isZero(const Quaternion &q) noexcept { 
+    if(std::abs(q.w()) > QUATERNION_EPSILON<>) { return false; }
+    if(std::abs(q.x()) > QUATERNION_EPSILON<>) { return false; }
+    if(std::abs(q.y()) > QUATERNION_EPSILON<>) { return false; }
+    if(std::abs(q.z()) > QUATERNION_EPSILON<>) { return false; }
     return true;
 }
 
 /**
  *  @brief Check if a quaternion is unitary. (norm = 1)
  */
-inline bool isNormalized(const Quaternion &q) { 
+inline bool isNormalized(const Quaternion &q) noexcept { 
     float n = norm(q);
-    return (std::abs(n - 1.0f) < QUATERNION_EQUAL_THRESHOLD);
+    return (std::abs(n - 1.0f) < QUATERNION_EPSILON<>);
 }
 
 
 /**
  *  @brief Check if a quaternion is the identity quaternion (1 + 0i + 0j + 0k)
  */
-inline bool isIdentity(const Quaternion &q) { 
-    if(std::abs(q.w() - 1.0f) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(q.x()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(q.y()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(q.z()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+inline bool isIdentity(const Quaternion &q) noexcept { 
+    if(std::abs(q.w() - 1.0f) > QUATERNION_EPSILON<>) { return false; }
+    if(std::abs(q.x()) > QUATERNION_EPSILON<>) { return false; }
+    if(std::abs(q.y()) > QUATERNION_EPSILON<>) { return false; }
+    if(std::abs(q.z()) > QUATERNION_EPSILON<>) { return false; }
     return true;
 }
 
 /**
  *  @brief Check if a quaternion is purely real (w + 0i + 0j + 0k)
  */
-inline bool isReal(const Quaternion &q) { 
-    if(std::abs(q.x()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(q.y()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
-    if(std::abs(q.z()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+inline bool isReal(const Quaternion &q) noexcept { 
+    if(std::abs(q.x()) > QUATERNION_EPSILON<>) { return false; }
+    if(std::abs(q.y()) > QUATERNION_EPSILON<>) { return false; }
+    if(std::abs(q.z()) > QUATERNION_EPSILON<>) { return false; }
     return true;
 }
 
 /**
  *  @brief Check if a quaternion is purely imaginary (0 + xi + yj + zk)
  */
-inline bool isPure(const Quaternion &q) { 
-    if(std::abs(q.w()) > QUATERNION_EQUAL_THRESHOLD) { return false; }
+inline bool isPure(const Quaternion &q) noexcept { 
+    if(std::abs(q.w()) > QUATERNION_EPSILON<>) { return false; }
     return true;
 }
 
@@ -429,12 +430,12 @@ inline bool isPure(const Quaternion &q) {
  *  @param p Second quaternion
  *  @return `true` if they represent the same rotation, `false` otherwise
  */
-inline bool isSameRotation(const Quaternion &q, const Quaternion &p) { 
+inline bool isSameRotation(const Quaternion &q, const Quaternion &p) noexcept { 
     Quaternion qn = normalize(q);
     Quaternion pn = normalize(p);
 
     float d = dot(qn, pn);
-    return (std::abs(std::abs(d) - 1.0f) < QUATERNION_EQUAL_THRESHOLD);
+    return (std::abs(std::abs(d) - 1.0f) < QUATERNION_EPSILON<>);
 }
 
 } // cobalt::math::geometry 
