@@ -60,7 +60,7 @@ template<typename T = float>
  *  @param translationVector Translation vector of the transformation
  */
 template<typename T = float>
-    constexpr void toRotationVector(const Transform<T> &H, cobalt::math::linear_algebra::Vector<3, T> &rotationVector, cobalt::math::linear_algebra::Vector<3, T> &translation) {
+    constexpr void toRotationVector(const Transform<T> &H, cobalt::math::linear_algebra::Vector<3, T> &rotationVector, cobalt::math::linear_algebra::Vector<3, T> &translationVector) {
         rotationVector = toRotationVector(toQuaternion(H));
         translationVector = H.translation();
     }

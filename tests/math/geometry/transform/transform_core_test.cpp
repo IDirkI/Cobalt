@@ -59,7 +59,7 @@ TEST_CASE("Transform - Identity Factory", "[transform][core][factory]") {
 
 TEST_CASE("Transform - From Quaternion Identity", "[transform][core][factory]") {
     Quaternion q = Quaternion::eye();
-    Transform<> T = Transform<>::quatenrion(q);
+    Transform<> T = Transform<>::fromQuaternion(q);
     
     Matrix<3, 3> R = T.rotation();
     
@@ -69,8 +69,8 @@ TEST_CASE("Transform - From Quaternion Identity", "[transform][core][factory]") 
 }
 
 TEST_CASE("Transform - From Quaternion 90-deg Z-Axis", "[transform][core][factory]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
-    Transform<> T = Transform<>::quatenrion(q);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Transform<> T = Transform<>::fromQuaternion(q);
     
     // 90° rotation around Z should map X to Y
     Vector<3> x_axis = {1.0f, 0.0f, 0.0f};
@@ -83,16 +83,16 @@ TEST_CASE("Transform - From Quaternion 90-deg Z-Axis", "[transform][core][factor
 
 TEST_CASE("Transform - From Pose", "[transform][core][factory]") {
     Vector<3> position = {1.0f, 2.0f, 3.0f};
-    Quaternion orientation = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
+    Quaternion orientation = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
     
-    Transform<> T = Transform<>::pose(position, orientation);
+    Transform<> T = Transform<>::fromPose(position, orientation);
     
     REQUIRE(T.translation() == position);
 }
 
 TEST_CASE("Transform - From Rotation Vector", "[transform][core][factory]") {
     Vector<3> rotVec = {0.0f, 0.0f, M_PI / 2.0f};  // 90° around Z
-    Transform<> T = Transform<>::rotationVector(rotVec);
+    Transform<> T = Transform<>::fromRotationVector(rotVec);
     
     Vector<3> x_axis = {1.0f, 0.0f, 0.0f};
     Vector<3> result = T.apply(x_axis);
@@ -103,14 +103,14 @@ TEST_CASE("Transform - From Rotation Vector", "[transform][core][factory]") {
 
 TEST_CASE("Transform - From Translation", "[transform][core][factory]") {
     Vector<3> t = {5.0f, 10.0f, 15.0f};
-    Transform<> T = Transform<>::translationVector(t);
+    Transform<> T = Transform<>::fromTranslationVector(t);
     
     REQUIRE(T.rotation() == Matrix<3, 3>::eye());
     REQUIRE(T.translation() == t);
 }
 
 TEST_CASE("Transform - Rotation X", "[transform][core][factory]") {
-    Transform<> T = Transform<>::rotationX(M_PI / 2.0f);
+    Transform<> T = Transform<>::fromRotationX(M_PI / 2.0f);
     
     // 90° rotation around X should map Y to Z
     Vector<3> y_axis = {0.0f, 1.0f, 0.0f};
@@ -122,7 +122,7 @@ TEST_CASE("Transform - Rotation X", "[transform][core][factory]") {
 }
 
 TEST_CASE("Transform - Rotation Y", "[transform][core][factory]") {
-    Transform<> T = Transform<>::rotationY(M_PI / 2.0f);
+    Transform<> T = Transform<>::fromRotationY(M_PI / 2.0f);
     
     // 90° rotation around Y should map Z to X
     Vector<3> z_axis = {0.0f, 0.0f, 1.0f};
@@ -134,7 +134,7 @@ TEST_CASE("Transform - Rotation Y", "[transform][core][factory]") {
 }
 
 TEST_CASE("Transform - Rotation Z", "[transform][core][factory]") {
-    Transform<> T = Transform<>::rotationZ(M_PI / 2.0f);
+    Transform<> T = Transform<>::fromRotationZ(M_PI / 2.0f);
     
     // 90° rotation around Z should map X to Y
     Vector<3> x_axis = {1.0f, 0.0f, 0.0f};
@@ -196,7 +196,7 @@ TEST_CASE("Transform - Transform Point Identity", "[transform][core][transform]"
 
 TEST_CASE("Transform - Transform Point Translation Only", "[transform][core][transform]") {
     Vector<3> t = {5.0f, 10.0f, 15.0f};
-    Transform<> T = Transform<>::translationVector(t);
+    Transform<> T = Transform<>::fromTranslationVector(t);
     Vector<3> p = {1.0f, 2.0f, 3.0f};
     
     Vector<3> result = T.apply(p);
@@ -207,7 +207,7 @@ TEST_CASE("Transform - Transform Point Translation Only", "[transform][core][tra
 }
 
 TEST_CASE("Transform - Transform Point Rotation Only", "[transform][core][transform]") {
-    Transform<> T = Transform<>::rotationZ(M_PI / 2.0f);
+    Transform<> T = Transform<>::fromRotationZ(M_PI / 2.0f);
     Vector<3> p = {1.0f, 0.0f, 0.0f};
     
     Vector<3> result = T.apply(p);
@@ -219,7 +219,7 @@ TEST_CASE("Transform - Transform Point Rotation Only", "[transform][core][transf
 
 TEST_CASE("Transform - Transform Vector No Translation", "[transform][core][transform]") {
     Vector<3> t = {0.0f, 0.0f, 0.0f};
-    Transform<> T = Transform<>::translationVector(t);
+    Transform<> T = Transform<>::fromTranslationVector(t);
     Vector<3> v = {1.0f, 0.0f, 0.0f};
     
     Vector<3> result = T.apply(v);
@@ -229,7 +229,7 @@ TEST_CASE("Transform - Transform Vector No Translation", "[transform][core][tran
 }
 
 TEST_CASE("Transform - Transform Vector Rotation", "[transform][core][transform]") {
-    Transform<> T = Transform<>::rotationZ(M_PI / 2.0f);
+    Transform<> T = Transform<>::fromRotationZ(M_PI / 2.0f);
     Vector<3> v = {1.0f, 0.0f, 0.0f};
     
     Vector<3> result = T.apply(v);
@@ -240,7 +240,7 @@ TEST_CASE("Transform - Transform Vector Rotation", "[transform][core][transform]
 
 TEST_CASE("Transform - Composition With Identity", "[transform][core][compose]") {
     Vector<3> t = {1.0f, 2.0f, 3.0f};
-    Transform<> T = Transform<>::translationVector(t);
+    Transform<> T = Transform<>::fromTranslationVector(t);
     Transform<> I = Transform<>::eye();
     
     T *= I;
@@ -249,8 +249,8 @@ TEST_CASE("Transform - Composition With Identity", "[transform][core][compose]")
 }
 
 TEST_CASE("Transform - Composition Two Translations", "[transform][core][compose]") {
-    Transform<> T1 = Transform<>::translationVector(Vector<3>{1.0f, 0.0f, 0.0f});
-    Transform<> T2 = Transform<>::translationVector(Vector<3>{0.0f, 2.0f, 0.0f});
+    Transform<> T1 = Transform<>::fromTranslationVector(Vector<3>{1.0f, 0.0f, 0.0f});
+    Transform<> T2 = Transform<>::fromTranslationVector(Vector<3>{0.0f, 2.0f, 0.0f});
     
     T1 *= T2;
     
@@ -260,8 +260,8 @@ TEST_CASE("Transform - Composition Two Translations", "[transform][core][compose
 }
 
 TEST_CASE("Transform - Composition Two Rotations", "[transform][core][compose]") {
-    Transform<> T1 = Transform<>::rotationZ(M_PI / 4.0f);
-    Transform<> T2 = Transform<>::rotationZ(M_PI / 4.0f);
+    Transform<> T1 = Transform<>::fromRotationZ(M_PI / 4.0f);
+    Transform<> T2 = Transform<>::fromRotationZ(M_PI / 4.0f);
     
     T1 *= T2;
     
@@ -274,8 +274,8 @@ TEST_CASE("Transform - Composition Two Rotations", "[transform][core][compose]")
 }
 
 TEST_CASE("Transform - Composition Order Matters", "[transform][core][compose]") {
-    Transform<> T_rot = Transform<>::rotationZ(M_PI / 2.0f);
-    Transform<> T_trans = Transform<>::translationVector(Vector<3>{1.0f, 0.0f, 0.0f});
+    Transform<> T_rot = Transform<>::fromRotationZ(M_PI / 2.0f);
+    Transform<> T_trans = Transform<>::fromTranslationVector(Vector<3>{1.0f, 0.0f, 0.0f});
     
     // Rotate then translate
     Transform<> T1 = T_trans;
@@ -298,10 +298,10 @@ TEST_CASE("Transform - Composition Order Matters", "[transform][core][compose]")
 
 TEST_CASE("Transform - Robot Arm Forward Kinematics", "[transform][integration]") {
     // Simple 2-joint planar arm
-    Transform<> joint1 = Transform<>::rotationZ(M_PI / 4.0f);  // 45°
-    Transform<> link1 = Transform<>::translationVector(Vector<3>{1.0f, 0.0f, 0.0f});
-    Transform<> joint2 = Transform<>::rotationZ(M_PI / 4.0f);  // 45°
-    Transform<> link2 = Transform<>::translationVector(Vector<3>{1.0f, 0.0f, 0.0f});
+    Transform<> joint1 = Transform<>::fromRotationZ(M_PI / 4.0f);  // 45°
+    Transform<> link1 = Transform<>::fromTranslationVector(Vector<3>{1.0f, 0.0f, 0.0f});
+    Transform<> joint2 = Transform<>::fromRotationZ(M_PI / 4.0f);  // 45°
+    Transform<> link2 = Transform<>::fromTranslationVector(Vector<3>{1.0f, 0.0f, 0.0f});
     
     // Chain: base -> joint1 -> link1 -> joint2 -> link2 -> end-effector
     Transform<> T = joint1;

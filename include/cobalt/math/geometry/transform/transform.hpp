@@ -55,7 +55,7 @@ struct Transform {
          *  @brief Construct a rotation-transformation from given unit quaternion.
          *  @param q Unit quaternion representing the rotation/orientation
          */
-        static constexpr Transform<T> quatenrion(const Quaternion &q) {
+        static constexpr Transform<T> fromQuaternion(const Quaternion &q) {
             cobalt::math::geometry::Quaternion qn = normalize(q);
             cobalt::math::linear_algebra::Matrix<3, 3, T> R;
             
@@ -80,8 +80,8 @@ struct Transform {
          * 
          *  The direction of the vector is the axis while the norm of the vector is the angle
          */
-        static constexpr Transform<T> pose(const cobalt::math::linear_algebra::Vector<3, T> &position, const cobalt::math::geometry::Quaternion &orientation) {
-            Transform<T> H = quatenrion(orientation);
+        static constexpr Transform<T> fromPose(const cobalt::math::linear_algebra::Vector<3, T> &position, const cobalt::math::geometry::Quaternion &orientation) {
+            Transform<T> H = fromQuaternion(orientation);
             H.t_ = position;
 
             return H;
@@ -93,17 +93,17 @@ struct Transform {
          * 
          *  The direction of the vector is the axis while the norm of the vector is the angle
          */
-        static constexpr Transform<T> rotationVector(const cobalt::math::linear_algebra::Vector<3, T> &v) {
-            Quaternion q = Quaternion::rotationVector(v);
+        static constexpr Transform<T> fromRotationVector(const cobalt::math::linear_algebra::Vector<3, T> &v) {
+            Quaternion q = Quaternion::fromRotationVector(v);
 
-            return quatenrion(q);
+            return fromQuaternion(q);
         }
 
         /**
          *  @brief Construct a translation-transformation from given vector.
          *  @param v Vector representing the translation in the transformation
          */
-        static constexpr Transform<T> translationVector(const cobalt::math::linear_algebra::Vector<3, T> &t) {
+        static constexpr Transform<T> fromTranslationVector(const cobalt::math::linear_algebra::Vector<3, T> &t) {
             return Transform<T>(cobalt::math::linear_algebra::Matrix<3, 3, T>::eye(), t);
         }
 
@@ -111,7 +111,7 @@ struct Transform {
          *  @brief Construct a rotation-transformation along the X-axis from a given angle.
          *  @param angle Angle to rotate around X-axis
          */
-        static constexpr Transform<T> rotationX(float angle) {
+        static constexpr Transform<T> fromRotationX(float angle) {
             cobalt::math::linear_algebra::Matrix<3, 3, T> R = cobalt::math::linear_algebra::Matrix<3, 3, T>::eye();
 
             R(1,1) = std::cos(angle);
@@ -126,7 +126,7 @@ struct Transform {
          *  @brief Construct a rotation-transformation along the Y-axis from a given angle.
          *  @param angle Angle to rotate around Y-axis
          */
-        static constexpr Transform<T> rotationY(float angle) {
+        static constexpr Transform<T> fromRotationY(float angle) {
              cobalt::math::linear_algebra::Matrix<3, 3, T> R = cobalt::math::linear_algebra::Matrix<3, 3, T>::eye();
 
             R(0,0) = std::cos(angle);
@@ -141,7 +141,7 @@ struct Transform {
          *  @brief Construct a rotation-transformation along the Z-axis from a given angle.
          *  @param angle Angle to rotate around Z-axis
          */
-        static constexpr Transform<T> rotationZ(float angle) {
+        static constexpr Transform<T> fromRotationZ(float angle) {
             cobalt::math::linear_algebra::Matrix<3, 3, T> R = cobalt::math::linear_algebra::Matrix<3, 3, T>::eye();
 
             R(0,0) = std::cos(angle);

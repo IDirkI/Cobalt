@@ -82,7 +82,7 @@ TEST_CASE("Quaternion - From Axis-Angle X-Axis 90-deg", "[quaternion][core][fact
     Vector<3> axis = {1.0f, 0.0f, 0.0f};
     float angle = M_PI / 2.0f;
     
-    Quaternion q = Quaternion::axisAngle(axis, angle);
+    Quaternion q = Quaternion::fromAxisAngle(axis, angle);
     
     // q = cos(π/4) + sin(π/4)i = √2/2 + √2/2 i
     REQUIRE_THAT(q.w(), Catch::Matchers::WithinAbs(std::cos(M_PI / 4.0f), 1e-6));
@@ -95,7 +95,7 @@ TEST_CASE("Quaternion - From Axis-Angle Y-Axis 180-deg", "[quaternion][core][fac
     Vector<3> axis = {0.0f, 1.0f, 0.0f};
     float angle = M_PI;
     
-    Quaternion q = Quaternion::axisAngle(axis, angle);
+    Quaternion q = Quaternion::fromAxisAngle(axis, angle);
     
     // q = cos(π/2) + sin(π/2)j = 0 + j
     REQUIRE_THAT(q.w(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
@@ -108,7 +108,7 @@ TEST_CASE("Quaternion - From Axis-Angle Zero Rotation", "[quaternion][core][fact
     Vector<3> axis = {1.0f, 0.0f, 0.0f};
     float angle = 0.0f;
     
-    Quaternion q = Quaternion::axisAngle(axis, angle);
+    Quaternion q = Quaternion::fromAxisAngle(axis, angle);
     
     REQUIRE_THAT(q.w(), Catch::Matchers::WithinAbs(1.0f, 1e-6));
     REQUIRE_THAT(q.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
@@ -120,7 +120,7 @@ TEST_CASE("Quaternion - From Axis-Angle Unnormalized Axis", "[quaternion][core][
     Vector<3> axis = {2.0f, 0.0f, 0.0f};  // Not normalized
     float angle = M_PI / 2.0f;
     
-    Quaternion q = Quaternion::axisAngle(axis, angle);
+    Quaternion q = Quaternion::fromAxisAngle(axis, angle);
     
     // Should auto-normalize axis
     REQUIRE_THAT(q.w(), Catch::Matchers::WithinAbs(std::cos(M_PI / 4.0f), 1e-6));
@@ -130,7 +130,7 @@ TEST_CASE("Quaternion - From Axis-Angle Unnormalized Axis", "[quaternion][core][
 TEST_CASE("Quaternion - From Rotation Vector Zero", "[quaternion][core][factory]") {
     Vector<3> v = {0.0f, 0.0f, 0.0f};
     
-    Quaternion q = Quaternion::rotationVector(v);
+    Quaternion q = Quaternion::fromRotationVector(v);
     
     // Should return identity
     REQUIRE_THAT(q.w(), Catch::Matchers::WithinAbs(1.0f, 1e-6));
@@ -142,7 +142,7 @@ TEST_CASE("Quaternion - From Rotation Vector Zero", "[quaternion][core][factory]
 TEST_CASE("Quaternion - From Rotation Vector X-Axis", "[quaternion][core][factory]") {
     Vector<3> v = {M_PI / 2.0f, 0.0f, 0.0f};  // 90° around x-axis
     
-    Quaternion q = Quaternion::rotationVector(v);
+    Quaternion q = Quaternion::fromRotationVector(v);
     
     REQUIRE_THAT(q.w(), Catch::Matchers::WithinAbs(std::cos(M_PI / 4.0f), 1e-6));
     REQUIRE_THAT(q.x(), Catch::Matchers::WithinAbs(std::sin(M_PI / 4.0f), 1e-6));
@@ -151,7 +151,7 @@ TEST_CASE("Quaternion - From Rotation Vector X-Axis", "[quaternion][core][factor
 }
 
 TEST_CASE("Quaternion - From Euler Angles Zero", "[quaternion][core][factory]") {
-    Quaternion q = Quaternion::euler(0.0f, 0.0f, 0.0f);
+    Quaternion q = Quaternion::fromEuler(0.0f, 0.0f, 0.0f);
     
     REQUIRE_THAT(q.w(), Catch::Matchers::WithinAbs(1.0f, 1e-6));
     REQUIRE_THAT(q.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
@@ -160,7 +160,7 @@ TEST_CASE("Quaternion - From Euler Angles Zero", "[quaternion][core][factory]") 
 }
 
 TEST_CASE("Quaternion - From Euler Angles Roll Only", "[quaternion][core][factory]") {
-    Quaternion q = Quaternion::euler(M_PI / 2.0f, 0.0f, 0.0f);
+    Quaternion q = Quaternion::fromEuler(M_PI / 2.0f, 0.0f, 0.0f);
     
     // 90° roll around x-axis
     REQUIRE_THAT(q.w(), Catch::Matchers::WithinAbs(std::cos(M_PI / 4.0f), 1e-6));
@@ -429,7 +429,7 @@ TEST_CASE("Quaternion - Axis-Angle Round-Trip", "[quaternion][integration]") {
     Vector<3> axis = {1.0f, 1.0f, 1.0f};
     float angle = M_PI / 3.0f;
     
-    Quaternion q = Quaternion::axisAngle(axis, angle);
+    Quaternion q = Quaternion::fromAxisAngle(axis, angle);
     
     // Verify it creates a unit quaternion
     float normSq = q.w()*q.w() + q.x()*q.x() + q.y()*q.y() + q.z()*q.z();
@@ -440,9 +440,9 @@ TEST_CASE("Quaternion - Double Rotation Equivalence", "[quaternion][integration]
     // 90° + 90° = 180°
     Vector<3> axis = {0.0f, 0.0f, 1.0f};
     
-    Quaternion q1 = Quaternion::axisAngle(axis, M_PI / 2.0f);
-    Quaternion q2 = Quaternion::axisAngle(axis, M_PI / 2.0f);
-    Quaternion q180 = Quaternion::axisAngle(axis, M_PI);
+    Quaternion q1 = Quaternion::fromAxisAngle(axis, M_PI / 2.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(axis, M_PI / 2.0f);
+    Quaternion q180 = Quaternion::fromAxisAngle(axis, M_PI);
     
     q1 *= q2;
     

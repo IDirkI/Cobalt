@@ -73,7 +73,7 @@ inline Quaternion clampRotation(const Quaternion &q, float minAngle, float maxAn
 
     float clampedAngle = (angle > maxAngle) ?maxAngle :((angle < minAngle) ?minAngle :angle);
 
-    return Quaternion::axisAngle(axis, clampedAngle);
+    return Quaternion::fromAxisAngle(axis, clampedAngle);
     
 }
 

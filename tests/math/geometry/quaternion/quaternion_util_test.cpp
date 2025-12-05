@@ -48,7 +48,7 @@ TEST_CASE("Quaternion - isIdentity False", "[quaternion][util][check]") {
 }
 
 TEST_CASE("Quaternion - isNormalized True", "[quaternion][util][check]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 4.0f);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 4.0f);
     
     REQUIRE(isNormalized(q));
 }
@@ -84,22 +84,22 @@ TEST_CASE("Quaternion - isReal False", "[quaternion][util][check]") {
 }
 
 TEST_CASE("Quaternion - isSameRotation Identical", "[quaternion][util][check]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
     
     REQUIRE(isSameRotation(q1, q2));
 }
 
 TEST_CASE("Quaternion - isSameRotation Opposite Sign", "[quaternion][util][check]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
     Quaternion q2 = -q1;
     
     REQUIRE(isSameRotation(q1, q2));
 }
 
 TEST_CASE("Quaternion - isSameRotation Different", "[quaternion][util][check]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 4.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 4.0f);
     
     REQUIRE_FALSE(isSameRotation(q1, q2));
 }
@@ -117,7 +117,7 @@ TEST_CASE("Quaternion - toRotationVector Zero Rotation", "[quaternion][util][con
 TEST_CASE("Quaternion - toRotationVector Round-Trip", "[quaternion][util][convert]") {
     Vector<3> origVec = {0.0f, M_PI / 3.0f, 0.0f};
     
-    Quaternion q = Quaternion::rotationVector(origVec);
+    Quaternion q = Quaternion::fromRotationVector(origVec);
     Vector<3> result = toRotationVector(q);
     
     REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(origVec.x(), 1e-4f));
@@ -134,7 +134,7 @@ TEST_CASE("Quaternion - toAngle Identity", "[quaternion][util][convert]") {
 }
 
 TEST_CASE("Quaternion - toAngle 90 Degrees", "[quaternion][util][convert]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 2.0f);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 2.0f);
     
     float angle = toAngle(q);
     
@@ -142,7 +142,7 @@ TEST_CASE("Quaternion - toAngle 90 Degrees", "[quaternion][util][convert]") {
 }
 
 TEST_CASE("Quaternion - toAxis X-Axis", "[quaternion][util][convert]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 3.0f);
     
     Vector<3> axis = toAxis(q);
     
@@ -211,8 +211,8 @@ TEST_CASE("Quaternion - cleanZero Some Above Threshold", "[quaternion][util][rou
 }
 
 TEST_CASE("Quaternion - angledDistance Same Rotation", "[quaternion][util][distance]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 4.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 4.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 4.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 4.0f);
     
     float dist = angledDistance(q1, q2);
     
@@ -221,7 +221,7 @@ TEST_CASE("Quaternion - angledDistance Same Rotation", "[quaternion][util][dista
 
 TEST_CASE("Quaternion - angledDistance 90 Degrees", "[quaternion][util][distance]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     float dist = angledDistance(q1, q2);
     
@@ -230,7 +230,7 @@ TEST_CASE("Quaternion - angledDistance 90 Degrees", "[quaternion][util][distance
 
 TEST_CASE("Quaternion - difference Identity to Rotation", "[quaternion][util][distance]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
     
     Quaternion diff = difference(q1, q2);
     
@@ -262,7 +262,7 @@ TEST_CASE("Quaternion - shortestPath Opposite Sign", "[quaternion][util][rotate]
 
 TEST_CASE("Quaternion - swingTwist Z-Axis", "[quaternion][util][rotate]") {
     Vector<3> axis = {0.0f, 0.0f, 1.0f};
-    Quaternion q = Quaternion::axisAngle(Vector<3>{1.0f, 1.0f, 1.0f}, M_PI / 4.0f);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{1.0f, 1.0f, 1.0f}, M_PI / 4.0f);
     
     Quaternion swing, twist;
     swingTwist(q, axis, swing, twist);
@@ -289,7 +289,7 @@ TEST_CASE("Quaternion - Full Rotation Cycle Check", "[quaternion][integration]")
     float angle = M_PI / 3.0f;
     
     // Create quaternion
-    Quaternion q = Quaternion::axisAngle(axis, angle);
+    Quaternion q = Quaternion::fromAxisAngle(axis, angle);
     
     // Verify it's normalized
     REQUIRE(isNormalized(q));
@@ -302,8 +302,8 @@ TEST_CASE("Quaternion - Full Rotation Cycle Check", "[quaternion][integration]")
 }
 
 TEST_CASE("Quaternion - Angular Distance Symmetry", "[quaternion][integration]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 6.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 4.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 6.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 4.0f);
     
     float d1 = angledDistance(q1, q2);
     float d2 = angledDistance(q2, q1);
@@ -312,8 +312,8 @@ TEST_CASE("Quaternion - Angular Distance Symmetry", "[quaternion][integration]")
 }
 
 TEST_CASE("Quaternion - Difference Composition", "[quaternion][integration]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 6.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 6.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
     
     Quaternion diff = difference(q1, q2);
     Quaternion composed = diff * q1;
@@ -322,8 +322,8 @@ TEST_CASE("Quaternion - Difference Composition", "[quaternion][integration]") {
 }
 
 TEST_CASE("Quaternion - SLERP Start", "[quaternion][util][interp]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     Quaternion result = slerp(q1, q2, 0.0f);
     
@@ -334,8 +334,8 @@ TEST_CASE("Quaternion - SLERP Start", "[quaternion][util][interp]") {
 }
 
 TEST_CASE("Quaternion - SLERP End", "[quaternion][util][interp]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     Quaternion result = slerp(q1, q2, 1.0f);
     
@@ -344,19 +344,19 @@ TEST_CASE("Quaternion - SLERP End", "[quaternion][util][interp]") {
 }
 
 TEST_CASE("Quaternion - SLERP Midpoint", "[quaternion][util][interp]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     Quaternion result = slerp(q1, q2, 0.5f);
-    Quaternion expected = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
+    Quaternion expected = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
     
     REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(expected.w(), 1e-4f));
     REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(expected.z(), 1e-4f));
 }
 
 TEST_CASE("Quaternion - SLERP Unit Quaternion Output", "[quaternion][util][interp]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 6.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 6.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
     
     Quaternion result = slerp(q1, q2, 0.3f);
     
@@ -365,7 +365,7 @@ TEST_CASE("Quaternion - SLERP Unit Quaternion Output", "[quaternion][util][inter
 
 TEST_CASE("Quaternion - SLERP Handles Opposite Quaternions", "[quaternion][util][interp]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = -Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
+    Quaternion q2 = -Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
     
     Quaternion result = slerp(q1, q2, 0.5f);
     
@@ -374,8 +374,8 @@ TEST_CASE("Quaternion - SLERP Handles Opposite Quaternions", "[quaternion][util]
 }
 
 TEST_CASE("Quaternion - SLERP Very Close Quaternions", "[quaternion][util][interp]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, 0.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, 0.001f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, 0.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, 0.001f);
     
     Quaternion result = slerp(q1, q2, 0.5f);
     
@@ -385,7 +385,7 @@ TEST_CASE("Quaternion - SLERP Very Close Quaternions", "[quaternion][util][inter
 
 TEST_CASE("Quaternion - SLERP Constant Angular Velocity", "[quaternion][util][interp]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     // Sample at quarter points
     Quaternion at25 = slerp(q1, q2, 0.25f);
@@ -403,7 +403,7 @@ TEST_CASE("Quaternion - SLERP Constant Angular Velocity", "[quaternion][util][in
 
 TEST_CASE("Quaternion - NLERP Start", "[quaternion][util][interp]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     Quaternion result = nlerp(q1, q2, 0.0f);
     
@@ -412,7 +412,7 @@ TEST_CASE("Quaternion - NLERP Start", "[quaternion][util][interp]") {
 
 TEST_CASE("Quaternion - NLERP End", "[quaternion][util][interp]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     Quaternion result = nlerp(q1, q2, 1.0f);
     
@@ -421,8 +421,8 @@ TEST_CASE("Quaternion - NLERP End", "[quaternion][util][interp]") {
 }
 
 TEST_CASE("Quaternion - NLERP Produces Unit Quaternion", "[quaternion][util][interp]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.0f);
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     Quaternion result = nlerp(q1, q2, 0.5f);
     
@@ -431,7 +431,7 @@ TEST_CASE("Quaternion - NLERP Produces Unit Quaternion", "[quaternion][util][int
 
 TEST_CASE("Quaternion - NLERP Similar to SLERP for Small Angles", "[quaternion][util][interp]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 8.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 8.0f);
     
     Quaternion slerped = slerp(q1, q2, 0.5f);
     Quaternion nlerped = nlerp(q1, q2, 0.5f);
@@ -447,7 +447,7 @@ TEST_CASE("Quaternion - NLERP Similar to SLERP for Small Angles", "[quaternion][
 
 TEST_CASE("Quaternion - NLERP Handles Opposite Sign", "[quaternion][util][interp]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = -Quaternion::axisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 4.0f);
+    Quaternion q2 = -Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 4.0f);
     
     Quaternion result = nlerp(q1, q2, 0.5f);
     
@@ -457,7 +457,7 @@ TEST_CASE("Quaternion - NLERP Handles Opposite Sign", "[quaternion][util][interp
 
 TEST_CASE("Quaternion - NLERP Multiple Steps", "[quaternion][util][interp]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     // Interpolate in steps
     Quaternion result = q1;
@@ -494,7 +494,7 @@ TEST_CASE("Quaternion - shortestPath Opposite Sign", "[quaternion][util][path]")
 }
 
 TEST_CASE("Quaternion - shortestPath Prevents 360-deg Rotation", "[quaternion][util][path]") {
-    Quaternion q1 = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.1f);
+    Quaternion q1 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, 0.1f);
     Quaternion q2 = -q1;  // Same rotation, opposite representation
     
     Quaternion adjusted = shortestPath(q1, q2);
@@ -508,7 +508,7 @@ TEST_CASE("Quaternion - shortestPath Prevents 360-deg Rotation", "[quaternion][u
 
 TEST_CASE("Quaternion - shortestPath Preserves Magnitude", "[quaternion][util][path]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{1.0f, 1.0f, 1.0f}, M_PI);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{1.0f, 1.0f, 1.0f}, M_PI);
     
     Quaternion result = shortestPath(q1, q2);
     
@@ -517,7 +517,7 @@ TEST_CASE("Quaternion - shortestPath Preserves Magnitude", "[quaternion][util][p
 
 TEST_CASE("Quaternion - shortestPath Idempotent", "[quaternion][util][path]") {
     Quaternion q1 = Quaternion::eye();
-    Quaternion q2 = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
+    Quaternion q2 = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 3.0f);
     
     Quaternion once = shortestPath(q1, q2);
     Quaternion twice = shortestPath(q1, once);
@@ -527,8 +527,8 @@ TEST_CASE("Quaternion - shortestPath Idempotent", "[quaternion][util][path]") {
 
 TEST_CASE("Quaternion - shortestPath Critical for Control", "[quaternion][util][path]") {
     // Simulate servo control scenario
-    Quaternion current = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI - 0.1f);
-    Quaternion target = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, -M_PI + 0.1f);
+    Quaternion current = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI - 0.1f);
+    Quaternion target = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, -M_PI + 0.1f);
     
     // Without shortestPath, these might choose the long way around
     Quaternion adjusted = shortestPath(current, target);
@@ -541,7 +541,7 @@ TEST_CASE("Quaternion - shortestPath Critical for Control", "[quaternion][util][
 }
 
 TEST_CASE("Quaternion - clampRotation Within Limit", "[quaternion][util][clamp]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 6.0f);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, M_PI / 6.0f);
     
     Quaternion result = clampRotation(q, M_PI / 3.0f);
     
@@ -553,7 +553,7 @@ TEST_CASE("Quaternion - clampRotation Within Limit", "[quaternion][util][clamp]"
 }
 
 TEST_CASE("Quaternion - clampRotation Exceeds Limit", "[quaternion][util][clamp]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI);
     float maxAngle = M_PI / 2.0f;
     
     Quaternion result = clampRotation(q, maxAngle);
@@ -566,7 +566,7 @@ TEST_CASE("Quaternion - clampRotation Exceeds Limit", "[quaternion][util][clamp]
 
 TEST_CASE("Quaternion - clampRotation Preserves Axis", "[quaternion][util][clamp]") {
     Vector<3> axis = {1.0f, 1.0f, 1.0f};
-    Quaternion q = Quaternion::axisAngle(axis, M_PI);
+    Quaternion q = Quaternion::fromAxisAngle(axis, M_PI);
     
     Quaternion result = clampRotation(q, M_PI / 4.0f);
     
@@ -592,7 +592,7 @@ TEST_CASE("Quaternion - clampRotation Preserves Axis", "[quaternion][util][clamp
 }
 
 TEST_CASE("Quaternion - clampRotation Zero Limit", "[quaternion][util][clamp]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 4.0f);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 4.0f);
     
     Quaternion result = clampRotation(q, 0.0f);
     
@@ -601,7 +601,7 @@ TEST_CASE("Quaternion - clampRotation Zero Limit", "[quaternion][util][clamp]") 
 }
 
 TEST_CASE("Quaternion - clampRotation Unit Quaternion Output", "[quaternion][util][clamp]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, 2.0f * M_PI / 3.0f);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 1.0f, 0.0f}, 2.0f * M_PI / 3.0f);
     
     Quaternion result = clampRotation(q, M_PI / 6.0f);
     
@@ -609,7 +609,7 @@ TEST_CASE("Quaternion - clampRotation Unit Quaternion Output", "[quaternion][uti
 }
 
 TEST_CASE("Quaternion - clampRotation Large Limit", "[quaternion][util][clamp]") {
-    Quaternion q = Quaternion::axisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 4.0f);
+    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 4.0f);
     
     Quaternion result = clampRotation(q, 10.0f * M_PI);
     
@@ -632,7 +632,7 @@ TEST_CASE("Quaternion - clampRotation Rate Limiting Use Case", "[quaternion][uti
     float dt = 0.1f;  // 100ms
     float maxAngle = maxRatePerSec * dt;  // 4.5°
     
-    Quaternion desired = Quaternion::axisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion desired = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     Quaternion limited = clampRotation(desired, maxAngle);
     
     float resultAngle = 2.0f * std::acos(std::clamp(limited.w(), -1.0f, 1.0f));

@@ -76,7 +76,7 @@ struct Quaternion {
          *  @note `axis` is assumed to be normalized
          */
         template<typename T>
-            static inline Quaternion axisAngle(const cobalt::math::linear_algebra::Vector<3, T> &axis, float angle) {
+            static inline Quaternion fromAxisAngle(const cobalt::math::linear_algebra::Vector<3, T> &axis, float angle) {
                 cobalt::math::linear_algebra::Vector<3> u = normalize(axis);
                 float halfAngle = angle * 0.5f;
                 float s = std::sin(halfAngle);
@@ -89,13 +89,13 @@ struct Quaternion {
          *  @note The direction of `v` is the rotation axis, and `|v|` is the rotation angle in radians
          */
         template<typename T>
-            static inline Quaternion rotationVector(const cobalt::math::linear_algebra::Vector<3, T> &v) {
+            static inline Quaternion fromRotationVector(const cobalt::math::linear_algebra::Vector<3, T> &v) {
                 cobalt::math::linear_algebra::Vector<3> axis = normalize(v);
                 float angle = norm(v);
 
                 if(angle < QUATERNION_EQUAL_THRESHOLD) { return Quaternion::eye(); }
 
-                return axisAngle(axis, angle);
+                return fromAxisAngle(axis, angle);
             }
 
         /**
@@ -112,9 +112,9 @@ struct Quaternion {
 
                 return Quaternion(
                     0.5*std::sqrt(static_cast<T>(1) + diag),
-                    0.5*std::sqrt(static_cast<T>(1) + diag)*s1;
-                    0.5*std::sqrt(static_cast<T>(1) - diag)*s2;
-                    0.5*std::sqrt(static_cast<T>(1) - diag)*s3;
+                    0.5*std::sqrt(static_cast<T>(1) + diag)*s1,
+                    0.5*std::sqrt(static_cast<T>(1) - diag)*s2,
+                    0.5*std::sqrt(static_cast<T>(1) - diag)*s3
                 );
 
             }
@@ -126,7 +126,7 @@ struct Quaternion {
          *  @param yaw   Rotation around the z-axis in radians
          *  @note Uses the ZYX rotation order (yaw-pitch-roll)
          */
-        static inline Quaternion euler(float roll, float pitch, float yaw) {
+        static inline Quaternion fromEuler(float roll, float pitch, float yaw) {
             float cr = std::cos(roll * 0.5f);
             float sr = std::sin(roll * 0.5f);
             float cp = std::cos(pitch * 0.5f);
