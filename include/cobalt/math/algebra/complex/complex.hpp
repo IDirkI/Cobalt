@@ -4,12 +4,9 @@
 #include <cmath>
 #include <string>
 
-#include "../../types.hpp"
+#include "../../config.hpp"
 
 namespace cobalt::math::algebra {
-
-template<typename T = float>
-    constexpr float COMPLEX_EPSILON = static_cast<T>(1e-5);
 
 // --------------------------------------
 //          Complex Number    

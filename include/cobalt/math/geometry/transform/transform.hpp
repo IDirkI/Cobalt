@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "../../types.hpp"
+#include "../../config.hpp"
 
 #include "../quaternion/quaternion.hpp"
 #include "../quaternion/quaternion_ops.hpp"
@@ -12,18 +12,14 @@
 
 namespace cobalt::math::geometry {
 
-template<typename T = float>
-    constexpr T TRANSFORM_EPSILON = static_cast<T>(1e-6);
-
 // --------------------------------------
 //      Homogeneous Transformations    
 // --------------------------------------
-
 /**
  *  @brief Homogeneous transformation matrix.
  *  @tparam T Element type (default float).
  */
-template<typename T = float>
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
 struct Transform {
     private:
         cobalt::math::linear_algebra::Matrix<3, 3, T> R_;

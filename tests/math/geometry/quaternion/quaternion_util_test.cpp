@@ -104,21 +104,21 @@ TEST_CASE("Quaternion - isSameRotation Different", "[quaternion][util][check]") 
     REQUIRE_FALSE(isSameRotation(q1, q2));
 }
 
-TEST_CASE("Quaternion - toRotationVector Zero Rotation", "[quaternion][util][convert]") {
+TEST_CASE("Quaternion - toVector Zero Rotation", "[quaternion][util][convert]") {
     Quaternion q = Quaternion::eye();
     
-    Vector<3> result = toRotationVector(q);
+    Vector<3> result = toVector(q);
     
     REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
     REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
     REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6));
 }
 
-TEST_CASE("Quaternion - toRotationVector Round-Trip", "[quaternion][util][convert]") {
+TEST_CASE("Quaternion - toVector Round-Trip", "[quaternion][util][convert]") {
     Vector<3> origVec = {0.0f, M_PI / 3.0f, 0.0f};
     
     Quaternion q = Quaternion::fromRotationVector(origVec);
-    Vector<3> result = toRotationVector(q);
+    Vector<3> result = toVector(q);
     
     REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(origVec.x(), 1e-4f));
     REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(origVec.y(), 1e-4f));

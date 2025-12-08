@@ -11,20 +11,20 @@
 namespace cobalt::math::geometry {
 
 // ---------------- Non-member Arithmetic Overloads ----------------
-template<typename T = float>
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr Transform<T> operator*(Transform<T> lhs, const Transform<T> &rhs) { lhs *= rhs; return lhs; }
 
-template<typename T = float>
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr cobalt::math::linear_algebra::Vector<3, T> operator*(const Transform<T> &lhs, const cobalt::math::linear_algebra::Vector<3, T> &v) {
         return lhs.apply(v);
     }
 
-template<typename T = float>
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr bool operator==(const Transform<T> &lhs, const Transform<T> &rhs) {
         return ((lhs.rotation() == rhs.rotation()) && (lhs.translation() == rhs.translation()));
     }
 
-template<typename T = float>
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr bool operator!=(const Transform<T> &lhs, const Transform<T> &rhs) {
         return !(rhs == lhs);
     }
@@ -35,7 +35,7 @@ template<typename T = float>
  *  @param H Transformation to invert
  *  @return H^-1
  */
-template<typename T = float>
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr Transform<T> inv(const Transform<T> &H) {
         cobalt::math::linear_algebra::Matrix<3, 3, T> RT = transpose(H.rotation());
         cobalt::math::linear_algebra::Vector<3, T> RTt = -RT*H.translation();

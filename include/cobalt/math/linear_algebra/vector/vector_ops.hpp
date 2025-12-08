@@ -11,46 +11,46 @@ namespace cobalt::math::linear_algebra {
 /**
  *  @brief Vector addition
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> operator+(Vector<N, T> lhs, const Vector<N, T> &rhs) noexcept { lhs += rhs; return lhs; }
 
 /**
  *  @brief Vector subtraction
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> operator-(Vector<N, T> lhs, const Vector<N, T> &rhs) noexcept { lhs -= rhs; return lhs; }
 
 /**
  *  @brief Vector subtraction
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> operator*(Vector<N, T> v, T c) { v *= c; return v; }
 
 /**
  *  @brief Vector scalar multiplication
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> operator*(T c, Vector<N, T> v) { return v * c; }
 
 /**
  *  @brief Vector scalar divison
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> operator/(Vector<N, T> v, T c) { v /= c; return v; }
 
 /**
  *  @brief Flip the vector. Element wise negation
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> operator-(Vector<N, T> v) noexcept { v *= -1; return v; }
 
 /**
  *  @brief Check vector equality within a threshold (default 1e-5)
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr bool operator==(const Vector<N, T> &lhs, const Vector<N, T> &rhs) noexcept {
-        for(types::index_t i = 0; i < N; i++) {
-            if(std::abs(lhs[i] - rhs[i]) > VECTOR_EPSILON<T>) return false;
+        for(index_t i = 0; i < N; i++) {
+            if(std::abs(lhs[i] - rhs[i]) > epsilon<T>) return false;
         }
         return true;
     }
@@ -58,7 +58,7 @@ template<types::index_t N, typename T = float>
 /**
  *  @brief Check vector non-equality within a threshold (default 1e-5)
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr bool operator!=(const Vector<N, T> &lhs, const Vector<N, T> &rhs) noexcept { return !(lhs == rhs); }
 
 
@@ -67,10 +67,10 @@ template<types::index_t N, typename T = float>
  *  @brief Dot product between two vectors
  *  @return Scalar dot product
  */
-template<types::index_t N, typename T = float>  
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>  
     constexpr T dot(const Vector<N, T> &v, const Vector<N, T> &u) noexcept { 
         T output = static_cast<T>(0);
-        for(types::index_t i = 0; i < N; i++) {
+        for(index_t i = 0; i < N; i++) {
             output += v[i] * u[i];
         }
         return output;
@@ -80,7 +80,7 @@ template<types::index_t N, typename T = float>
  *  @brief Cross product between two 3-vectors
  *  @return Vector cross product
  */
-template<typename T = float>
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<3, T> cross(const Vector<3, T> &v, const Vector<3, T> &u) noexcept { 
         return Vector<3, T> {
             v.y()*u.z() - v.z()*u.y(),
@@ -93,10 +93,10 @@ template<typename T = float>
  *  @brief Hadamard (element wise) product between two vectors
  *  @return Vector Hadamard product
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> hadamard(const Vector<N, T> &v, const Vector<N, T> &u) noexcept { 
         Vector<N, T> output{};
-        for(types::index_t i = 0; i < N; i++) {
+        for(index_t i = 0; i < N; i++) {
             output[i] = v[i]*u[i];
         }
         return output;
@@ -106,7 +106,7 @@ template<types::index_t N, typename T = float>
  *  @brief Triple product between three 3-vectors
  *  @return Scalar triple product (dot(v, cross(u, w)))
  */
-template<typename T = float>
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T tripleProduct(const Vector<3, T> &v, const Vector<3, T> &u, const Vector<3, T> &w) noexcept { 
         return dot(v, cross(u, w));
     }
@@ -116,25 +116,25 @@ template<typename T = float>
  *  @brief Compute vector norm/magnitude
  *  @return Norm/magnitude of vector
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T norm(const Vector<N, T> &v) noexcept { return std::sqrt(dot(v, v)); }
 
 /**
  *  @brief Compute squared vector norm/magnitude
  *  @return Squared norm/magnitude of vector
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T normSqr(const Vector<N, T> &v) noexcept { return dot(v, v); }
 
 /**
  *  @brief Normalize a vector to unit length
  *  @return Normalized vector
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> normalize(const Vector<N, T> &v) {
         T mag = norm(v);
         Vector<N, T> output = v;
-        output = (mag > VECTOR_EPSILON<T>) ?(output /= mag) :(Vector<N, T>::zero());
+        output = (mag > epsilon<T>) ?(output /= mag) :(Vector<N, T>::zero());
         return output;
     }
 
@@ -142,21 +142,21 @@ template<types::index_t N, typename T = float>
  *  @brief Compute the distance between two vectors
  *  @return Scalar distance between the tips of the vectors
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T distance(const Vector<N, T> &v, const Vector<N, T> &u) noexcept  { return norm(v - u); }
 
 /**
  *  @brief Compute the squared distance between two vectors
  *  @return Squared distance between the tips of the vectors
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T distanceSqr(const Vector<N, T> &v, const Vector<N, T> &u) noexcept { return dot(v - u, v - u); }
 
 /**
  *  @brief Compute the angle between two vectors in radians
  *  @return Angle between the vectors in radians
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T angle(const Vector<N, T> &v, const Vector<N, T> &u) { 
         T nv = norm(v);
         T nu = norm(u);
@@ -173,10 +173,10 @@ template<types::index_t N, typename T = float>
  *  @return Projected vector
  *  @note If u is the zero vector, returns the zero vector
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> project(const Vector<N, T> &v, const Vector<N, T> &u) {
         T denom = dot(u, u);
-        if(std::abs(denom) < VECTOR_EPSILON<T>) { return Vector<N, T>::zero(); }
+        if(std::abs(denom) < epsilon<T>) { return Vector<N, T>::zero(); }
 
         T scale = dot(v, u) / denom;
         return u * scale;

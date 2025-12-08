@@ -3,36 +3,32 @@
 #include <stdint.h>
 #include <array>
 
-#include "../../types.hpp"
+#include "../../config.hpp"
 
 #include "../vector/vector.hpp"
 
 namespace cobalt::math::linear_algebra {
 
-constexpr types::index_t MATRIX_MAX_ROW_SIZE = 12;
-constexpr types::index_t MATRIX_MAX_COL_SIZE = 12;
-
-template<typename T = float>
-    constexpr T MATRIX_EPSILON = static_cast<T>(1e-6);
+constexpr index_t MATRIX_MAX_ROW_SIZE = 12;
+constexpr index_t MATRIX_MAX_COL_SIZE = 12;
 
 constexpr float MATRIX_PSEUDO_K= 0.5;
 
-constexpr types::index_t MATRIX_DEFAULT_EXP_TERMS = 20;
-constexpr types::index_t MATRIX_DEFAULT_LOG_TERMS = 20;
-constexpr types::index_t MATRIX_DEFAULT_POW_TERMS = 20;
-constexpr types::index_t MATRIX_DEFAULT_SVD_ITERATIONS = 100;
+constexpr index_t MATRIX_DEFAULT_EXP_TERMS = 20;
+constexpr index_t MATRIX_DEFAULT_LOG_TERMS = 20;
+constexpr index_t MATRIX_DEFAULT_POW_TERMS = 20;
+constexpr index_t MATRIX_DEFAULT_SVD_ITERATIONS = 100;
 
 // --------------------------------------
 //          NxM - Matrix    
 // --------------------------------------
-
 /**
  *  @brief Fixed-size matrix
  *  @tparam N Row count of the matrix
  *  @tparam M Column count of the matrix
  *  @tparam T Element type (default float)
  */
-template<types::index_t N, types::index_t M, typename T = float>
+template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
 struct Matrix {
     static_assert(N <= MATRIX_MAX_ROW_SIZE  , "[MATRIX Error] : Matrix rows exceeds maximum size.");
     static_assert(M <= MATRIX_MAX_COL_SIZE  , "[MATRIX Error] : Matrix columns exceeds maximum size.");
@@ -52,7 +48,7 @@ struct Matrix {
          *  @param list2d 2D Initializer list of elements
          */ 
         constexpr Matrix(std::initializer_list<std::initializer_list<T>> list2d) noexcept {
-            types::index_t i = 0, j = 0;
+            index_t i = 0, j = 0;
 
             for(std::initializer_list<T> list : list2d) {
                 j = 0;
@@ -84,9 +80,9 @@ struct Matrix {
          */
         static constexpr Matrix eye() noexcept { 
             Matrix<N, M, T> out{};
-            types::index_t d = (N <= M) ?N :M;
+            index_t d = (N <= M) ?N :M;
 
-            for(types::index_t i = 0; i < d; i++) {
+            for(index_t i = 0; i < d; i++) {
                 out(i, i) = static_cast<T>(1);
             }
 
@@ -102,16 +98,16 @@ struct Matrix {
          *  @tparam K Size of the input vector
          *  @warning Asserts if K > min(N, M)
          */
-        template<types::index_t K>
+        template<index_t K>
             static constexpr Matrix<N, M, T> diagonal(const Vector<K, T> &d) {
                 static_assert(N >= K, "[MATRIX Error] : Matrix row count is too small to contain the diagonal vector.");
                 static_assert(M >= K, "[MATRIX Error] : Matrix column count is too small to contain the diagonal vector.");
 
                 Matrix<N, M, T> output;
 
-                types::index_t minLength = (N < M) ?N :M;
+                index_t minLength = (N < M) ?N :M;
 
-                for(types::index_t i = 0; i < minLength; i++) {
+                for(index_t i = 0; i < minLength; i++) {
                     output(i,i) = (i < K) ?d[i] :static_cast<T>(0);
                 }
 
@@ -123,13 +119,13 @@ struct Matrix {
          *  @brief Return the row number of the vector
          *  @return Number of rows N
          */
-        static constexpr types::index_t rows() noexcept { return N; }
+        static constexpr index_t rows() noexcept { return N; }
 
         /**
          *  @brief Return the column number of the vector
          *  @return Number of columns M
          */
-        static constexpr types::index_t cols() noexcept { return M; }
+        static constexpr index_t cols() noexcept { return M; }
 
         // ---------------- Element Accessors ----------------
         /**
@@ -140,7 +136,7 @@ struct Matrix {
          *  @note Asserts if r >= N or c >= M
          *  @return Reference to element
          */
-        constexpr T &operator()(types::index_t r, types::index_t c) noexcept { 
+        constexpr T &operator()(index_t r, index_t c) noexcept { 
             assert(r < N && "[MATRIX Error] : Accessed element must be within matrix row size.");
             assert(c < M && "[MATRIX Error] : Accessed element must be within matrix column size.");
             return data_[r*M + c]; 
@@ -154,7 +150,7 @@ struct Matrix {
          *  @note Asserts if r >= N or c >= M
          *  @return Const reference to element
          */
-        const T &operator()(types::index_t r, types::index_t c) const noexcept {
+        const T &operator()(index_t r, index_t c) const noexcept {
             assert(r < N && "[MATRIX Error] : Accessed element must be within matrix row size.");
             assert(c < M && "[MATRIX Error] : Accessed element must be within matrix column size.");
                 return data_[r*M + c];
@@ -167,7 +163,7 @@ struct Matrix {
          *  @note Clamps the output to the last element if the asked index is out of bounds
          *  @return Reference to element
          */
-        constexpr T &at(types::index_t r, types::index_t c) noexcept { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
+        constexpr T &at(index_t r, index_t c) noexcept { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
 
         /**
          *  @brief Const access to element at the given row/column
@@ -176,15 +172,15 @@ struct Matrix {
          *  @note Clamps the output to the last element if the asked index is out of bounds
          *  @return Const reference to element
          */
-        const T &at(types::index_t r, types::index_t c) const noexcept { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
+        const T &at(index_t r, index_t c) const noexcept { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
 
         // ---------------- Arithmetic Overloads ----------------
         /**
          *  @brief Add another matrix to this matrix
          */
         constexpr Matrix &operator+=(const Matrix &rhs) noexcept {
-            for(types::index_t i = 0; i < N; i++) { 
-                for(types::index_t j = 0; j < M; j++) {
+            for(index_t i = 0; i < N; i++) { 
+                for(index_t j = 0; j < M; j++) {
                     data_[i*M + j] += rhs.data_[i*M + j]; 
                 }
             }
@@ -195,8 +191,8 @@ struct Matrix {
          *  @brief Subtract another matrix from this matrix
          */
         constexpr Matrix &operator-=(const Matrix &rhs) noexcept {
-            for(types::index_t i = 0; i < N; i++) { 
-                for(types::index_t j = 0; j < M; j++) {
+            for(index_t i = 0; i < N; i++) { 
+                for(index_t j = 0; j < M; j++) {
                     data_[i*M + j] -= rhs.data_[i*M + j]; 
                 }
             }
@@ -210,11 +206,11 @@ struct Matrix {
         constexpr Matrix<N, N> &operator*=(const Matrix<N, N, T> &rhs) noexcept {
             Matrix<N, N, T> output{};
 
-            for(types::index_t i = 0; i < N; i++) {
-                for(types::index_t j = 0; j < N; j++) {
+            for(index_t i = 0; i < N; i++) {
+                for(index_t j = 0; j < N; j++) {
                     output(i, j) = static_cast<T>(0);
 
-                    for(types::index_t k = 0; k < N; k++) {
+                    for(index_t k = 0; k < N; k++) {
                         output(i, j) += data_[i*N + k] * rhs(k, j);
                     }
                 }
@@ -229,8 +225,8 @@ struct Matrix {
          *  @brief Scalar multiplication of this matrix
          */
         constexpr Matrix &operator*=(T c) noexcept {
-            for(types::index_t i = 0; i < N; i++) {
-                for(types::index_t j = 0; j < M; j++) {
+            for(index_t i = 0; i < N; i++) {
+                for(index_t j = 0; j < M; j++) {
                     data_[i*M + j] *= c;
                 }
             }
@@ -242,8 +238,8 @@ struct Matrix {
          *  @brief Scalar divison of this matrix
          */
         constexpr Matrix &operator/=(T c) noexcept {
-            for(types::index_t i = 0; i < N; i++) {
-                for(types::index_t j = 0; j < M; j++) {
+            for(index_t i = 0; i < N; i++) {
+                for(index_t j = 0; j < M; j++) {
                     data_[i*M + j] /= c;
                 }
             }
@@ -262,12 +258,12 @@ struct Matrix {
          *  @return Sub-block matrix of size RxC
          *  @note If the specified block exceeds the matrix dimensions, remaining elements are filled with zeros
          */
-        template<types::index_t R, types::index_t C>
-            constexpr Matrix<R, C, T> block(types::index_t r0 = 0, types::index_t c0 = 0) const noexcept {
+        template<index_t R, index_t C>
+            constexpr Matrix<R, C, T> block(index_t r0 = 0, index_t c0 = 0) const noexcept {
                 Matrix<R, C, T> output = Matrix<R, C, T>::zero();
 
-                for(types::index_t i = 0; i < R; i++) {
-                    for(types::index_t j = 0; j < C; j++) {
+                for(index_t i = 0; i < R; i++) {
+                    for(index_t j = 0; j < C; j++) {
                         output(i, j) = ((i+r0)*M + (j+c0) < N*M) ?data_[(i+r0)*M + (j+c0)] :static_cast<T>(0.0f);
                     }
                 }

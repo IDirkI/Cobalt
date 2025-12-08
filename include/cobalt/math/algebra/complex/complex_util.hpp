@@ -57,8 +57,8 @@ inline Complex floor(const Complex &z) {
  */
 inline Complex cleanZero(const Complex &z) noexcept {
     return Complex(
-        (std::abs(z.real()) < COMPLEX_EPSILON<>) ?0.0f :z.real(),
-        (std::abs(z.imag()) < COMPLEX_EPSILON<>) ?0.0f :z.imag()
+        (std::abs(z.real()) < epsilon<>) ?0.0f :z.real(),
+        (std::abs(z.imag()) < epsilon<>) ?0.0f :z.imag()
     );
 }
 
@@ -78,7 +78,7 @@ template<size_t N>
         
         float rootR = std::pow(r, 1.0f / N);
         
-        for(types::index_t k = 0; k < N; k++) {
+        for(index_t k = 0; k < N; k++) {
             float rootTheta = (theta + 2.0f * M_PI * k) / N;
             roots[k] = Complex::polar(rootR, rootTheta);
         }
@@ -113,7 +113,7 @@ inline Complex projectImag(const Complex &z) noexcept {
 inline Complex projectUnit(const Complex &z) noexcept {
     float mag = std::sqrt(z.real()*z.real() + z.imag()*z.imag());
     
-    if(mag < COMPLEX_EPSILON<>) {
+    if(mag < epsilon<>) {
         return Complex::one(); // Default to 1 if magnitude is zero
     }
     
@@ -221,8 +221,8 @@ inline Complex slerp(const Complex &z, const Complex &w, float t) {
  *  @brief Check if a complex number is zero (0 + 0j)
  */
 bool isZero(const Complex &z) noexcept { 
-    if(std::abs(z.real()) > COMPLEX_EPSILON<>) { return false; }
-    if(std::abs(z.imag()) > COMPLEX_EPSILON<>) { return false; }
+    if(std::abs(z.real()) > epsilon<>) { return false; }
+    if(std::abs(z.imag()) > epsilon<>) { return false; }
     return true;
 }
 
@@ -230,7 +230,7 @@ bool isZero(const Complex &z) noexcept {
  *  @brief Check if a complex number is purely real
  */
 bool isReal(const Complex &z) noexcept { 
-    if(std::abs(z.imag()) > COMPLEX_EPSILON<>) { return false; }
+    if(std::abs(z.imag()) > epsilon<>) { return false; }
     return true;
 }
 
@@ -238,8 +238,8 @@ bool isReal(const Complex &z) noexcept {
  *  @brief Check if a complex number is purely imaginary
  */
 bool isImag(const Complex &z) noexcept { 
-    if(std::abs(z.real()) > COMPLEX_EPSILON<>) { return false; }
-    if(std::abs(z.imag()) < COMPLEX_EPSILON<>) { return false; }
+    if(std::abs(z.real()) > epsilon<>) { return false; }
+    if(std::abs(z.imag()) < epsilon<>) { return false; }
     return true;
 }
 
@@ -247,15 +247,15 @@ bool isImag(const Complex &z) noexcept {
  *  @brief Check if a complex number is has a norm of 1
  */
 bool isUnit(const Complex &z) noexcept { 
-    return (std::abs(z.real()*z.real() + z.imag()*z.imag() - 1.0f) < COMPLEX_EPSILON<>);
+    return (std::abs(z.real()*z.real() + z.imag()*z.imag() - 1.0f) < epsilon<>);
 }
 
 /**
  *  @brief Check if two complex number are conjugates of eachother
  */
 bool isConjugate(const Complex &z, const Complex &w) noexcept { 
-    if(std::abs(z.real() - w.real()) > COMPLEX_EPSILON<>) { return false; }
-    if(std::abs(z.imag() + w.imag()) > COMPLEX_EPSILON<>) { return false; }
+    if(std::abs(z.real() - w.real()) > epsilon<>) { return false; }
+    if(std::abs(z.imag() + w.imag()) > epsilon<>) { return false; }
     return true;
 }
     

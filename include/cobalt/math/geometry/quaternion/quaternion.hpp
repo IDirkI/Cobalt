@@ -10,18 +10,13 @@
 
 #include "../../algebra/complex/complex.hpp"
 
-
 namespace cobalt::math::geometry {
-
-template<typename T = float>
-    constexpr float QUATERNION_EPSILON = static_cast<T>(1e-6);
 
 constexpr float QUATERNION_SLERP_THRESHOLD = 0.9995;
 
 // --------------------------------------
 //             Quaternion    
 // --------------------------------------
-
 struct Quaternion {
     private:
         float w_;
@@ -41,7 +36,7 @@ struct Quaternion {
          *  @param x First imaginary part
          *  @param y Second imaginary part
          */
-        template<typename T = float>
+        template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
         Quaternion(T w, T x = static_cast<T>(0.0f), T y = static_cast<T>(0.0f), T z = static_cast<T>(0.0f)) noexcept : w_(static_cast<float>(w)), x_(static_cast<float>(x)), y_(static_cast<float>(y)), z_(static_cast<float>(z)) {}
 
         /**
@@ -94,7 +89,7 @@ struct Quaternion {
                 cobalt::math::linear_algebra::Vector<3> axis = normalize(v);
                 float angle = norm(v);
 
-                if(angle < QUATERNION_EPSILON<>) { return Quaternion::eye(); }
+                if(angle < epsilon<>) { return Quaternion::eye(); }
 
                 return fromAxisAngle(axis, angle);
             }

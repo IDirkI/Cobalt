@@ -4,25 +4,21 @@
 #include <cassert>
 #include <array>
 
-#include "../../types.hpp"
+#include "../../config.hpp"
 
 namespace cobalt::math::linear_algebra {
 
-constexpr types::index_t VECTOR_MAX_SIZE = 12;
-
-template<typename T = float>
-    constexpr T VECTOR_EPSILON = static_cast<T>(1e-6);
+constexpr index_t VECTOR_MAX_SIZE = 12;
 
 // --------------------------------------
 //          N-Dimentional Vector    
 // --------------------------------------
-
 /**
  *  @brief Fixed-size vector
  *  @tparam N Dimention/size of the vector
  *  @tparam T Element type (default float)
  */
-template<types::index_t N, typename T = float>
+template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
 struct Vector{
     static_assert(N > 0                  , "[VECTOR Error] : Size must be positive.");
     static_assert(N <= VECTOR_MAX_SIZE   , "[VECTOR Error] : Size exceeds maximum size.");
@@ -44,7 +40,7 @@ struct Vector{
          *  @note If the list has fewer than N elements, remaining elements are zero-initialized
          */ 
         Vector(std::initializer_list<T> list) {
-            types::index_t i = 0;
+            index_t i = 0;
 
             for(T val : list) {
                 if(i < N) data_[i] = val;
@@ -75,7 +71,7 @@ struct Vector{
          *  @return Unit vector of size N in +x direction
          *  @note Only available for 2D and 3D vectors
          */
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>>
+        template<index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>>
             static constexpr Vector unitX() noexcept {
                 if constexpr (M == 2)   { return Vector{static_cast<T>(1), static_cast<T>(0)}; }
                 else                    { return Vector{static_cast<T>(1), static_cast<T>(0), static_cast<T>(0)}; }
@@ -86,7 +82,7 @@ struct Vector{
          *  @return Unit vector of size N in +y direction
          *  @note Only available for 2D and 3D vectors
          */
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>>
+        template<index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>>
             static constexpr Vector unitY() noexcept {
                 if constexpr (M == 2)   { return Vector{static_cast<T>(0), static_cast<T>(1)}; }
                 else                    { return Vector{static_cast<T>(0), static_cast<T>(1), static_cast<T>(0)}; }
@@ -97,7 +93,7 @@ struct Vector{
          *  @return Unit vector of size N in +z direction
          *  @note Only available for 3D vectors
          */
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 3)>>
+        template<index_t M = N, typename = std::enable_if_t<(M == 3)>>
             static constexpr Vector unitZ() noexcept { return Vector{static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)}; }
         
 
@@ -108,7 +104,7 @@ struct Vector{
          */
         static constexpr Vector fromArray(const std::array<T, N> &arr) noexcept {
             Vector<N, T> v;
-            for(types::index_t i = 0; i < N; i++) {
+            for(index_t i = 0; i < N; i++) {
                 v[i] = arr[i];
             }
 
@@ -119,7 +115,7 @@ struct Vector{
         /**
          *  @brief Get the size of the vector
          */
-        static constexpr types::index_t size() noexcept { return N; }
+        static constexpr index_t size() noexcept { return N; }
 
 
         // ---------------- Special Accessors ----------------
@@ -128,9 +124,9 @@ struct Vector{
          *  @return Reference to x-component
          *  @note Only available for 2D and 3D vectors
          */
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
+        template<index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
             constexpr T &x() noexcept { return data_[0]; }
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
+        template<index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
             const T &x() const noexcept { return data_[0]; }
         
         /**
@@ -138,9 +134,9 @@ struct Vector{
          *  @return Reference to y-component
          *  @note Only available for 2D and 3D vectors
          */
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
+        template<index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
             constexpr T &y() noexcept { return data_[1]; }
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
+        template<index_t M = N, typename = std::enable_if_t<(M == 2) || (M == 3)>> 
             const T &y() const noexcept { return data_[1]; }
 
         /**
@@ -148,9 +144,9 @@ struct Vector{
          *  @return Reference to z-component
          *  @note Only available for 3D vectors
          */
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 3)>> 
+        template<index_t M = N, typename = std::enable_if_t<(M == 3)>> 
             constexpr T &z() noexcept { return data_[2]; }
-        template<types::index_t M = N, typename = std::enable_if_t<(M == 3)>> 
+        template<index_t M = N, typename = std::enable_if_t<(M == 3)>> 
             const T &z() const noexcept { return data_[2]; }
 
 
@@ -162,7 +158,7 @@ struct Vector{
          *  @note In debug mode, asserts if `n` >= `N`
          *  @return Reference to element
          */
-        constexpr T &operator[](types::index_t n) noexcept { 
+        constexpr T &operator[](index_t n) noexcept { 
             assert(n < N && "[VECTOR Error] : Accessed index must be within vector size.");
             return data_[n]; 
         }
@@ -174,7 +170,7 @@ struct Vector{
          *  @note In debug mode, asserts if `n` >= `N`
          *  @return Const reference to element
          */
-        constexpr const T &operator[](types::index_t n) const noexcept { 
+        constexpr const T &operator[](index_t n) const noexcept { 
             assert(n < N && "[VECTOR Error] : Accessed index must be within vector size.");
             return data_[n];
         }
@@ -185,7 +181,7 @@ struct Vector{
          *  @note Clamps the output to the last element if the asked index is out of bounds
          *  @return Reference to element
          */
-        constexpr T &at(types::index_t n) noexcept { if(n >= N) n = N-1; return data_[n]; }
+        constexpr T &at(index_t n) noexcept { if(n >= N) n = N-1; return data_[n]; }
 
         /**
          *  @brief Const safe access to element at the given index
@@ -193,7 +189,7 @@ struct Vector{
          *  @note Clamps the output to the last element if the asked index is out of bounds
          *  @return Const reference to element
          */
-        constexpr const T &at(types::index_t n) const noexcept { if(n >= N) n = N-1; return data_[n]; }
+        constexpr const T &at(index_t n) const noexcept { if(n >= N) n = N-1; return data_[n]; }
 
         /**
          *  @brief Access to raw data of the vector
@@ -224,7 +220,7 @@ struct Vector{
          *  @brief Add another vector to this vector
          */
         constexpr Vector &operator+=(const Vector &rhs) noexcept {
-            for(types::index_t i = 0; i < N; i++) { data_[i] += rhs.data_[i]; }
+            for(index_t i = 0; i < N; i++) { data_[i] += rhs.data_[i]; }
             return *this;
         }
 
@@ -232,7 +228,7 @@ struct Vector{
          *  @brief Subtarct another vector from this vector
          */
         constexpr Vector &operator-=(const Vector &rhs) noexcept {
-            for(types::index_t i = 0; i < N; i++) { data_[i] -= rhs.data_[i]; }
+            for(index_t i = 0; i < N; i++) { data_[i] -= rhs.data_[i]; }
             return *this;
         }
 
