@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include <string>
 
 namespace cobalt::util::meta {
@@ -15,7 +16,7 @@ struct PlatformInfo {
         #elif defined(ESP_PLATFORM)
             return "ESP-IDF";
         #else
-            return "UNKNWON";
+            return "UNKNOWN";
         #endif 
     }
 
@@ -51,7 +52,7 @@ struct PlatformInfo {
         #elif defined(__ARM_ARCH_4T__) || defined(__TARGET_ARM_4T)
             return "ARM4T";
         #elif defined(__ARM_ARCH_5_) || defined(__ARM_ARCH_5E_)
-            return "ARM5"
+            return "ARM5";
         #elif defined(__ARM_ARCH_6T2_) || defined(__ARM_ARCH_6T2_)
             return "ARM6T2";
         #elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__)
