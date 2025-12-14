@@ -174,6 +174,30 @@ struct Matrix {
          */
         const T &at(index_t r, index_t c) const noexcept { if(r >= N) { r = N-1; } if(c >= M) { c = M-1; } return data_[r*M + c]; }
 
+        /**
+         *  @brief Access to raw data of the matrix
+         *  @return Raw data array
+         */
+        constexpr T* data() noexcept { return data_.data(); }
+
+        /**
+         *  @brief Const access to raw data of the matrix
+         *  @return Const raw data array
+         */
+        constexpr const T* data() const noexcept { return data_.data(); }
+
+        /**
+         *  @brief Access to the start of the data in memory
+         *  @return Iterator to the start of the raw data array
+         */
+        constexpr auto begin() const noexcept { return data_.begin(); }
+
+        /**
+         *  @brief Access to the end of the data in memory
+         *  @return Iterator to the end of the raw data array
+         */
+        constexpr auto end() const noexcept { return data_.end(); }
+
         // ---------------- Arithmetic Overloads ----------------
         /**
          *  @brief Add another matrix to this matrix
