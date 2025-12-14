@@ -251,9 +251,11 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  */
 template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T trace(const Matrix<N, M, T> &A) noexcept {
+        index_t minLength = (N < M) ?N :M;
+
         T output = static_cast<T>(0);
 
-        for(index_t i = 0; i < M; i++) {
+        for(index_t i = 0; i < minLength; i++) {
             output += A(i, i);
         }
         
@@ -267,9 +269,11 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  */
 template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T traceProduct(const Matrix<N, M, T> &A) noexcept {
+        index_t minLength = (N < M) ?N :M;
+
         T output = static_cast<T>(1);
 
-        for(index_t i = 0; i < M; i++) {
+        for(index_t i = 0; i < minLength; i++) {
             output *= A(i, i);
         }
         

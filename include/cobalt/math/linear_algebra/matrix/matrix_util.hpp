@@ -658,7 +658,7 @@ constexpr bool isSymmetric(const Matrix<N, N, T> &A) {
  */
 template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
 constexpr bool isOrthogonal(const Matrix<N, N, T> &A) {
-    return isZero(A*transpose(A));
+    return isIdentity(A*transpose(A));
 }
 
 /**
