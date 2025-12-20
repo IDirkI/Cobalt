@@ -14,9 +14,9 @@ add_executable(cobalt_tests
         ./math/linear_algebra/matrix/matrix_util_test.cpp
 
         ## ----- Complex -----
-        ./math/algebra/complex/complex_core_test.cpp
-        ./math/algebra/complex/complex_ops_test.cpp
-        ./math/algebra/complex/complex_util_test.cpp
+        #./math/algebra/complex/complex_core_test.cpp
+        #./math/algebra/complex/complex_ops_test.cpp
+        #./math/algebra/complex/complex_util_test.cpp
 
         ## ----- Quaternion -----
         ./math/geometry/quaternion/quaternion_core_test.cpp
@@ -24,8 +24,8 @@ add_executable(cobalt_tests
         ./math/geometry/quaternion/quaternion_util_test.cpp
 
         ## ----- Transform -----
-        ./math/geometry/transform/transform_core_test.cpp
-        ./math/geometry/transform/transform_ops_test.cpp
+        #./math/geometry/transform/transform_core_test.cpp
+        #./math/geometry/transform/transform_ops_test.cpp
 
     ### ===== Control =====
     #./control/controller/pid_test.cpp

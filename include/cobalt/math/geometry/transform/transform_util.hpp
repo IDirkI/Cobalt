@@ -14,7 +14,7 @@ namespace cobalt::math::geometry {
  *  @brief Sets the components of a transform to a clean zero if they are very close to zero
  *  @param H Quaternion to clean
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
     inline Transform<T> cleanZero(const Transform<T> &H) {
         return  Transform<T>(cleanZero(H.rotation()), cleanZero(H.translation()));
     }
@@ -26,7 +26,7 @@ template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @param H Transformation to convert
  *  @return 4x4 Homogeneous transformation matrix
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
     constexpr cobalt::math::linear_algebra::Matrix<4, 4, T> toMatrix(const Transform<T> &H) {
         cobalt::math::linear_algebra::Matrix<4, 4, T> output = cobalt::math::linear_algebra::Matrix<4, 4, T>::eye();
 
@@ -48,9 +48,9 @@ template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @param H Transformation to convert
  *  @return Unit quaternion of the rotation
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
-    constexpr cobalt::math::geometry::Quaternion toQuaternion(const Transform<T> &H) {
-        return cobalt::math::geometry::Quaternion::fromRotationMatrix(H.rotation());
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
+    constexpr cobalt::math::geometry::Quaternion<T> toQuaternion(const Transform<T> &H) {
+        return cobalt::math::geometry::Quaternion<T>::fromRotationMatrix(H.rotation());
     }
 
 /**
@@ -59,9 +59,9 @@ template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @param rotationVector Rotation axis + angle of the transformation
  *  @param translationVector Translation vector of the transformation
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
     constexpr void toVector(const Transform<T> &H, cobalt::math::linear_algebra::Vector<3, T> &rotationVector, cobalt::math::linear_algebra::Vector<3, T> &translationVector) {
-        rotationVector = toVector(toQuaternion(H));
+        rotationVector = toAxisAngle(toQuaternion(H));
         translationVector = H.translation();
     }
 
@@ -70,7 +70,7 @@ template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @param H Transformation to convert
 *   @note (r,p,y) in ZYX sequence 
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
     inline void toEuler(const Transform<T> &H, float &roll, float &pitch, float &yaw) {
         toEuler(toQuaternion(H), roll, pitch, yaw);
     }
@@ -79,7 +79,7 @@ template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
 /**
  *  @brief Check if a transformation is the identity transformation
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
     inline void isIdentity(const Transform<T> &H) {
         return ((H.rotation() == cobalt::math::linear_algebra::Matrix<3, 3, T>::eye()) &&
                 (H.translation() == cobalt::math::linear_algebra::Vector<3, T>::zero())); 
@@ -88,7 +88,7 @@ template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
 /**
  *  @brief Check if a transformation is the purely rotational
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
     inline void isPureRotation(const Transform<T> &H) {
         return (H.translation() == cobalt::math::linear_algebra::Vector<3, T>::zero());
     }
@@ -96,7 +96,7 @@ template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
 /**
  *  @brief Check if a transformation is the purely translational
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
     inline void isPureTranslation(const Transform<T> &H) {
         return (H.rotation() == cobalt::math::linear_algebra::Matrix<3, 3, T>::eye());
     }

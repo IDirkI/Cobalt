@@ -17,7 +17,7 @@ namespace cobalt::math::linear_algebra {
  *  @param max Upper clamp bound.
  *  @return Element wise clamped vector v between [min, max]
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> clamp(const Vector<N, T> &v, T minVal, T maxVal) noexcept {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
@@ -33,7 +33,7 @@ template<index_t N, typename T = float>
  *  @param max Upper clamp bound.
  *  @return Element wise clamped vector v between [-max, max]
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> clamp(const Vector<N, T> &v, T maxVal) noexcept {
         return clamp(v, -maxVal, maxVal);
     }
@@ -44,7 +44,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to check.
  *  @return Smallest vector element
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T min(const Vector<N, T> &v) noexcept {
         T output = v[0];
 
@@ -60,7 +60,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to check.
  *  @return Largest vector element
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T max(const Vector<N, T> &v) noexcept {
         T output = v[0];
 
@@ -76,7 +76,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to abs.
  *  @return Vector with absolute value of each element of v
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> abs(const Vector<N, T> &v) {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
@@ -91,7 +91,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to sign.
  *  @return Vector with sign of each element of v
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> sign(const Vector<N, T> &v) {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
@@ -106,7 +106,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to floor.
  *  @return Vector with floored value of each element of v
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> floor(const Vector<N, T> &v) {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
@@ -120,7 +120,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to ceil.
  *  @return Vector with ceiled value of each element of v
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> ceil(const Vector<N, T> &v) {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
@@ -134,7 +134,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to round.
  *  @return Vector with rounded value of each element of v
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> round(const Vector<N, T> &v) {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
@@ -150,7 +150,7 @@ template<index_t N, typename T = float>
  *  @param u Second vector.
  *  @return Element wise minimum vector.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> minElements(const Vector<N, T> &v, const Vector<N, T> &u) {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
@@ -165,7 +165,7 @@ template<index_t N, typename T = float>
  *  @param u Second vector.
  *  @return Element wise maximum vector.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> maxElements(const Vector<N, T> &v, const Vector<N, T> &u) {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
@@ -179,7 +179,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to check.
  *  @return Index of smallest vector element
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr index_t argmin(const Vector<N, T> &v) {
         index_t index = 0;
         T minVal = v[0];
@@ -197,7 +197,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to check.
  *  @return Index of largest vector element
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr index_t argmax(const Vector<N, T> &v) {
         index_t index = 0;
         T maxVal = v[0];
@@ -217,7 +217,7 @@ template<index_t N, typename T = float>
  *  @return Projected vector of v onto the plane defined by n.
  *  @note n should be a unit vector.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> projectPlane(const Vector<N, T> &v, const Vector<N, T> &n) {
         return v - dot(v, n)*n;
     }
@@ -229,7 +229,7 @@ template<index_t N, typename T = float>
  *  @return Orthogonal component of v relative to u.
  *  @note If u is the zero vector, returns v.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> ortho(const Vector<N, T> &v, const Vector<N, T> &u) {
         return v - project(v, u);
     }
@@ -241,7 +241,7 @@ template<index_t N, typename T = float>
  *  @return Reflected vector.
  *  @note n should be a unit vector.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> reflect(const Vector<N, T> &v, const Vector<N, T> &n) noexcept {
         return v - static_cast<T>(2)*dot(v, n)*n;
     }
@@ -251,7 +251,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to sum across.
  *  @return Sum of all elements of v
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T sum(const Vector<N, T> &v) noexcept {
         T output = static_cast<T>(0);
         for(index_t i = 0; i < N; i++) {
@@ -265,7 +265,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to multiply across.
  *  @return Product of all elements of v
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T product(const Vector<N, T> &v) noexcept {
         T output = static_cast<T>(1);
         for(index_t i = 0; i < N; i++) {
@@ -279,7 +279,7 @@ template<index_t N, typename T = float>
  *  @param v Vector to average across.
  *  @return Mean/average of all elements of v
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T mean(const Vector<N, T> &v) noexcept {
         return sum(v)/(static_cast<T>(N));
     }
@@ -290,7 +290,7 @@ template<index_t N, typename T = float>
  *  @return Variance of all elements of v
  *  @note Uses population variance.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T variance(const Vector<N, T> &v) noexcept {
         T sqrSum = static_cast<T>(0);
         T m = mean(v);
@@ -307,7 +307,7 @@ template<index_t N, typename T = float>
  *  @return Standard deviation of all elements of v
  *  @note Uses population standard.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T stdDev(const Vector<N, T> &v) noexcept {
         return std::sqrt(variance(v));
     }
@@ -319,7 +319,7 @@ template<index_t N, typename T = float>
  *  @return Covariance between v and u
  *  @note Uses population covariance.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T covariance(const Vector<N, T> &v, const Vector<N, T> &u) noexcept {
         T sum = static_cast<T>(0);
         T vm = mean(v);
@@ -334,7 +334,7 @@ template<index_t N, typename T = float>
  *  @brief Sets the components of a vector to a clean zero if they are very close to zero
  *  @param v Vector to clean
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> cleanZero(const Vector<N, T> &v) {
         Vector<N, T> output = Vector<N, T>::zero();
         
@@ -354,7 +354,7 @@ template<index_t N, typename T = float>
  *  @return Linearly interpolated vector between v and u.
  *  @note t is not clamped between 0.0 and 1.0.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 constexpr Vector<N, T> lerp(const Vector<N, T> &v, const Vector<N, T> &u, T t) {
     return v*(1.0f - t) + u*t;
 }
@@ -367,7 +367,7 @@ constexpr Vector<N, T> lerp(const Vector<N, T> &v, const Vector<N, T> &u, T t) {
  *  @return Spherically interpolated vector between v and u.
  *  @note Both input vectors are normalized before interpolation.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 constexpr Vector<N, T> slerp(Vector<N, T> v, Vector<N, T> u, T t) {
     v = normalize(v);
     u = normalize(u);
@@ -388,7 +388,7 @@ constexpr Vector<N, T> slerp(Vector<N, T> v, Vector<N, T> u, T t) {
  *  @param v Vector to convert.
  *  @return std::array containing the vector elements.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 constexpr std::array<T, N> toArray(const Vector<N, T> &v) noexcept {
     std::array<T, N> arr{};
     for(index_t i = 0; i < N; i++) {
@@ -404,7 +404,7 @@ constexpr std::array<T, N> toArray(const Vector<N, T> &v) noexcept {
  *  @return 3x3 skew-symmetric matrix corresponding to v.
  *  @note Only defined for 3D vectors.
  */
-template<typename T = float>
+template<typename T = def_scalar>
 constexpr Matrix<3, 3, T> toSkew(const Vector<3, T> &v) noexcept {
     Matrix<3, 3, T> output = Matrix<3, 3, T>::zero();
 
@@ -424,7 +424,7 @@ constexpr Matrix<3, 3, T> toSkew(const Vector<3, T> &v) noexcept {
  *  @brief Check if a vector is normalized
  *  @return `true` if the vector is normalized, `false` otherwise.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 constexpr bool isNormalized(const Vector<N, T> &v) noexcept {
     return (std::abs(norm(v) - static_cast<T>(1)) < epsilon_<T>);
 }
@@ -433,7 +433,7 @@ constexpr bool isNormalized(const Vector<N, T> &v) noexcept {
  *  @brief Check if a vector is the zero vector
  *  @return `true` if the vector is the zero vector, `false` otherwise.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 constexpr bool isZero(const Vector<N, T> &v) noexcept {
     return (normSqr(v) < (epsilon_<T> * epsilon_<T>));
 }
@@ -442,7 +442,7 @@ constexpr bool isZero(const Vector<N, T> &v) noexcept {
  *  @brief Check if two vectors are parallel
  *  @return `true` if the vectors are parallel, `false` otherwise.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 constexpr bool isParallel(const Vector<N, T> &v, const Vector<N, T> &u) noexcept {
     Vector<N, T> vn = normalize(v);
     Vector<N, T> un = normalize(u);
@@ -454,7 +454,7 @@ constexpr bool isParallel(const Vector<N, T> &v, const Vector<N, T> &u) noexcept
  *  @brief Check if two vectors are orthogonal
  *  @return `true` if the vectors are orthogonal, `false` otherwise.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 constexpr bool isOrthogonal(const Vector<N, T> &v, const Vector<N, T> &u) noexcept {
     return (std::abs(dot(v, u)) < epsilon_<T>);
 }
@@ -463,7 +463,7 @@ constexpr bool isOrthogonal(const Vector<N, T> &v, const Vector<N, T> &u) noexce
  *  @brief Check if all elements of a vector are finite numbers
  *  @return `true` if all elements are finite, `false` otherwise.
  */
-template<index_t N, typename T = float>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 constexpr bool isFinite(const Vector<N, T> &v) noexcept {
     for(index_t i = 0; i < N; i++) {
         if(!std::isfinite(v[i])) return false;

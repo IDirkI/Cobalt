@@ -18,7 +18,7 @@ constexpr index_t VECTOR_MAX_SIZE = 12;
  *  @tparam N Dimention/size of the vector
  *  @tparam T Element type (default float)
  */
-template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 struct Vector{
     static_assert(N > 0                  , "[VECTOR Error] : Size must be positive.");
     static_assert(N <= VECTOR_MAX_SIZE   , "[VECTOR Error] : Size exceeds maximum size.");

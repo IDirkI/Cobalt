@@ -28,7 +28,7 @@ constexpr index_t MATRIX_DEFAULT_SVD_ITERATIONS = 100;
  *  @tparam M Column count of the matrix
  *  @tparam T Element type (default float)
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
 struct Matrix {
     static_assert(N <= MATRIX_MAX_ROW_SIZE  , "[MATRIX Error] : Matrix rows exceeds maximum size.");
     static_assert(M <= MATRIX_MAX_COL_SIZE  , "[MATRIX Error] : Matrix columns exceeds maximum size.");

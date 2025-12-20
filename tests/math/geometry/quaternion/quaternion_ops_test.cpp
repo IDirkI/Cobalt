@@ -184,7 +184,7 @@ TEST_CASE("Quaternion - Conjugate of Real", "[quaternion][ops][conj]") {
 }
 
 TEST_CASE("Quaternion - Norm Unit Quaternion", "[quaternion][ops][norm]") {
-    Quaternion q = Quaternion::eye();
+    Quaternion q = Quaternion<>::eye();
     
     float result = norm(q);
     
@@ -217,7 +217,7 @@ TEST_CASE("Quaternion - Norm Squared Consistency", "[quaternion][ops][norm]") {
 }
 
 TEST_CASE("Quaternion - Normalize Unit", "[quaternion][ops][normalize]") {
-    Quaternion q = Quaternion::eye();
+    Quaternion q = Quaternion<>::eye();
     
     Quaternion result = normalize(q);
     
@@ -233,15 +233,15 @@ TEST_CASE("Quaternion - Normalize Creates Unit", "[quaternion][ops][normalize]")
 }
 
 TEST_CASE("Quaternion - Normalize Zero Returns Identity", "[quaternion][ops][normalize]") {
-    Quaternion q = Quaternion::zero();
+    Quaternion q = Quaternion<>::zero();
     
     Quaternion result = normalize(q);
     
-    REQUIRE(result == Quaternion::eye());
+    REQUIRE(result == Quaternion<>::eye());
 }
 
 TEST_CASE("Quaternion - Inverse Identity", "[quaternion][ops][inv]") {
-    Quaternion q = Quaternion::eye();
+    Quaternion q = Quaternion<>::eye();
     
     Quaternion result = inv(q);
     
@@ -300,7 +300,7 @@ TEST_CASE("Quaternion - Dot Product Commutativity", "[quaternion][ops][dot]") {
 }
 
 TEST_CASE("Quaternion - Log of Identity", "[quaternion][ops][log]") {
-    Quaternion q = Quaternion::eye();
+    Quaternion q = Quaternion<>::eye();
     
     Quaternion result = log(q);
     
@@ -311,7 +311,7 @@ TEST_CASE("Quaternion - Log of Identity", "[quaternion][ops][log]") {
 }
 
 TEST_CASE("Quaternion - Exp of Zero", "[quaternion][ops][exp]") {
-    Quaternion q = Quaternion::zero();
+    Quaternion q = Quaternion<>::zero();
     
     Quaternion result = exp(q);
     
@@ -322,7 +322,7 @@ TEST_CASE("Quaternion - Exp of Zero", "[quaternion][ops][exp]") {
 }
 
 TEST_CASE("Quaternion - Exp Log Inverse", "[quaternion][ops][exp]") {
-    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
     
     Quaternion result = exp(log(q));
     
@@ -333,7 +333,7 @@ TEST_CASE("Quaternion - Exp Log Inverse", "[quaternion][ops][exp]") {
 }
 
 TEST_CASE("Quaternion - Power Zero", "[quaternion][ops][pow]") {
-    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     Quaternion result = pow(q, 0.0f);
     
@@ -342,7 +342,7 @@ TEST_CASE("Quaternion - Power Zero", "[quaternion][ops][pow]") {
 }
 
 TEST_CASE("Quaternion - Power One", "[quaternion][ops][pow]") {
-    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     
     Quaternion result = pow(q, 1.0f);
     
@@ -353,7 +353,7 @@ TEST_CASE("Quaternion - Power One", "[quaternion][ops][pow]") {
 }
 
 TEST_CASE("Quaternion - Power Two Matches Multiplication", "[quaternion][ops][pow]") {
-    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
     
     Quaternion squared = q * q;
     Quaternion powered = pow(q, 2.0f);
@@ -366,7 +366,7 @@ TEST_CASE("Quaternion - Power Two Matches Multiplication", "[quaternion][ops][po
 
 
 TEST_CASE("Quaternion - Rotate Vector Identity", "[quaternion][ops][rotate]") {
-    Quaternion q = Quaternion::eye();
+    Quaternion q = Quaternion<>::eye();
     Vector<3> v = {1.0f, 2.0f, 3.0f};
     
     Vector<3> result = rotate(q, v);
@@ -377,7 +377,7 @@ TEST_CASE("Quaternion - Rotate Vector Identity", "[quaternion][ops][rotate]") {
 }
 
 TEST_CASE("Quaternion - Rotate Vector 90-deg Z-Axis", "[quaternion][ops][rotate]") {
-    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
     Vector<3> v = {1.0f, 0.0f, 0.0f};
     
     Vector<3> result = rotate(q, v);
@@ -389,7 +389,7 @@ TEST_CASE("Quaternion - Rotate Vector 90-deg Z-Axis", "[quaternion][ops][rotate]
 }
 
 TEST_CASE("Quaternion - Rotate Vector 180-deg X-Axis", "[quaternion][ops][rotate]") {
-    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI);
     Vector<3> v = {0.0f, 1.0f, 0.0f};
     
     Vector<3> result = rotate(q, v);
@@ -401,7 +401,7 @@ TEST_CASE("Quaternion - Rotate Vector 180-deg X-Axis", "[quaternion][ops][rotate
 }
 
 TEST_CASE("Quaternion - Rotate Preserves Magnitude", "[quaternion][ops][rotate]") {
-    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{1.0f, 1.0f, 1.0f}, M_PI / 3.0f);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>{1.0f, 1.0f, 1.0f}, M_PI / 3.0f);
     Vector<3> v = {3.0f, 4.0f, 5.0f};
     
     Vector<3> result = rotate(q, v);
@@ -434,8 +434,8 @@ TEST_CASE("Quaternion - Normalized Rotation Preserves Norm", "[quaternion][integ
 
 TEST_CASE("Quaternion - Composition of Rotations", "[quaternion][integration]") {
     // 90° around Z, then 90° around X
-    Quaternion qZ = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
-    Quaternion qX = Quaternion::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 2.0f);
+    Quaternion qZ = Quaternion<>::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 2.0f);
+    Quaternion qX = Quaternion<>::fromAxisAngle(Vector<3>{1.0f, 0.0f, 0.0f}, M_PI / 2.0f);
     
     Quaternion combined = qX * qZ;
     
@@ -447,7 +447,7 @@ TEST_CASE("Quaternion - Composition of Rotations", "[quaternion][integration]") 
 }
 
 TEST_CASE("Quaternion - Inverse Rotation", "[quaternion][integration]") {
-    Quaternion q = Quaternion::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>{0.0f, 0.0f, 1.0f}, M_PI / 4.0f);
     Quaternion qInv = inv(q);
     
     Vector<3> v = {1.0f, 0.0f, 0.0f};

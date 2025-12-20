@@ -19,7 +19,7 @@ namespace cobalt::math::geometry {
  *  @brief Homogeneous transformation matrix.
  *  @tparam T Element type (default float).
  */
-template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
 struct Transform {
     private:
         cobalt::math::linear_algebra::Matrix<3, 3, T> R_;

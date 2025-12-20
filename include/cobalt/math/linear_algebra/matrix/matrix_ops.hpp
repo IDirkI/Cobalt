@@ -13,31 +13,31 @@ namespace cobalt::math::linear_algebra {
 /**
  *  @brief Matrix addition.
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, M, T> operator+(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) noexcept { lhs += rhs; return lhs; }
 
 /**
  *  @brief Matrix subtraction.
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> lhs, const Matrix<N, M, T> &rhs) noexcept { lhs -= rhs; return lhs; }
 
 /**
  *  @brief Scalar matrix multiplication.
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, M, T> operator*(Matrix<N, M, T> lhs, T c) noexcept { lhs *= c; return lhs; }
 
 /**
  *  @brief Scalar matrix multiplication.
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, M, T> operator*(T c, Matrix<N, M, T> lhs) noexcept { lhs *= c; return lhs; }
 
 /**
  *  @brief Matrix multiplication.
  */
-template<index_t N, index_t M, index_t K, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, index_t K, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, K, T> operator*(Matrix<N, M, T> lhs, const Matrix<M, K, T> &rhs) noexcept { 
         Matrix<N, K, T> output{};
 
@@ -57,7 +57,7 @@ template<index_t N, index_t M, index_t K, typename T = float, typename = std::en
 /**
  *  @brief Vector right-multiplication.
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> operator*(const Matrix<N, M, T> &A, const Vector<M, T> &v) noexcept {
         Vector<N, T> output{};
         for(index_t i = 0; i < N; i++) {
@@ -72,19 +72,19 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
 /**
  *  @brief Unary negation
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, M, T> operator-(Matrix<N, M, T> A) noexcept { A *= -1; return A; }
 
 /**
  *  @brief Scalar matrix divison.
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, M, T> operator/(Matrix<N, M, T> lhs, T c) noexcept { lhs /= c; return lhs; }
 
 /**
  *  @brief Matrix equality.
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr inline bool operator==(const Matrix<N, M, T> &lhs, const Matrix<N, M, T> &rhs) { 
         for(index_t i = 0; i < N; i++) {
             for(index_t j = 0; j < M; j++) {
@@ -98,7 +98,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
 /**
  *  @brief Matrix inequality.
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr inline bool operator!=(const Matrix<N, M, T> &lhs, const Matrix<N, M, T> &rhs) noexcept { return (!(lhs == rhs)); }
 
 // ---------------- Non-member Functions ----------------
@@ -108,7 +108,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @return Determinant of A
  *  @note Only defined for square matrices
  */
-template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T det(const Matrix<N, N, T> &A) {
         T output = static_cast<T>(0);
 
@@ -143,7 +143,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @param A Matrix to transpose
  *  @return Transposed matrix A^T 
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<M, N, T> transpose(const Matrix<N, M, T> &A) noexcept {
         Matrix<M, N, T> output{};
 
@@ -164,7 +164,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @note Only defined for square matrices
  *  @warning If function returns `false`, Ainv is not modified and is not a valid matrix. Return value should be handled properly.
  */
-template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     [[nodiscard]] constexpr bool inv(const Matrix<N, N, T> &A, Matrix<N, N, T> &Ainv) {
         switch(N) {
             case 1: { 
@@ -227,7 +227,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @param A Matrix to compute rank of
  *  @return Rank of A
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr index_t rank(const Matrix<N, M, T> &A) {
         Matrix<N, M, T> Q;
         gramSchmidt(A, Q);
@@ -249,7 +249,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @param A Matrix to compute trace of
  *  @return Trace of A
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T trace(const Matrix<N, M, T> &A) noexcept {
         index_t minLength = (N < M) ?N :M;
 
@@ -267,7 +267,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @param A Matrix to compute trace product of
  *  @return Trace product of A
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T traceProduct(const Matrix<N, M, T> &A) noexcept {
         index_t minLength = (N < M) ?N :M;
 
@@ -283,7 +283,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
 /**
  *  @brief Compute the hadamard (element-wise) product of two matrices
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, M, T> hadamard(const Matrix<N, M, T> &A, const Matrix<N, M, T> &B) noexcept {
         Matrix<N, M, T> output = Matrix<N, M, T>::zero();
         
@@ -304,7 +304,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @note Only defined for square matrices
  *  @warning Converges only for matrices where ||A - I|| < 1
  */
-template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, N, T> log(const Matrix<N, N, T> &A, uint16_t terms = MATRIX_DEFAULT_LOG_TERMS) {
         Matrix<N, N, T> output = Matrix<N, N, T>::zero();
         Matrix<N, N, T> AmI = A - Matrix<N, N, T>::eye();;
@@ -326,7 +326,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @return Matrix exponential of A
  *  @note Only defined for square matrices
  */
-template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, N, T> exp(const Matrix<N, N, T> &A, uint16_t terms = MATRIX_DEFAULT_EXP_TERMS) {
         Matrix<N, N, T> output = Matrix<N, N, T>::zero();
         Matrix<N, N, T> powA = Matrix<N, N, T>::eye();
@@ -351,7 +351,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @note Only defined for square matrices
  *  @warning Converges only for matrices where ||A - I|| < 1
  */
-template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, N, T> pow(const Matrix<N, N, T> &A, float c, uint16_t terms = MATRIX_DEFAULT_POW_TERMS) {
         return exp(log(A, terms) * static_cast<T>(c), terms);
     }
@@ -364,7 +364,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @return Matrix A raised to the power of n
  *  @note Only defined for square matrices
  */
-template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr Matrix<N, N, T> powInt(const Matrix<N, N, T> &A, uint16_t n, uint16_t terms = MATRIX_DEFAULT_POW_TERMS) noexcept {
         Matrix<N, N, T> output = Matrix<N, N, T>::eye();
         Matrix<N, N, T> powA = A;
@@ -381,7 +381,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
  *  @param A Matrix to compute Frobenius norm of
  *  @return Frobenius norm of A
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T normFrobenius(const Matrix<N, M, T> &A) noexcept {
         T sum = static_cast<T>(0.0f);
 
@@ -399,7 +399,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @param A Matrix to compute infinity norm of
  *  @return Infinity norm of A
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T normInf(const Matrix<N, M, T> &A) noexcept {
         T max = static_cast<T>(0.0f);
 
@@ -419,7 +419,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @param A Matrix to compute infinity norm of
  *  @return Infinity norm of A
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T norm1(const Matrix<N, M, T> &A) noexcept {
         T max = static_cast<T>(0.0f);
 
@@ -441,7 +441,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @note Computed via singular value decomposition (SVD)
  *  @warning Computationally expensive for large matrices
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T norm2(const Matrix<N, M, T> &A) noexcept {
         Matrix<N, N, T> U;
         Matrix<N, M, T> S;
@@ -458,7 +458,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @note Computed via singular value decomposition (SVD)
  *  @warning Computationally expensive for large matrices
  */
-template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     constexpr T conditionNum(const Matrix<N, M, T> &A) noexcept {
         Matrix<N, N, T> U;
         Matrix<N, M, T> S;
@@ -478,7 +478,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
  *  @note Only defined for square matrices
  *  @warning If function returns `false`, x is not modified and is not a valid solution. Return value should be handled properly.
  */
-template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     [[nodiscard]] inline bool solve(const Matrix<N, N, T> &A, const Vector<N, T> &b, Vector<N, T> &x) {
         Matrix<N, N, T> L, U, P;
         index_t swapCount;

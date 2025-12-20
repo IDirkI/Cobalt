@@ -16,6 +16,11 @@ namespace cobalt::math {
      */
     using def_scalar = float;
 
+    /**
+     *  @brief Default floating point value
+     */
+    using def_floating = float;
+
     // ---------------- Template type checking ----------------
     template<typename T>
         constexpr bool Scalar = std::is_arithmetic_v<T>;
