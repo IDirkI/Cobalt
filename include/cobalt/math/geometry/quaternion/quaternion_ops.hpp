@@ -35,10 +35,10 @@ template<typename T>
 inline const Quaternion operator-(Quaternion q) noexcept { q *= -1; return q; } 
 
 inline bool operator==(const Quaternion &lhs, const Quaternion &rhs) noexcept { 
-    if(std::abs(lhs.w() - rhs.w()) > epsilon<>) { return false; }
-    if(std::abs(lhs.x() - rhs.x()) > epsilon<>) { return false; }
-    if(std::abs(lhs.y() - rhs.y()) > epsilon<>) { return false; }
-    if(std::abs(lhs.z() - rhs.z()) > epsilon<>) { return false; }
+    if(std::abs(lhs.w() - rhs.w()) > epsilon_<>) { return false; }
+    if(std::abs(lhs.x() - rhs.x()) > epsilon_<>) { return false; }
+    if(std::abs(lhs.y() - rhs.y()) > epsilon_<>) { return false; }
+    if(std::abs(lhs.z() - rhs.z()) > epsilon_<>) { return false; }
     return true;
 }
 
@@ -102,7 +102,7 @@ inline Quaternion log(const Quaternion &q) noexcept {
     cobalt::math::linear_algebra::Vector<3, float> v = q.vector();
     float vNorm = norm(v);
 
-    if(vNorm < epsilon<>) {
+    if(vNorm < epsilon_<>) {
         return Quaternion(std::log(qNorm), 0.0f, 0.0f, 0.0f);
     }
 
@@ -121,7 +121,7 @@ inline Quaternion exp(const Quaternion &q) noexcept {
     float vNorm = norm(v);
     float expW = std::exp(q.w());
 
-    if(vNorm < epsilon<>) {
+    if(vNorm < epsilon_<>) {
         return Quaternion(expW, 0.0f, 0.0f, 0.0f);
     }
 

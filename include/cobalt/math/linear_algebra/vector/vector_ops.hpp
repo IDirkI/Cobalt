@@ -50,7 +50,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, 
 template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>, typename = std::enable_if_t<Scalar<T>>>
     constexpr bool operator==(const Vector<N, T> &lhs, const Vector<N, T> &rhs) noexcept {
         for(index_t i = 0; i < N; i++) {
-            if(std::abs(lhs[i] - rhs[i]) > epsilon<T>) return false;
+            if(std::abs(lhs[i] - rhs[i]) > epsilon_<T>) return false;
         }
         return true;
     }
@@ -134,7 +134,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> normalize(const Vector<N, T> &v) {
         T mag = norm(v);
         Vector<N, T> output = v;
-        output = (mag > epsilon<T>) ?(output /= mag) :(Vector<N, T>::zero());
+        output = (mag > epsilon_<T>) ?(output /= mag) :(Vector<N, T>::zero());
         return output;
     }
 
@@ -158,14 +158,40 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
  */
 template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr T angle(const Vector<N, T> &v, const Vector<N, T> &u) { 
+        if(&v == &u) return static_cast<T>(0);
+
         T nv = norm(v);
         T nu = norm(u);
 
         if(nv == static_cast<T>(0) || nu == static_cast<T>(0)) return static_cast<T>(0);
 
         T cosang = dot(v, u)/(nv*nu);
+        
+        if(cosang >= static_cast<T>(1) - epsilon_<T>) { return static_cast<T>(0); }
+        else if(cosang <= static_cast<T>(-1) + epsilon_<T>) { return static_cast<T>(pi_<T>); }
+
         cosang = std::clamp(cosang, static_cast<T>(-1), static_cast<T>(1));
         return std::acos(cosang);
+    }
+
+/**
+ *  @brief Compute the angle between two vectors in radians
+ *  @return Angle between the vectors in radians
+ */
+template<typename T = float, typename = std::enable_if_t<Scalar<T>>>
+    constexpr T angle(const Vector<3, T> &v, const Vector<3, T> &u) { 
+        if(&v == &u) return static_cast<T>(0);
+
+        T nv = norm(v);
+        T nu = norm(u);
+
+        if(nv == static_cast<T>(0) || nu == static_cast<T>(0)) return static_cast<T>(0);
+
+        Vector<3, T> crossVU = cross(v, u);
+        T sinang = norm(crossVU)/(nv*nu);
+        T cosang = dot(v, u)/(nv*nu);
+
+        return std::atan2(sinang, cosang);
     }
 
 /**
@@ -176,7 +202,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
 template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     constexpr Vector<N, T> project(const Vector<N, T> &v, const Vector<N, T> &u) {
         T denom = dot(u, u);
-        if(std::abs(denom) < epsilon<T>) { return Vector<N, T>::zero(); }
+        if(std::abs(denom) < epsilon_<T>) { return Vector<N, T>::zero(); }
 
         T scale = dot(v, u) / denom;
         return u * scale;

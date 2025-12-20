@@ -95,7 +95,7 @@ template<index_t N, typename T = float>
     constexpr Vector<N, T> sign(const Vector<N, T> &v) {
         Vector<N, T> output;
         for(index_t i = 0; i < N; i++) {
-            output[i] = (std::abs(v[i]) < epsilon<T>) ?static_cast<T>(0) :((v[i] > 0) ?static_cast<T>(1) :static_cast<T>(-1));
+            output[i] = (std::abs(v[i]) < epsilon_<T>) ?static_cast<T>(0) :((v[i] > 0) ?static_cast<T>(1) :static_cast<T>(-1));
         }
 
         return output;
@@ -339,7 +339,7 @@ template<index_t N, typename T = float>
         Vector<N, T> output = Vector<N, T>::zero();
         
         for(index_t i = 0; i < N; i++) {
-            output[i] = (std::abs(v[i]) < epsilon<T>) ?static_cast<T>(0) :v[i];
+            output[i] = (std::abs(v[i]) < epsilon_<T>) ?static_cast<T>(0) :v[i];
         }
 
         return output;
@@ -426,7 +426,7 @@ constexpr Matrix<3, 3, T> toSkew(const Vector<3, T> &v) noexcept {
  */
 template<index_t N, typename T = float>
 constexpr bool isNormalized(const Vector<N, T> &v) noexcept {
-    return (std::abs(norm(v) - static_cast<T>(1)) < epsilon<T>);
+    return (std::abs(norm(v) - static_cast<T>(1)) < epsilon_<T>);
 }
 
 /**
@@ -435,7 +435,7 @@ constexpr bool isNormalized(const Vector<N, T> &v) noexcept {
  */
 template<index_t N, typename T = float>
 constexpr bool isZero(const Vector<N, T> &v) noexcept {
-    return (normSqr(v) < (epsilon<T> * epsilon<T>));
+    return (normSqr(v) < (epsilon_<T> * epsilon_<T>));
 }
 
 /**
@@ -447,7 +447,7 @@ constexpr bool isParallel(const Vector<N, T> &v, const Vector<N, T> &u) noexcept
     Vector<N, T> vn = normalize(v);
     Vector<N, T> un = normalize(u);
     T prod = std::abs(dot(vn, un));
-    return (std::abs(prod - static_cast<T>(1)) < epsilon<T>);
+    return (std::abs(prod - static_cast<T>(1)) < epsilon_<T>);
 }
 
 /**
@@ -456,7 +456,7 @@ constexpr bool isParallel(const Vector<N, T> &v, const Vector<N, T> &u) noexcept
  */
 template<index_t N, typename T = float>
 constexpr bool isOrthogonal(const Vector<N, T> &v, const Vector<N, T> &u) noexcept {
-    return (std::abs(dot(v, u)) < epsilon<T>);
+    return (std::abs(dot(v, u)) < epsilon_<T>);
 }
 
 /**

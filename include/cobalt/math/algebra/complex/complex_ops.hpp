@@ -30,8 +30,8 @@ inline Complex operator/(float c, Complex rhs) {
 inline Complex operator-(Complex z) noexcept { z *= -1; return z; }
 
 inline bool operator==(Complex lhs, const Complex &rhs) noexcept { 
-    if(std::abs(lhs.real() - rhs.real()) > epsilon<>) { return false; }
-    if(std::abs(lhs.imag() - rhs.imag()) > epsilon<>) { return false; }
+    if(std::abs(lhs.real() - rhs.real()) > epsilon_<>) { return false; }
+    if(std::abs(lhs.imag() - rhs.imag()) > epsilon_<>) { return false; }
     return true;
 }
 inline bool operator==(Complex lhs, float c) noexcept { return (lhs == Complex(c)); }

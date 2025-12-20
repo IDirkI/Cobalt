@@ -104,7 +104,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
         Matrix<N, M, T> output;
         for(index_t i = 0; i < N; i++) {
             for(index_t j = 0; j < M; j++) {
-                output(i, j) = (std::abs(A(i,j)) < epsilon<T>) ?static_cast<T>(0.0f) :((A(i,j) > 0) ?static_cast<T>(1.0f) :static_cast<T>(-1.0f));
+                output(i, j) = (std::abs(A(i,j)) < epsilon_<T>) ?static_cast<T>(0.0f) :((A(i,j) > 0) ?static_cast<T>(1.0f) :static_cast<T>(-1.0f));
             }
         }
 
@@ -172,7 +172,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
         
         for(index_t i = 0; i < N; i++) {
             for(index_t j = 0; j < M; j++) {
-                output(i, j) = (std::abs(A(i, j)) < epsilon<T>) ?static_cast<T>(0.0f) :A(i, j);
+                output(i, j) = (std::abs(A(i, j)) < epsilon_<T>) ?static_cast<T>(0.0f) :A(i, j);
             }
         }
 
@@ -251,7 +251,7 @@ template<index_t N, typename T>
                     T A_pq = A(p, q);
                     T A_qq = A(q, q);
 
-                    if(std::abs(A_pq) > epsilon<T>) {
+                    if(std::abs(A_pq) > epsilon_<T>) {
                         converged = false;
 
                         T phi = static_cast<T>( 0.5f * std::atan2(static_cast<T>(2)*A_pq, A_qq - A_pp));
@@ -353,7 +353,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
         Matrix<N, M, T> AV = A * V;
 
         for(index_t j = 0; j < M; j++) {
-            if(static_cast<float>(sig[j]) > epsilon<T>) {
+            if(static_cast<float>(sig[j]) > epsilon_<T>) {
                 for(index_t i = 0; i < N; i++) {
                     U(i, j) = AV(i, j) / sig[j];
                 }
@@ -397,7 +397,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
                 }
             }
 
-            if(maxVal < epsilon<T>) { return false; } // Singular matrix
+            if(maxVal < epsilon_<T>) { return false; } // Singular matrix
 
             // Swap rows
             if(pivot != k) {
@@ -470,7 +470,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
 
             vec = normalize(vec);
 
-            if(norm(vec) < epsilon<T>) { isIndependent = false; } // Zero colummn
+            if(norm(vec) < epsilon_<T>) { isIndependent = false; } // Zero colummn
 
             for(index_t i = 0; i < N; i++) { 
                 Q(i, j) = vec[i];
@@ -488,7 +488,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
                 }
 
                 index_t attempt = 0;
-                while((norm(vec) < epsilon<T>) && (attempt < N)) {
+                while((norm(vec) < epsilon_<T>) && (attempt < N)) {
                     vec = Vector<N, T>::zero();
                     vec[(j + attempt) % N] = static_cast<T>(1);
                     
@@ -534,7 +534,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
 
             vec = normalize(vec);
 
-            if(norm(vec) < epsilon<T>) { isIndependent = false; } // Zero colummn
+            if(norm(vec) < epsilon_<T>) { isIndependent = false; } // Zero colummn
 
             for(index_t i = 0; i < N; i++) { 
                 Q(i, j) = vec[i];
@@ -630,7 +630,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
 constexpr bool isZero(const Matrix<N, M, T> &A) {
     for(index_t i = 0; i < N; i++) {
         for(index_t j = 0; j < M; j++) {
-            if(std::abs(A(i,j)) > epsilon<T>) { return false; }
+            if(std::abs(A(i,j)) > epsilon_<T>) { return false; }
         }
     }
 
@@ -674,7 +674,7 @@ constexpr bool isDiagonal(const Matrix<N, N, T> &A) {
  */
 template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
 constexpr bool isSingular(const Matrix<N, N, T> &A) {
-    return (std::abs(det(A)) < epsilon<T>);
+    return (std::abs(det(A)) < epsilon_<T>);
 }
 
 } // cobalt::math::linear_algebra

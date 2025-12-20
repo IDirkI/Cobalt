@@ -89,7 +89,7 @@ struct Quaternion {
                 cobalt::math::linear_algebra::Vector<3> axis = normalize(v);
                 float angle = norm(v);
 
-                if(angle < epsilon<>) { return Quaternion::eye(); }
+                if(angle < epsilon_<>) { return Quaternion::eye(); }
 
                 return fromAxisAngle(axis, angle);
             }

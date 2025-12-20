@@ -190,13 +190,13 @@ struct Matrix {
          *  @brief Access to the start of the data in memory
          *  @return Iterator to the start of the raw data array
          */
-        constexpr auto begin() const noexcept { return data_.begin(); }
+        constexpr auto begin() noexcept { return data_.begin(); }
 
         /**
          *  @brief Access to the end of the data in memory
          *  @return Iterator to the end of the raw data array
          */
-        constexpr auto end() const noexcept { return data_.end(); }
+        constexpr auto end() noexcept { return data_.end(); }
 
         // ---------------- Arithmetic Overloads ----------------
         /**

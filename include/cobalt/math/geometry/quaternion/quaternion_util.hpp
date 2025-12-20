@@ -64,7 +64,7 @@ inline Quaternion clampRotation(const Quaternion &q, float minAngle, float maxAn
     float angle = 2.0f*std::acos(qn.w());
     cobalt::math::linear_algebra::Vector<3> axis;
 
-    if(s < epsilon<>) {
+    if(s < epsilon_<>) {
         axis = cobalt::math::linear_algebra::Vector<3>::unitX();
     }
     else {
@@ -130,10 +130,10 @@ inline Quaternion floor(const Quaternion &q) noexcept {
  */
 inline Quaternion cleanZero(const Quaternion &q) noexcept {
     return Quaternion(
-        (std::abs(q.w()) < epsilon<>) ?0.0f :q.w(),
-        (std::abs(q.x()) < epsilon<>) ?0.0f :q.x(),
-        (std::abs(q.y()) < epsilon<>) ?0.0f :q.y(),
-        (std::abs(q.z()) < epsilon<>) ?0.0f :q.z()
+        (std::abs(q.w()) < epsilon_<>) ?0.0f :q.w(),
+        (std::abs(q.x()) < epsilon_<>) ?0.0f :q.x(),
+        (std::abs(q.y()) < epsilon_<>) ?0.0f :q.y(),
+        (std::abs(q.z()) < epsilon_<>) ?0.0f :q.z()
     );
 }
 
@@ -203,7 +203,7 @@ template<typename T>
         twist = Quaternion(q.w(), proj.x(), proj.y(), proj.z());
         float normTwist = norm(twist);
 
-        if(normTwist < epsilon<>) {
+        if(normTwist < epsilon_<>) {
             twist = Quaternion::eye();
             swing = q;
         } else {
@@ -325,7 +325,7 @@ inline cobalt::math::linear_algebra::Vector<3, float> toVector(const Quaternion 
 
     float angle = 2*std::acos(qn.w());
     float s = std::sqrt(1 - qn.w()*qn.w());
-    if(s < epsilon<>) {
+    if(s < epsilon_<>) {
         return cobalt::math::linear_algebra::Vector<3, float>::zero();
     }
 
@@ -354,7 +354,7 @@ inline cobalt::math::linear_algebra::Vector<3, float> toAxis(const Quaternion &q
     Quaternion qn = normalize(q);
 
     float s = std::sqrt(1 - qn.w()*qn.w());
-    if(s < epsilon<>) {
+    if(s < epsilon_<>) {
         return cobalt::math::linear_algebra::Vector<3 ,float>::unitX();
     }
 
@@ -379,10 +379,10 @@ inline void toEuler(const Quaternion &q, float &roll, float &pitch, float &yaw) 
  *  @brief Check if a quaternion is zero (0 + 0i + 0j + 0k)
  */
 inline bool isZero(const Quaternion &q) noexcept { 
-    if(std::abs(q.w()) > epsilon<>) { return false; }
-    if(std::abs(q.x()) > epsilon<>) { return false; }
-    if(std::abs(q.y()) > epsilon<>) { return false; }
-    if(std::abs(q.z()) > epsilon<>) { return false; }
+    if(std::abs(q.w()) > epsilon_<>) { return false; }
+    if(std::abs(q.x()) > epsilon_<>) { return false; }
+    if(std::abs(q.y()) > epsilon_<>) { return false; }
+    if(std::abs(q.z()) > epsilon_<>) { return false; }
     return true;
 }
 
@@ -391,7 +391,7 @@ inline bool isZero(const Quaternion &q) noexcept {
  */
 inline bool isNormalized(const Quaternion &q) noexcept { 
     float n = norm(q);
-    return (std::abs(n - 1.0f) < epsilon<>);
+    return (std::abs(n - 1.0f) < epsilon_<>);
 }
 
 
@@ -399,10 +399,10 @@ inline bool isNormalized(const Quaternion &q) noexcept {
  *  @brief Check if a quaternion is the identity quaternion (1 + 0i + 0j + 0k)
  */
 inline bool isIdentity(const Quaternion &q) noexcept { 
-    if(std::abs(q.w() - 1.0f) > epsilon<>) { return false; }
-    if(std::abs(q.x()) > epsilon<>) { return false; }
-    if(std::abs(q.y()) > epsilon<>) { return false; }
-    if(std::abs(q.z()) > epsilon<>) { return false; }
+    if(std::abs(q.w() - 1.0f) > epsilon_<>) { return false; }
+    if(std::abs(q.x()) > epsilon_<>) { return false; }
+    if(std::abs(q.y()) > epsilon_<>) { return false; }
+    if(std::abs(q.z()) > epsilon_<>) { return false; }
     return true;
 }
 
@@ -410,9 +410,9 @@ inline bool isIdentity(const Quaternion &q) noexcept {
  *  @brief Check if a quaternion is purely real (w + 0i + 0j + 0k)
  */
 inline bool isReal(const Quaternion &q) noexcept { 
-    if(std::abs(q.x()) > epsilon<>) { return false; }
-    if(std::abs(q.y()) > epsilon<>) { return false; }
-    if(std::abs(q.z()) > epsilon<>) { return false; }
+    if(std::abs(q.x()) > epsilon_<>) { return false; }
+    if(std::abs(q.y()) > epsilon_<>) { return false; }
+    if(std::abs(q.z()) > epsilon_<>) { return false; }
     return true;
 }
 
@@ -420,7 +420,7 @@ inline bool isReal(const Quaternion &q) noexcept {
  *  @brief Check if a quaternion is purely imaginary (0 + xi + yj + zk)
  */
 inline bool isPure(const Quaternion &q) noexcept { 
-    if(std::abs(q.w()) > epsilon<>) { return false; }
+    if(std::abs(q.w()) > epsilon_<>) { return false; }
     return true;
 }
 
@@ -435,7 +435,7 @@ inline bool isSameRotation(const Quaternion &q, const Quaternion &p) noexcept {
     Quaternion pn = normalize(p);
 
     float d = dot(qn, pn);
-    return (std::abs(std::abs(d) - 1.0f) < epsilon<>);
+    return (std::abs(std::abs(d) - 1.0f) < epsilon_<>);
 }
 
 } // cobalt::math::geometry 

@@ -88,7 +88,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
     constexpr inline bool operator==(const Matrix<N, M, T> &lhs, const Matrix<N, M, T> &rhs) { 
         for(index_t i = 0; i < N; i++) {
             for(index_t j = 0; j < M; j++) {
-                if(std::abs(lhs(i, j) - rhs(i, j)) > epsilon<T>) return false;
+                if(std::abs(lhs(i, j) - rhs(i, j)) > epsilon_<T>) return false;
             }
         }
 
@@ -168,14 +168,14 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
     [[nodiscard]] constexpr bool inv(const Matrix<N, N, T> &A, Matrix<N, N, T> &Ainv) {
         switch(N) {
             case 1: { 
-                if(std::abs(A(0, 0)) < epsilon<T>) { return false; }    // Singular
+                if(std::abs(A(0, 0)) < epsilon_<T>) { return false; }    // Singular
                 Ainv(0, 0) = 1.0f / A(0, 0); 
 
                 return true; 
             }
             case 2: { 
                 T denom = static_cast<T>(det(A));
-                if(std::abs(denom) < epsilon<T>) { return false; }    // Singular
+                if(std::abs(denom) < epsilon_<T>) { return false; }    // Singular
                 Ainv(0, 0) = A(1, 1) / denom;
                 Ainv(0, 1) = -A(0, 1) / denom;
                 Ainv(1, 0) = -A(1, 0) / denom;
@@ -185,7 +185,7 @@ template<index_t N, typename T = float, typename = std::enable_if_t<Scalar<T>>>
             }
             case 3: { 
                 T denom = static_cast<T>(det(A));
-                if(std::abs(denom) < epsilon<T>) { return false; }    // Singular
+                if(std::abs(denom) < epsilon_<T>) { return false; }    // Singular
 
                 Ainv(0, 0) =  (A(1,1)*A(2,2) - A(1,2)*A(2,1)) / denom;
                 Ainv(0, 1) = -(A(0,1)*A(2,2) - A(0,2)*A(2,1)) / denom;
@@ -236,7 +236,7 @@ template<index_t N, index_t M, typename T = float, typename = std::enable_if_t<S
         for(index_t j = 0; j < M; j++) {
             Vector<N, T> colVec = getColumn(Q, j);
             
-            if(norm(colVec) > epsilon<T>) {
+            if(norm(colVec) > epsilon_<T>) {
                 rankNum++;
             }
         }
