@@ -99,18 +99,12 @@ struct Quaternion {
          *  @note R must be a proper rotation matrix
          */
         static inline Quaternion fromRotationMatrix(const cobalt::math::linear_algebra::Matrix<3, 3, T> &R) noexcept {
-            T diag = trace(R);
-            T s1 = (R(2,1) - R(1, 2) > 0) ?1.0f :-1.0f;
-            T s2 = (R(0,2) - R(2, 0) > 0) ?1.0f :-1.0f;
-            T s3 = (R(1,0) - R(0, 1) > 0) ?1.0f :-1.0f;
+            T w = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) + trace(R));
+            T x = static_cast<T>(0.25)*(R(2, 1) - R(1, 2))/w;
+            T y = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/w;
+            T z = static_cast<T>(0.25)*(R(1, 0) - R(0, 1))/w;
 
-            return Quaternion(
-                0.5*std::sqrt(static_cast<T>(1) + diag),
-                0.5*std::sqrt(static_cast<T>(1) + diag)*s1,
-                0.5*std::sqrt(static_cast<T>(1) - diag)*s2,
-                0.5*std::sqrt(static_cast<T>(1) - diag)*s3
-            );
-
+            return Quaternion(w, x, y, z);
         }
 
         /**

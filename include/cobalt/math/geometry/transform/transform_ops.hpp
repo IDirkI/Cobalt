@@ -11,20 +11,20 @@
 namespace cobalt::math::geometry {
 
 // ---------------- Non-member Arithmetic Overloads ----------------
-template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr Transform<T> operator*(Transform<T> lhs, const Transform<T> &rhs) { lhs *= rhs; return lhs; }
 
-template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr cobalt::math::linear_algebra::Vector<3, T> operator*(const Transform<T> &lhs, const cobalt::math::linear_algebra::Vector<3, T> &v) {
         return lhs.apply(v);
     }
 
-template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr bool operator==(const Transform<T> &lhs, const Transform<T> &rhs) {
         return ((lhs.rotation() == rhs.rotation()) && (lhs.translation() == rhs.translation()));
     }
 
-template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr bool operator!=(const Transform<T> &lhs, const Transform<T> &rhs) {
         return !(rhs == lhs);
     }
@@ -35,12 +35,12 @@ template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
  *  @param H Transformation to invert
  *  @return H^-1
  */
-template<typename T = def_floating, typename = std::enable_if_t<Scalar<T>>>
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr Transform<T> inv(const Transform<T> &H) {
-        cobalt::math::linear_algebra::Matrix<3, 3, T> RT = transpose(H.rotation());
-        cobalt::math::linear_algebra::Vector<3, T> RTt = -RT*H.translation();
+        cobalt::math::linear_algebra::Matrix<3, 3, T> qinv = inv(H.rotation());
+        cobalt::math::linear_algebra::Vector<3, T> qinvt = -qinv*H.translation();
 
-        return Transform<T>(RT, RTt);
+        return Transform<T>(qinv, qinvt);
     }
 
 } // cobalt::math::geometry

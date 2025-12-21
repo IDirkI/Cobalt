@@ -360,7 +360,7 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
  *  @note If the quaternion represents no rotation, a zero vector is returned 
  */
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
-    inline cobalt::math::linear_algebra::Vector<3, T> toAxisAngle(const Quaternion<T> &q) noexcept {
+    inline cobalt::math::linear_algebra::Vector<3, T> toRotationVector(const Quaternion<T> &q) noexcept {
         Quaternion<T> qn = normalize(q);
 
         T angle = 2*std::acos(qn.w());
