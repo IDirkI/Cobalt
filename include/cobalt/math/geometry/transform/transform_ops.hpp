@@ -37,8 +37,8 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
  */
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr Transform<T> inv(const Transform<T> &H) {
-        cobalt::math::linear_algebra::Matrix<3, 3, T> qinv = inv(H.rotation());
-        cobalt::math::linear_algebra::Vector<3, T> qinvt = -qinv*H.translation();
+        cobalt::math::geometry::Quaternion<T> qinv = inv(H.rotation());
+        cobalt::math::linear_algebra::Vector<3, T> qinvt = static_cast<T>(-1) * (qinv*H.translation());
 
         return Transform<T>(qinv, qinvt);
     }

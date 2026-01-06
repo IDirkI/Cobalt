@@ -60,7 +60,7 @@ struct Transform {
          *  @param t Translation vector associated with the transformn
          */
         constexpr Transform(const cobalt::math::linear_algebra::Matrix<3, 3, T> &R, const cobalt::math::linear_algebra::Vector<3, T> &t = TRANSFORM_DEFAULT_TRANSLATION<T>) noexcept
-            : q_(cobalt::math::geometry::Quaternion<T>::fromMatrix(R)), t_(t){}
+            : q_(cobalt::math::geometry::Quaternion<T>::fromRotationMatrix(R)), t_(t){}
 
         // ---------------- Static Factories ----------------
         /**
@@ -219,7 +219,7 @@ struct Transform {
          *  @note The resulting transformation is equivalent to first applying `rhs`, then `this`
          */
         Transform<T> &operator*=(const Transform<T> &rhs) {
-            t_ += rotate(q_, rhs.t_);
+            t_ += cobalt::math::geometry::rotate(q_, rhs.t_);
             q_ = q_*rhs.q_;
 
             return *this;
@@ -232,8 +232,8 @@ struct Transform {
          *  @return Transformed 3-Vector
          *  @note The transformation is applied as `q*v + t`
          */
-        cobalt::math::linear_algebra::Vector<3, T> apply(cobalt::math::linear_algebra::Vector<3, T> v) const {
-            cobalt::math::linear_algebra::Vector<3, T> qv = rotate(q_, v);
+        inline cobalt::math::linear_algebra::Vector<3, T> apply(const cobalt::math::linear_algebra::Vector<3, T> &v) const {
+            cobalt::math::linear_algebra::Vector<3, T> qv = cobalt::math::geometry::rotate(q_, v);
             return (qv + t_);
         }
 };

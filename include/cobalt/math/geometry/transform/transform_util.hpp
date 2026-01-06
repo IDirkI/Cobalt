@@ -30,12 +30,7 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
  */
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr Transform<T> lerp(const Transform<T> &H1, const Transform<T> &H2, T t) {
-        reutrn Transform<T>(slerp(H1.rotation(), H2.rotation(), t), lerp(H1.translation(), H2.translation(), t));
-    }
-
-template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
-    constexpr Transform<T> slerp(const Transform<T> &H1, const Transform<T> &H2, T t) {
-        
+        return Transform<T>(slerp(H1.rotation(), H2.rotation(), t), lerp(H1.translation(), H2.translation(), t));
     }
 
 // ---------------- Conversions ----------------
@@ -48,7 +43,7 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr cobalt::math::linear_algebra::Matrix<4, 4, T> toMatrix(const Transform<T> &H) {
         cobalt::math::linear_algebra::Matrix<4, 4, T> output = cobalt::math::linear_algebra::Matrix<4, 4, T>::eye();
 
-        cobalt::math::linear_algebra::Matrix<3, 3, T> R = toMatrix(H.rotation())
+        cobalt::math::linear_algebra::Matrix<3, 3, T> R = toMatrix(H.rotation());
 
         for(index_t i = 0; i < 3; i++) {
             for(index_t j = 0; j < 3; j++) {
@@ -81,7 +76,7 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
  */
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr void toVector(const Transform<T> &H, cobalt::math::linear_algebra::Vector<3, T> &rotationVector, cobalt::math::linear_algebra::Vector<3, T> &translationVector) {
-        rotationVector = toAxisAngle(toQuaternion(H));
+        rotationVector = toRotationVector(H.rotation());
         translationVector = H.translation();
     }
 

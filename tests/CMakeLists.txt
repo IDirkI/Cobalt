@@ -24,11 +24,12 @@ add_executable(cobalt_tests
         ./math/geometry/quaternion/quaternion_util_test.cpp
 
         ## ----- Transform -----
-        #./math/geometry/transform/transform_core_test.cpp
-        #./math/geometry/transform/transform_ops_test.cpp
+        ./math/geometry/transform/transform_core_test.cpp
+        ./math/geometry/transform/transform_ops_test.cpp
+        ./math/geometry/transform/transform_util_test.cpp
 
     ### ===== Control =====
-    #./control/controller/pid_test.cpp
+    ./control/controller/pid_test.cpp
 
     ### ===== Kinematics =====
     #./kinematics/kinematics_test.cpp

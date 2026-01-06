@@ -29,6 +29,8 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     inline Quaternion<T> operator*(Quaternion<T> lhs, T c) noexcept { lhs *= c; return lhs; }
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     inline Quaternion<T> operator*(T c, Quaternion<T> rhs) noexcept { rhs *= c; return rhs; }
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
+    inline cobalt::math::linear_algebra::Vector<3, T> operator*(const Quaternion<T> &rhs, cobalt::math::linear_algebra::Vector<3, T> v) noexcept { return rotate(rhs, v); }
 
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     inline Quaternion<T> operator/(Quaternion<T> lhs, const Quaternion<T> &rhs) noexcept { lhs /= rhs; return lhs; }
@@ -38,7 +40,7 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     inline Quaternion<T> operator/(T c, const Quaternion<T> &rhs) noexcept { return (Quaternion<T>(c) / rhs); }
 
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
-    inline const Quaternion<T> operator-(Quaternion<T> q) noexcept { q *= -1; return q; } 
+    inline Quaternion<T> operator-(Quaternion<T> q) noexcept { q *= -1; return q; } 
 
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     inline bool operator==(const Quaternion<T> &lhs, const Quaternion<T> &rhs) noexcept { 

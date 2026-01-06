@@ -6,7 +6,6 @@
 #include "../../linear_algebra/vector/vector_ops.hpp"
 
 #include "../../linear_algebra/matrix/matrix.hpp"
-#include "../../linear_algebra/matrix/matrix_ops.hpp"
 
 #include "../../algebra/complex/complex.hpp"
 
@@ -99,12 +98,46 @@ struct Quaternion {
          *  @note R must be a proper rotation matrix
          */
         static inline Quaternion fromRotationMatrix(const cobalt::math::linear_algebra::Matrix<3, 3, T> &R) noexcept {
-            T w = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) + trace(R));
-            T x = static_cast<T>(0.25)*(R(2, 1) - R(1, 2))/w;
-            T y = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/w;
-            T z = static_cast<T>(0.25)*(R(1, 0) - R(0, 1))/w;
+            T tr = R(0, 0) + R(1, 1) + R(2, 2);
+            T w = static_cast<T>(0);
+            T x = static_cast<T>(0);
+            T y = static_cast<T>(0);
+            T z = static_cast<T>(0);
 
-            return Quaternion(w, x, y, z);
+            if(tr > epsilon_<T>) { 
+                w = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) + tr);
+                x = static_cast<T>(0.25)*(R(2, 1) - R(1, 2))/w;
+                y = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/w;
+                z = static_cast<T>(0.25)*(R(1, 0) - R(0, 1))/w;
+            }
+            else {
+                T max = std::max({R(0, 0), R(1, 1), R(2, 2)});
+                if(std::abs(max - R(0,0)) < epsilon_<T>) {
+                    x = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(0,0));
+
+                    w = static_cast<T>(0.25)*(R(2, 1) - R(1, 2))/x;
+                    y = static_cast<T>(0.25)*(R(0, 1) - R(1, 0))/x;
+                    z = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/x;
+                }
+                else if(std::abs(max - R(1,1)) < epsilon_<T>) {
+                    y = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(1,1));
+
+                    w = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/y;
+                    x = static_cast<T>(0.25)*(R(0, 1) - R(1, 0))/y;
+                    z = static_cast<T>(0.25)*(R(1, 2) - R(2, 1))/y;
+                }
+                else if(std::abs(max - R(2,2)) < epsilon_<T>) {
+                    z = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(2,2));
+
+                    w = static_cast<T>(0.25)*(R(1, 0) - R(0, 1))/z;
+                    x = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/z;
+                    y = static_cast<T>(0.25)*(R(1, 2) - R(2, 1))/z;
+                }
+            }
+            
+            Quaternion<T> q(w, x, y, z);
+
+            return normalize(q);
         }
 
         /**
@@ -232,7 +265,7 @@ struct Quaternion {
             return *this;
         }
 
-        constexpr Quaternion &operator*=(float c) noexcept {
+        constexpr Quaternion &operator*=(T c) noexcept {
             w_ *= c;
             x_ *= c;
             y_ *= c;
@@ -240,7 +273,7 @@ struct Quaternion {
             return *this;
         }
 
-        constexpr Quaternion &operator/=(float c) noexcept {
+        constexpr Quaternion &operator/=(T c) noexcept {
             w_ /= c;
             x_ /= c;
             y_ /= c;
