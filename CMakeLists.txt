@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.15)
 project(Cobalt 
-    VERSION 2.1.0 
+    VERSION 2.2.0 
     LANGUAGES C CXX
 )
 
 ## ===== LIB VERSION ======
 set(COBALT_VERSION_MAJOR 2)
-set(COBALT_VERSION_MINOR 1)
+set(COBALT_VERSION_MINOR 2)
 set(COBALT_VERSION_PATCH 0)
 
 ## ===== C++ STANDARD =====

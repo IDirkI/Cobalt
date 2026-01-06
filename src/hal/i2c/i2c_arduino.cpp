@@ -1,7 +1,6 @@
 #include "cobalt/hal/i2c/i2c_arduino.hpp"
 
-
-#if defined(ARDUINO)
+#if defined(ARDUINO_ARCH_ESP32)
 
 /**
 * @brief Initialize to start communication with the I2C Interface

@@ -8,11 +8,13 @@
 #include "i2c/i2c_arduino.hpp"    // -- Arudino I2C implementation class
 #include "i2c/i2c_espidf.hpp"     // -- ESPIDF I2C implementation class
 
+#include "timer/timer.hpp"          // Base Timer implementation
+
 namespace cobalt::hal {
-    #if defined(ARDUINO)
+    #if defined(ARDUINO_ARCH_ESP32)
         using GPIO = GPIOArduino;
         using I2C = I2CArduino;
-    #elif defined(IDF_VER)
+    #elif defined(ESP_PLATFORM)
         using GPIO = GPIOESPIDF;
         using I2C = I2CESPIDF;
     #endif

@@ -2,7 +2,7 @@
 
 #include "gpio_base.hpp"
 
-#if ARDUINO
+#if defined(ARDUINO_ARCH_ESP32)
 #include <Arduino.h>
 
 namespace cobalt::hal {
