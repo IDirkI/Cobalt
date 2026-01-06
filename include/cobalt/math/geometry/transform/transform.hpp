@@ -2,260 +2,239 @@
 
 #include <array>
 
+#include "../../config.hpp"
+
 #include "../quaternion/quaternion.hpp"
+#include "../quaternion/quaternion_ops.hpp"
 
 #include "../../linear_algebra/matrix/matrix.hpp"
 #include "../../linear_algebra/vector/vector.hpp"
 
 namespace cobalt::math::geometry {
 
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
+    const cobalt::math::linear_algebra::Vector<3, T> TRANSFORM_DEFAULT_TRANSLATION = cobalt::math::linear_algebra::Vector<3, T>::zero();
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
+    const cobalt::math::geometry::Quaternion<T> TRANSFORM_DEFAULT_ROTATION = cobalt::math::geometry::Quaternion<T>::eye();
+
 // --------------------------------------
 //      Homogeneous Transformations    
 // --------------------------------------
-
 /**
  *  @brief Homogeneous transformation matrix.
  *  @tparam T Element type (default float).
  */
-template<typename T = float>
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
 struct Transform {
     private:
-        std::array<T, 16> data_{};
+        cobalt::math::geometry::Quaternion<T> q_;
+        cobalt::math::linear_algebra::Vector<3, T> t_;
 
     public: 
         // ---------------- Constructors ----------------
         /**
          *  @brief Construct an identity transformation matrix.
          */
-        constexpr Transform() noexcept : data_{} {
-            for(uint8_t i = 0; i < 4; i++) {
-                data_[4*i + i] = static_cast<T>(1);
-            }
-        }
+        constexpr Transform() noexcept 
+            : q_(cobalt::math::geometry::Quaternion<T>::eye()), t_(cobalt::math::linear_algebra::Vector<3, T>::zero()) {}
 
         /**
-         *  @brief Construct an transformation matrix.
+         *  @brief Construct an transformation from rotation quaternion and translation.
+         *  @param q Rotation quaternion associated with the transform
+         *  @param t Translation vector associated with the transform
+         */
+        constexpr Transform(const cobalt::math::geometry::Quaternion<T> &q, const cobalt::math::linear_algebra::Vector<3, T> &t = TRANSFORM_DEFAULT_TRANSLATION<T>) noexcept
+            : q_(q), t_(t){}
+
+        /**
+         *  @brief Construct an transformation from rotation quaternion and translation.
+         *  @param q Rotation quaternion associated with the transform
+         *  @param t Translation vector associated with the transform
+         */
+        constexpr Transform(const cobalt::math::linear_algebra::Vector<3, T> &t, const cobalt::math::geometry::Quaternion<T> &q = TRANSFORM_DEFAULT_ROTATION<T>) noexcept
+            : q_(q), t_(t){}
+
+        /**
+         *  @brief Construct an transformation from rotation matrix and translation.
          *  @param R Rotation matrix associated with the transform
          *  @param t Translation vector associated with the transformn
          */
-        constexpr Transform(const cobalt::math::linear_algebra::Matrix<3, 3, T> &R, const cobalt::math::linear_algebra::Vector<3, T> &t) noexcept {
-            for(uint8_t i = 0; i < 4; i++) {
-                for(uint8_t j = 0; j < 4; j++) {
-                    if(i < 3 && j < 3) { data_[4*i + j] = R(i, j); }
-                    else if(i < 3 && j == 3) { data_[4*i + j] = t[i]; }
-                    else if(i == 3 && j < 3) { data_[4*i + j] = static_cast<T>(0); }
-                    else { data_[4*i + j] = static_cast<T>(1); }
-                }
-            }
-        }
+        constexpr Transform(const cobalt::math::linear_algebra::Matrix<3, 3, T> &R, const cobalt::math::linear_algebra::Vector<3, T> &t = TRANSFORM_DEFAULT_TRANSLATION<T>) noexcept
+            : q_(cobalt::math::geometry::Quaternion<T>::fromRotationMatrix(R)), t_(t){}
 
         // ---------------- Static Factories ----------------
         /**
          *  @brief Construct an identity transformation.
          */
         static constexpr Transform<T> eye() {
-            Transform<T> out{};
-
-            for(uint8_t i = 0; i < 4; i++) {
-                out(i, i) = static_cast<T>(1);
-            }
-
-            return out;
+            return Transform<T>();
         }
 
         /**
-         *  @brief Construct a rotation-transformation from given unit quaternion.
-         *  @param q Unit quaternion representing the rotation/orientation
-         */
-        static constexpr Transform<T> fromQuaternion(const Quaternion &q) {
-            Transform<T> out = Transform<T>::eye();
-            
-            out(0,0) = (1 - 2*(q.y()*q.y() + q.z()*q.z()));
-            out(1,0) = 2*(q.x()*q.y() + q.z()*q.w());
-            out(2,0) = 2*(q.x()*q.z() - q.y()*q.w());
-
-            out(0,1) = 2*(q.x()*q.y() - q.z()*q.w());
-            out(1,1) = (1 - 2*(q.x()*q.x() + q.z()*q.z()));
-            out(2,1) = 2*(q.y()*q.z() + q.x()*q.w());
-
-            out(0,2) = 2*(q.x()*q.z() + q.y()*q.w());
-            out(1,2) = 2*(q.y()*q.z() - q.x()*q.w());
-            out(2,2) = (1 - 2*(q.x()*q.x() + q.y()*q.y()));
-        
-            return out;
-        }
-
-        /**
-         *  @brief Construct a rotation-transformation from given vector.
+         *  @brief Construct a pure rotation transformation from given rotation vector.
          *  @param v Vector representing the rotation/orientation
          * 
          *  The direction of the vector is the axis while the norm of the vector is the angle
          */
-        static constexpr Transform<T> fromAxisAngle(const cobalt::math::linear_algebra::Vector<3, T> &v) {
-            Quaternion qTemp = Quaternion::fromVector(v);
+        static constexpr Transform<T> fromRotationVector(const cobalt::math::linear_algebra::Vector<3, T> &v) {
+            Quaternion<T> q = Quaternion<T>::fromRotationVector(v);
 
-            return fromQuaternion(qTemp);
-        }
-
-        /**
-         *  @brief Construct a translation-transformation from given vector.
-         *  @param v Vector representing the translation in the transformation
-         */
-        static constexpr Transform<T> fromTranslation(const cobalt::math::linear_algebra::Vector<3, T> &v) {
-            Transform<T> out = Transform<T>::eye();
-
-            out(0,3) = v[0];
-            out(1,3) = v[1];
-            out(2,3) = v[2];
-        
-            return out;
+            return Transform<T>(q);
         }
 
         /**
          *  @brief Construct a rotation-transformation along the X-axis from a given angle.
-         *  @param t Angle to rotate around X-axis
+         *  @param angle Angle to rotate around X-axis
          */
-        static constexpr Transform<T> rotationX(float t) {
-            Transform<T> out = Transform<T>::eye();
+        static constexpr Transform<T> fromRotationX(T angle) {
+            cobalt::math::linear_algebra::Matrix<3, 3, T> R = cobalt::math::linear_algebra::Matrix<3, 3, T>::eye();
 
-            out(1,1) = std::cos(t);
-            out(2,1) = std::sin(t);
-            out(1,2) = -std::sin(t);
-            out(2,2) = std::cos(t);
+            R(1,1) = std::cos(angle);
+            R(1,2) = -std::sin(angle);
+            R(2,1) = std::sin(angle);
+            R(2,2) = std::cos(angle);
         
-            return out;
+            return Transform<T>(R, cobalt::math::linear_algebra::Vector<3, T>::zero());
         }
 
         /**
          *  @brief Construct a rotation-transformation along the Y-axis from a given angle.
-         *  @param t Angle to rotate around Y-axis
+         *  @param angle Angle to rotate around Y-axis
          */
-        static constexpr Transform<T> rotationY(float t) {
-            Transform<T> out = Transform<T>::eye();
+        static constexpr Transform<T> fromRotationY(T angle) {
+             cobalt::math::linear_algebra::Matrix<3, 3, T> R = cobalt::math::linear_algebra::Matrix<3, 3, T>::eye();
 
-            out(0,0) = std::cos(t);
-            out(2,0) = -std::sin(t);
-            out(0,2) = std::sin(t);
-            out(2,2) = std::cos(t);
+            R(0,0) = std::cos(angle);
+            R(0,2) = std::sin(angle);
+            R(2,0) = -std::sin(angle);
+            R(2,2) = std::cos(angle);
         
-            return out;
+            return Transform<T>(R, cobalt::math::linear_algebra::Vector<3, T>::zero());
         }
 
         /**
          *  @brief Construct a rotation-transformation along the Z-axis from a given angle.
-         *  @param t Angle to rotate around Z-axis
+         *  @param angle Angle to rotate around Z-axis
          */
-        static constexpr Transform<T> rotationZ(float t) {
-            Transform<T> out = Transform<T>::eye();
+        static constexpr Transform<T> fromRotationZ(T angle) {
+            cobalt::math::linear_algebra::Matrix<3, 3, T> R = cobalt::math::linear_algebra::Matrix<3, 3, T>::eye();
 
-            out(0,0) = std::cos(t);
-            out(1,0) = std::sin(t);
-            out(0,1) = -std::sin(t);
-            out(1,1) = std::cos(t);
+            R(0,0) = std::cos(angle);
+            R(0,1) = -std::sin(angle);
+            R(1,0) = std::sin(angle);
+            R(1,1) = std::cos(angle);
         
-            return out;
+            return Transform<T>(R, cobalt::math::linear_algebra::Vector<3, T>::zero());
         }
 
-
-        // ---------------- Getters ----------------
+        // ---------------- Chain Operations ----------------
         /**
-         *  @brief Return the row number of the transformation matrix.
+         *  @brief Apply a rotation around the X-axis to the transformation.
+         *  @param angle Angle to rotate around X-axis
+         *  @return Reference to this transformation after rotation for chaining
          */
-        constexpr uint8_t rows() const { return 4; }
-
-        /**
-         *  @brief Return the column number of the transformation matrix.
-         */
-        constexpr uint8_t cols() const { return 4; }
-
-        // ---------------- Element Accessors ----------------
-        /**
-         *  @brief Access element at the given row/column.
-         *  @param r Row of the accessed element.
-         *  @param c Column of the accessed element.
-         *  @return Reference to element.
-         */
-        constexpr T &operator()(uint8_t r, uint8_t c) { if(r >= 4) { r = 3; } if(c >= 4) { c = 3; } return data_[r*4 + c]; }
+        constexpr Transform<T> &rotateX(T angle) {
+            q_*= fromRotationX(angle).rotation();
+            return *this;
+        }
 
         /**
-         *  @brief Const access to element at the given row/column.
-         *  @param r Row of the accessed element.
-         *  @param c Column of the accessed element.
-         *  @return Const reference to element.
+         *  @brief Apply a rotation around the Y-axis to the transformation.
+         *  @param angle Angle to rotate around Y-axis
+         *  @return Reference to this transformation after rotation for chaining
          */
-        const T &operator()(uint8_t r, uint8_t c) const { if(r >= 4) { r = 3; } if(c >= 4) { c = 3; } return data_[r*4 + c]; }
+        constexpr Transform<T> &rotateY(T angle) {
+            q_*= fromRotationY(angle).rotation();
+            return *this;
+        }
+
+        /**
+         *  @brief Apply a rotation around the Z-axis to the transformation.
+         *  @param angle Angle to rotate around Z-axis
+         *  @return Reference to this transformation after rotation for chaining
+         */
+        constexpr Transform<T> &rotateZ(T angle) {
+            q_*= fromRotationZ(angle).rotation();
+            return *this;
+        }
+
+        /**
+         *  @brief Apply a rotation to the transformation.
+         *  @param q Rotation quaternion to apply
+         *  @return Reference to this transformation after rotation for chaining
+         */
+        constexpr Transform<T> &rotate(cobalt::math::geometry::Quaternion<T> rotation) {
+            q_*= rotation;
+            return *this;
+        } 
+
+        /**
+         *  @brief Apply a translation to the transformation.
+         *  @param translation Translation vector to apply
+         *  @return Reference to this transformation after translation for chaining
+         */
+        constexpr Transform<T> &translate(cobalt::math::linear_algebra::Vector<3, T> translation) {
+            t_ += translation;
+            return *this;
+        }
+
+        // ---------------- Accessors ----------------
+        /**
+         *  @brief Access to the rotation matrix part of the transformation
+         *  @return Reference to rotation matrix `R` associated with the transformation
+         */
+        constexpr cobalt::math::geometry::Quaternion<T> &rotation() {
+            return q_;
+        }
+
+        /**
+         *  @brief Access to the translation vector part of the transformation
+         *  @return Reference to translation vector `t` associated with the transformation
+         */
+        constexpr cobalt::math::linear_algebra::Vector<3, T> &translation() {
+            return t_;
+        }
 
         /**
          *  @brief Const access to the rotation matrix part of the transformation
-         *  @return Rotation matrix `R` associated with the transformation
+         *  @return Const reference to rotation matrix `q` associated with the transformation
          */
-        const cobalt::math::linear_algebra::Matrix<3, 3, T> rotation() const {
-            cobalt::math::linear_algebra::Matrix<3, 3, T> output{};
-
-            for(uint8_t i = 0; i < 3; i++) {
-                for(uint8_t j = 0; j < 3; j++) {
-                    output(i, j) = data_[i*4+j];
-                }
-            }
-
-            return output;
+        const cobalt::math::geometry::Quaternion<T> &rotation() const {
+            return q_;
         }
 
         /**
          *  @brief Const access to the translation vector part of the transformation
-         *  @return Translation vector `t` associated with the transformation
+         *  @return Const reference to translation vector `t` associated with the transformation
          */
-        const cobalt::math::linear_algebra::Vector<3, T> translation() const {
-            cobalt::math::linear_algebra::Vector<3, T> output{};
-
-            for(uint8_t i = 0; i < 3; i++) {
-                output[i] = data_[i*4+3];
-            }
-
-            return output;
+        const cobalt::math::linear_algebra::Vector<3, T> &translation() const {
+            return t_;
         }
-
 
         // ---------------- Member Overloads ----------------
         /**
-         *  @brief Right-multiply another transform matrix(4x4) to this transform matrix(4x4).
-         *  @return Resulting transform matrix (4x4)
+         *  @brief In-place multiplication of two transformations (concatenation)
+         *  @param rhs Right-hand side transformation
+         *  @return Reference to this transformation after multiplication
+         *  @note The resulting transformation is equivalent to first applying `rhs`, then `this`
          */
-        const Transform<T> &operator*=(const Transform<T> &rhs) {
-            Transform<T> output{};
+        Transform<T> &operator*=(const Transform<T> &rhs) {
+            t_ += cobalt::math::geometry::rotate(q_, rhs.t_);
+            q_ = q_*rhs.q_;
 
-                for(uint8_t i = 0; i < 4; i++) {
-                    for(uint8_t j = 0; j < 4; j++) {
-                        output(i, j) = static_cast<T>(0);
-
-                        for(uint8_t k = 0; k < 4; k++) {
-                            output(i, j) += data_[i*4 + k] * rhs(k, j);
-                        }
-                    }
-                }
-
-                *this = output;
-
-                return *this;
+            return *this;
         }
 
         // ---------------- Member Functions ----------------
         /**
-         *  @brief Apply a homogeneous transformation to a 3-Vector
+         *  @brief Apply the transformation to a 3-Vector
+         *  @param v 3-Vector to transform
          *  @return Transformed 3-Vector
+         *  @note The transformation is applied as `q*v + t`
          */
-        const cobalt::math::linear_algebra::Vector<3, T> apply(cobalt::math::linear_algebra::Vector<3, T> v) const {
-            cobalt::math::linear_algebra::Vector<4, T> temp = {v[0], v[1], v[2], static_cast<T>(1)};
-
-            for(uint8_t i = 0; i < 3; i++) {
-                v[i] = static_cast<T>(0);
-
-                for(uint8_t j = 0; j < 4; j++) {
-                    v[i] += data_[i*4 + j] * temp[j];
-                }
-            }
-
-            return v;
+        inline cobalt::math::linear_algebra::Vector<3, T> apply(const cobalt::math::linear_algebra::Vector<3, T> &v) const {
+            cobalt::math::linear_algebra::Vector<3, T> qv = cobalt::math::geometry::rotate(q_, v);
+            return (qv + t_);
         }
 };
 

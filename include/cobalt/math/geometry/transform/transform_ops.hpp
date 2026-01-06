@@ -11,50 +11,36 @@
 namespace cobalt::math::geometry {
 
 // ---------------- Non-member Arithmetic Overloads ----------------
-template<typename T = float>
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr Transform<T> operator*(Transform<T> lhs, const Transform<T> &rhs) { lhs *= rhs; return lhs; }
 
-template<typename T = float>
-    constexpr cobalt::math::linear_algebra::Vector<4, T> operator*(const Transform<T> &lhs, cobalt::math::linear_algebra::Vector<4, T> v) {
-        cobalt::math::linear_algebra::Vector<4, T> temp = v;
-
-        for(uint8_t i = 0; i < 4; i++) {
-            v[i] = static_cast<T>(0);
-
-            for(uint8_t j = 0; j < 4; j++) {
-                v[i] += lhs(i, j) * temp[j];
-            }
-        }
-
-        return v;
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
+    constexpr cobalt::math::linear_algebra::Vector<3, T> operator*(const Transform<T> &lhs, const cobalt::math::linear_algebra::Vector<3, T> &v) {
+        return lhs.apply(v);
     }
 
-template<typename T = float>
-    constexpr cobalt::math::linear_algebra::Vector<4, T> operator*(cobalt::math::linear_algebra::Vector<4, T> v, const Transform<T> &lhs) {
-        cobalt::math::linear_algebra::Vector<4, T> temp = v;
-
-        for(uint8_t i = 0; i < 4; i++) {
-            v[i] = static_cast<T>(0);
-
-            for(uint8_t j = 0; j < 4; j++) {
-                v[i] += lhs(j, i) * temp[i];
-            }
-        }
-
-        return v;
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
+    constexpr bool operator==(const Transform<T> &lhs, const Transform<T> &rhs) {
+        return ((lhs.rotation() == rhs.rotation()) && (lhs.translation() == rhs.translation()));
     }
 
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
+    constexpr bool operator!=(const Transform<T> &lhs, const Transform<T> &rhs) {
+        return !(rhs == lhs);
+    }
 
 // ---------------- Non-member Functions ----------------
-
-template<typename T = float>
+/**
+ *  @brief Compute the inverse transformation of a given transformation
+ *  @param H Transformation to invert
+ *  @return H^-1
+ */
+template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     constexpr Transform<T> inv(const Transform<T> &H) {
-        cobalt::math::linear_algebra::Matrix<3, 3, T> RT = cobalt::math::linear_algebra::transpose(H.rotation());
-        cobalt::math::linear_algebra::Vector<3, T> RTt = H.translation();
-        RTt = -RT*RTt;
+        cobalt::math::geometry::Quaternion<T> qinv = inv(H.rotation());
+        cobalt::math::linear_algebra::Vector<3, T> qinvt = static_cast<T>(-1) * (qinv*H.translation());
 
-        Transform<T> output(RT, RTt);
-        return output;
+        return Transform<T>(qinv, qinvt);
     }
 
 } // cobalt::math::geometry

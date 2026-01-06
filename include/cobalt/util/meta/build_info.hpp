@@ -34,8 +34,8 @@ struct BuildInfo {
             snprintf(buff, sizeof(buff), "GCC %d.%d", __GNUC__, __GNUC_MINOR__);
         #elif defined(__clang__)
             snprintf(buff, sizeof(buff), "CLANG %d.%d", __clang_major__, __clang_minor__);
-        #elif defined(_MSVC_VER)
-            snprintf(buff, sizeof(buff), "MSVC %d",_MSVC_VER);
+        #elif defined(_MSC_VER)
+            snprintf(buff, sizeof(buff), "MSVC %d",_MSC_VER);
         #else
             return "UNKNWON";
         #endif 
