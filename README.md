@@ -4,11 +4,10 @@ Cobalt is a C/C++ library for **math** and **control systems** intended to run o
 
 ---
 
-## Features v2.1.0
+## Features v2.2.0
 - 🟩 **Math**
     - Fixed size Vector & Matrices (`cobalt::math::linear_algebra`)
-    - Transforms & Quaternions (`cobalt::math::geometry`) 
-    - Complex numbers (`cobalt::math::algebra`)
+    - Transforms & Quaternions (`cobalt::math::geometry`)
 - 🟦 **Control**
     - Discrete-time PID controller (`cobalt::control`):
         - Bilinear rtasform (Tustin) discretization
@@ -106,7 +105,7 @@ Library will be installed at `C:/dev/Cobalt`
 ## Roadmap for v2.0.0 life-span
 - [x] HAL support starting with ESP32/Arduino systems
 - [x] Inverse-kinematics(IK) calculator
-- [ ] HAL timer
+- [x] HAL timer
 - [ ] ROS-like light weight middle-ware for simple communication
 - [ ] Header parser and EEPROM Save/load for controller configs
 - [ ] Expanded math module with:
@@ -116,5 +115,4 @@ Library will be installed at `C:/dev/Cobalt`
 --- 
 
 ## Known Issues
-- `Matrix` & `Vector` functions can have unexpected results under certain circumstances
-- RobotChains can get stuck on initialization if joint & link numbers don't match up
+- Kinematics module is currently broken due to the math updates, this will be fixed in the next release

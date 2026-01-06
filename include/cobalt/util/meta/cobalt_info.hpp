@@ -7,7 +7,7 @@ namespace cobalt::util::meta {
 
 struct CobaltInfo {
     static constexpr int VERSION_MAJOR = 2;
-    static constexpr int VERSION_MINOR = 1;
+    static constexpr int VERSION_MINOR = 2;
     static constexpr int VERSION_PATCH = 0;
 
     /**
