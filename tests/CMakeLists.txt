@@ -32,7 +32,8 @@ add_executable(cobalt_tests
     #./control/controller/pid_test.cpp
 
     ### ===== Kinematics =====
-    ./kinematics/kinematics_test.cpp
+    ./kinematics/link_test.cpp
+    ./kinematics/joint_test.cpp
 
     ### ===== Utility =====
     #./util/meta_test.cpp

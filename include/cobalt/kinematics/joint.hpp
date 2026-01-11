@@ -49,7 +49,7 @@ struct Joint  {
         float home_{JOINT_DEFAULT_HOME};
 
         // ---------------- Helper Function ----------------
-        void enforceConstraints() {
+        constexpr void enforceConstraints() {
             if(type_ != JointType::Fixed) { 
                     assert((isZero(axis_) == false) && "[JOINT Error] : Joint axis cannot be zero vector.");
                     axis_ = normalize(axis_); 
@@ -65,13 +65,13 @@ struct Joint  {
     public: 
         // ---------------- Constructors ----------------
         explicit Joint(id_t id = JOINT_DEFAULT_ID,
-              id_t idParent = JOINT_DEFAULT_ID,
-              id_t idChild = JOINT_DEFAULT_ID,
-              JointType type = JOINT_DEFAULT_TYPE,
-              const cobalt::math::geometry::Transform<> &origin = JOINT_DEFAULT_ORIGIN,
-              const cobalt::math::linear_algebra::Vector<3> &axis = JOINT_DEFAULT_AXIS,
-              const JointLimits &limits = JointLimits(),
-              float home = JOINT_DEFAULT_HOME)
+                       id_t idParent = JOINT_DEFAULT_ID,
+                       id_t idChild = JOINT_DEFAULT_ID,
+                       JointType type = JOINT_DEFAULT_TYPE,
+                       const cobalt::math::geometry::Transform<> &origin = JOINT_DEFAULT_ORIGIN,
+                       const cobalt::math::linear_algebra::Vector<3> &axis = JOINT_DEFAULT_AXIS,
+                       const JointLimits &limits = JointLimits(),
+                       float home = JOINT_DEFAULT_HOME)
             : id_(id), idParent_(idParent), idChild_(idChild), type_(type), origin_(origin), axis_(axis), limits_(limits), home_(home) {
                 enforceConstraints();
             }
@@ -88,9 +88,6 @@ struct Joint  {
 
         const cobalt::math::geometry::Transform<> &getOrigin() const { return origin_; }
         const cobalt::math::linear_algebra::Vector<3> &getAxis() const { return axis_; }
-
-        
-
     };
 
 } // cobalt::kinematics

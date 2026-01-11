@@ -7,6 +7,9 @@
 
 #include "cobalt/kinematics/joint.hpp"
 
+using cobalt::kinematics::Joint;
+
 TEST_CASE("Joint, default construction", "[kinematics]") {
+    Joint joint = Joint();
     REQUIRE(true);
 } 
