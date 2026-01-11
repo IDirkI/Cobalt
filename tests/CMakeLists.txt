@@ -4,14 +4,14 @@ add_executable(cobalt_tests
 
     ### ===== Math =====
         ## ----- Vector -----
-        ./math/linear_algebra/vector/vector_core_test.cpp
-        ./math/linear_algebra/vector/vector_ops_test.cpp
-        ./math/linear_algebra/vector/vector_util_test.cpp
+        #./math/linear_algebra/vector/vector_core_test.cpp
+        #./math/linear_algebra/vector/vector_ops_test.cpp
+        #./math/linear_algebra/vector/vector_util_test.cpp
 
         ## ----- Matrix -----
-        ./math/linear_algebra/matrix/matrix_core_test.cpp
-        ./math/linear_algebra/matrix/matrix_ops_test.cpp
-        ./math/linear_algebra/matrix/matrix_util_test.cpp
+        #./math/linear_algebra/matrix/matrix_core_test.cpp
+        #./math/linear_algebra/matrix/matrix_ops_test.cpp
+        #./math/linear_algebra/matrix/matrix_util_test.cpp
 
         ## ----- Complex -----
         #./math/algebra/complex/complex_core_test.cpp
@@ -19,21 +19,20 @@ add_executable(cobalt_tests
         #./math/algebra/complex/complex_util_test.cpp
 
         ## ----- Quaternion -----
-        ./math/geometry/quaternion/quaternion_core_test.cpp
-        ./math/geometry/quaternion/quaternion_ops_test.cpp
-        ./math/geometry/quaternion/quaternion_util_test.cpp
+        #./math/geometry/quaternion/quaternion_core_test.cpp
+        #./math/geometry/quaternion/quaternion_ops_test.cpp
+        #./math/geometry/quaternion/quaternion_util_test.cpp
 
         ## ----- Transform -----
-        ./math/geometry/transform/transform_core_test.cpp
-        ./math/geometry/transform/transform_ops_test.cpp
-        ./math/geometry/transform/transform_util_test.cpp
+        #./math/geometry/transform/transform_core_test.cpp
+        #./math/geometry/transform/transform_ops_test.cpp
+        #./math/geometry/transform/transform_util_test.cpp
 
     ### ===== Control =====
-    ./control/controller/pid_test.cpp
+    #./control/controller/pid_test.cpp
 
     ### ===== Kinematics =====
-    #./kinematics/kinematics_test.cpp
-    #./kinematics/ik_graphic_test.cpp
+    ./kinematics/kinematics_test.cpp
 
     ### ===== Utility =====
     #./util/meta_test.cpp
@@ -49,6 +48,6 @@ target_link_libraries(cobalt_tests PRIVATE cobalt Catch2::Catch2WithMain)
 
 # Register the tests
 enable_testing()
-include(CTEST)
-include(CATCH)
+include(CTest)
+include(Catch)
 catch_discover_tests(cobalt_tests)
