@@ -34,7 +34,7 @@ struct Link {
         cobalt::math::geometry::Transform<> origin_{LINK_DEFAULT_COM};
 
         // ---------------- Helper Function ----------------
-        constexpr void enforceConstraints() {
+        constexpr void validate() {
             assert(mass_ >= 0.0f && "[LINK Error] : Link mass cannot be negative.");
 
             for(cobalt::math::index_t i = 0; i < 3; i++) {  //TODO: Replace with isPSD check
@@ -46,22 +46,53 @@ struct Link {
 
     public:
         // ---------------- Constructors ----------------
+        /**
+         *  @brief Construct a robot link
+         *  @param id ID of the link
+         *  @param name Name of the link
+         *  @param mass Mass of the link
+         *  @param inertia Inertia matrix of the link about the center of mass
+         *  @param origin Transform of the link's center of mass relative to the link frame
+         *  @note Validates the link parameters upon construction
+         *  @throws AssertionError if the link parameters are invalid
+         */
         explicit Link(id_t id = LINK_DEFAULT_ID,
                       const std::string &name = "",
                       float mass = LINK_DEFAULT_MASS,
                       const cobalt::math::linear_algebra::Matrix<3,3> &inertia = LINK_DEFAULT_INERTIA,
                       const cobalt::math::geometry::Transform<> &origin = LINK_DEFAULT_COM)
             : id_(id), name_(name), mass_(mass), inertia_(inertia), origin_(origin) {
-                enforceConstraints();
+                validate();
             }
 
         // ---------------- Getters ----------------
+        /**
+         *  @brief Get the ID of the link
+         *  @return ID of the link
+         */
         constexpr id_t getId() const { return id_; }
+        /**
+         *  @brief Get the mass of the link
+         *  @return Mass of the link
+         */
         constexpr float getMass() const { return mass_; }
 
-        const cobalt::math::linear_algebra::Matrix<3,3> &getInertia() const { return inertia_; }
-        const cobalt::math::geometry::Transform<> &getOrigin() const { return origin_; }  
+
+        /**
+         *  @brief Get the name of the link
+         *  @return Name of the link
+         */
         const std::string &getName() const { return name_; }
+        /**
+         *  @brief Get the inertia matrix of the link
+         *  @return Inertia matrix of the link about the center of mass
+         */
+        const cobalt::math::linear_algebra::Matrix<3,3> &getInertia() const { return inertia_; }
+        /**
+         *  @brief Get the origin transform of the link
+         *  @return Transform of the link's center of mass relative to the link frame
+         */
+        const cobalt::math::geometry::Transform<> &getOrigin() const { return origin_; }  
 };
 
 } //cobalt::kinematics

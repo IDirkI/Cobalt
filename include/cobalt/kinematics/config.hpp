@@ -9,7 +9,7 @@ namespace cobalt::kinematics {
      *  @brief Default alias for indexing
      */
     using id_t  = std::uint16_t;
-
+    
     // ---------------- Constnats ----------------
     /**
      *  @brief Default invalid index value
