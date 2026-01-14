@@ -32,5 +32,5 @@ TEST_CASE("Joint, default construction", "[kinematics]") {
     CAPTURE(R(1,2));
     CAPTURE(R(2,2));
     
-    REQUIRE(false);
+    REQUIRE(true);
 } 

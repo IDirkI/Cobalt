@@ -25,6 +25,8 @@ struct RobotState {
         std::array<cobalt::math::geometry::Transform<>, nE> frameTransforms{};
 
         bool validJ{false};
+        bool validLinks{false};
+        bool validFrames{false};
 }; 
 
 } // cobalt::kinematics

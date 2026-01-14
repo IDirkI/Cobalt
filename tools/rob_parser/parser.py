@@ -446,7 +446,9 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     code += f"      {{}},    // J\n"
     code += f"      {{}},    // linkTransforms\n"
     code += f"      {{}},    // frameTransforms\n"
-    code += f"      false  // validJ\n"
+    code += f"      false,  // validJ\n"
+    code += f"      false,  // validLinks\n"
+    code += f"      false   // validFrames\n"
     code += f"  }};\n\n"
 
     # ========== MAKE ROBOT ==========

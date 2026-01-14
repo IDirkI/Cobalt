@@ -18,7 +18,7 @@
 /*.vcxproj
 
 # Python
-/_pycache_/*
+/tools/*/__pycache__/
 
 # Temp
 *~
