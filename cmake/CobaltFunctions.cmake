@@ -2,8 +2,8 @@
     function(cobalt_generate_robot_headers)
         find_package(Python3 REQUIRED COMPONENTS Interpreter)
         file(GLOB ROBOT_FILES "${CMAKE_SOURCE_DIR}/robots/*.rob")
-        set(ROBOT_OUTPUT_DIR "${CMAKE_BINARY_DIR}/robots")
-        set(ROB_PARSER "${Cobalt_DIR}/../tools/rob_parser.py")
+        set(ROBOT_OUTPUT_DIR "${CMAKE_BINARY_DIR}/generated")
+        set(ROB_PARSER "${Cobalt_DIR}/../tools/parser.py")
 
         file(MAKE_DIRECTORY ${ROBOT_OUTPUT_DIR})
 

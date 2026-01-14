@@ -13,7 +13,7 @@ namespace cobalt::kinematics {
 /**
  *  @brief Robot state holding the current robot configuration
  */
-template<id_t nJ, id_t nL, id_t nE>
+template<id_t nL, id_t nJ, id_t nE>
 struct RobotState {
     public:
         cobalt::math::linear_algebra::Vector<nJ> q{};

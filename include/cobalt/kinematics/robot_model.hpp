@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cassert>
 
 #include "config.hpp"
 #include "joint.hpp"
@@ -9,11 +10,11 @@
 
 namespace cobalt::kinematics {
 
-enum class RobotType {
+enum class RobotType : std::uint8_t {
     Invalid,
     Serial,
     Tree,
-    Parallel
+    Parallel,
 };
 
 // --------------------------------------
@@ -33,16 +34,22 @@ struct RobotModel {
         std::array<FrameAttachment, nE> frames_{};
 
         // ---------------- Private Helpers ----------------
+        enum class VisitColor : uint8_t { 
+            White, 
+            Grey, 
+            Black 
+        };
+
         struct Adjacency {
-            std::array<id_t, nJ> head{};
-            std::array<id_t, nJ> parent{};
+            std::array<id_t, nL> head{};
+            std::array<id_t, nJ> next{};
             std::array<id_t, nJ> child{};
-            std::array<id_t, nJ> childCount{};
+            std::array<id_t, nL> childCount{};
             id_t edgeCount{0};
 
             void init() {
                 head.fill(invalidID_);
-                parent.fill(invalidID_);
+                next.fill(invalidID_);
                 child.fill(invalidID_);
                 childCount.fill(0);
                 edgeCount = 0;
@@ -57,7 +64,7 @@ struct RobotModel {
             }
         };
 
-        void validate(std::array<VisitColor, nL> color) {
+        void validate(std::array<VisitColor, nL> &color) {
             // Check ID limits
             for(const Joint &j: joints_) {
                 assert((j.getParentId() < nL) && "[ROBOT MODEL Error] : Joint has invalid parent link ID.");
@@ -70,7 +77,7 @@ struct RobotModel {
             }
         }
 
-        RobotType decideType(Adjacency &adj, std::array<VisitColor, nL> color, id_t &rootCount, bool &hasCycle) const {
+        RobotType decideType(Adjacency &adj, std::array<VisitColor, nL> &color, id_t &rootCount, bool &hasCycle) const {
             // Decide type
             if(hasCycle) { 
                 return RobotType::Parallel;
@@ -89,13 +96,7 @@ struct RobotModel {
             return RobotType::Serial;
         }
 
-        void dfs(Adjacency &adj, id_t &rootCount, bool &hasCycle) {
-            enum class VisitColor : uint8_t {
-                White,
-                Grey,
-                Black
-            };
-            
+        void dfs(Adjacency &adj, std::array<VisitColor, nL> &color, id_t &rootCount, bool &hasCycle) {            
             adj.init();
 
             std::array<uint8_t, nL> inDegree{};
@@ -109,7 +110,7 @@ struct RobotModel {
             // Count roots
             rootCount = 0;
             for(id_t i = 0; i < nL; i++) {
-                if(inDegree[i] == 0) rootCount++;
+                if((inDegree[i] == 0) && adj.childCount[i] > 0) rootCount++;
             }
 
             // Check cycles
@@ -119,11 +120,12 @@ struct RobotModel {
             for(id_t i = 0; i < nL; i++) {
                 if(color[i] == VisitColor::White) { // DFS
                     std::array<id_t, nL> stack;
-                    id_t stackSize = 0;
-                    stack[stackSize++] = i;
+                    id_t size = 0;
+                    stack[size++] = i;
 
-                    while(stackSize > 0) {
-                        id_t node = stack[--stackSize];
+                    while(size > 0) {
+                        size--;
+                        id_t node = stack[size];
 
                         if(color[node] == VisitColor::White) {
                             color[node] = VisitColor::Grey;
@@ -131,7 +133,7 @@ struct RobotModel {
                             for(id_t edge = adj.head[node]; edge != invalidID_; edge = adj.next[edge]) {
                                 id_t child = adj.child[edge];
                                 if(color[child] == VisitColor::White) {
-                                    stack[stackSize++] = child;
+                                    stack[size++] = child;
                                 }
                                 else if(color[child] == VisitColor::Grey) {
                                     hasCycle = true;
@@ -175,7 +177,7 @@ struct RobotModel {
                 dfs(adj, color, rootCount, hasCycle);
 
                 validate(color);
-                type_ = decideType(adj, rootCount, hasCycle);
+                type_ = decideType(adj, color, rootCount, hasCycle);
 
                 assert((type_ != RobotType::Invalid) && "[ROBOT MODEL Error] : Robot model topology is invalid.");
             }

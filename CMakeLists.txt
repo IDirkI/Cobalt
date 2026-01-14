@@ -28,22 +28,22 @@ endif()
     # ----- ROB -----
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
         "${CMAKE_SOURCE_DIR}/robots"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/kinematics/robots"
+        "${CMAKE_CURRENT_SOURCE_DIR}/robots"
     )
 
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
     file(GLOB LOCAL_ROBOTS "${CMAKE_SOURCE_DIR}/robots/*.rob")
-    file(GLOB COBALT_ROBOTS "${CMAKE_CURRENT_SOURCE_DIR}/tools/kinematics/robots/*.rob")
+    file(GLOB COBALT_ROBOTS "${CMAKE_CURRENT_SOURCE_DIR}/robots/*.rob")
     set(ROBOT_FILES  ${LOCAL_ROBOTS} ${COBALT_ROBOTS})
 
     if(PROJECT_NAME STREQUAL "Cobalt") # Building directly
-        set(ROBOT_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/cobalt/kinematics/robots")
+        set(ROBOT_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/generated")
     else()                             # Building directly
-        set(ROBOT_OUTPUT_DIR "${CMAKE_BINARY_DIR}/robots")
+        set(ROBOT_OUTPUT_DIR "${CMAKE_BINARY_DIR}/generated")
     endif()
 
-    set(ROB_PARSER "${CMAKE_SOURCE_DIR}/tools/kinematics/rob_parser.py")
+    set(ROB_PARSER "${CMAKE_SOURCE_DIR}/tools/rob_parser/parser.py")
     if(NOT EXISTS "${ROB_PARSER}")
         message(FATAL_ERROR "rob_parser.py not found at ${ROB_PARSER}")
     endif()
@@ -76,7 +76,7 @@ target_sources(cobalt PRIVATE ${COBALT_SOURCES})
 target_include_directories(cobalt 
     PUBLIC 
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-        "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/robots>"
+        "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/generated>"
         "$<INSTALL_INTERFACE:include>"
 )
 target_compile_features(cobalt PUBLIC cxx_std_17)
@@ -84,19 +84,6 @@ target_compile_features(cobalt PUBLIC cxx_std_17)
 add_dependencies(cobalt 
     generate_robots # .rob files
 )
-
-## ===== TESTS =====
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/Catch2/CMakeLists.txt")
-    add_subdirectory(extern/Catch2)
-
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt")
-        add_subdirectory(tests)
-    else()
-        message(WARNING "Tests are found but no CMake file available.")
-    endif()
-else()
-    message(STATUS "Compiling without tests")
-endif()
 
 ## ===== INSTALL =====
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -117,7 +104,7 @@ install(TARGETS cobalt
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/robots/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cobalt/kinematics/robots
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/generated
     FILES_MATCHING PATTERN "*.hpp"
 )
 
@@ -146,10 +133,23 @@ install(FILES
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Cobalt"
 )
 
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/tools/kinematics/rob_parser.py"
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/tools/rob_parser/parser.py"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tools"
 )
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CobaltFunctions.cmake"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Cobalt"
 )
+
+## ===== TESTS =====
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/Catch2/CMakeLists.txt")
+    add_subdirectory(extern/Catch2)
+
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt")
+        add_subdirectory(tests)
+    else()
+        message(WARNING "Tests are found but no CMake file available.")
+    endif()
+else()
+    message(STATUS "Compiling without tests")
+endif()

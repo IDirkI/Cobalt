@@ -1,18 +1,18 @@
 #
-# n.R-Robot arm is used in the test for the IK Plotting
+# Test robot file
 #
 
-> robot_arm
+> test_robot
 
 \link base
 \link l1 {
-    .length = 1.0
+    .mass = 1.0
 }
 \link l2 {
-    .length = 1.0
+    .mass = 1.0
 }
 \link l3 {
-    .length = 1.0
+    .mass = 1.0
 }
 
 \joint revolute {
@@ -37,4 +37,8 @@
     .axis = [0, 0, 1]
     .init = 0
     .home = 0
+}
+
+\frame ee {
+    .link = l3
 }

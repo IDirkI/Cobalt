@@ -1,3 +1,4 @@
+from ast import Import
 import os
 import sys
 import subprocess
@@ -9,8 +10,8 @@ Import("env")
 # ===== Project Root =====
 project_dir = Path(env["PROJECT_DIR"]).resolve()
 cobalt_root = os.path.join(project_dir, "lib", "Cobalt")
-kinematics_path = os.path.join(cobalt_root, "tools", "kinematics")
-parser_path = os.path.join(kinematics_path, "rob_parser.py")
+kinematics_path = os.path.join(cobalt_root, "tools", "rob_parser")
+parser_path = os.path.join(kinematics_path, "parser.py")
 
 sys.path.insert(0, kinematics_path)
 

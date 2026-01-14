@@ -16,7 +16,7 @@ template<id_t nL, id_t nJ, id_t nE>
 struct Robot {
     private:
         const RobotModel<nL, nJ, nE> &model_;
-        RobotState<nJ, nL, nE> &state_;
+        RobotState<nL, nJ, nE> &state_;
 
     public:
         // ---------------- Constructors ----------------
@@ -27,7 +27,7 @@ struct Robot {
          *  @note Wrapper stores reference to both model and state
          */
         explicit Robot(RobotModel<nL, nJ, nE> &model,
-                       RobotState<nJ, nL, nE> &state)
+                       RobotState<nL, nJ, nE> &state)
             : model_(model), state_(state) {}
 
         // ---------------- Accessors ----------------
@@ -35,7 +35,7 @@ struct Robot {
          * @brief Access to reference to the robot state
          * @return Reference to the robot state
          */
-        constexpr RobotState<nJ, nL, nE> &state() { return state_; }
+        constexpr RobotState<nL, nJ, nE> &state() { return state_; }
 
         /**
          * @brief Const access to reference to the robot model
@@ -46,7 +46,7 @@ struct Robot {
          * @brief Const access to reference to the robot state
          * @return Const reference to the robot state
          */
-        const RobotState<nJ, nL, nE> &state() const { return state_; }
+        const RobotState<nL, nJ, nE> &state() const { return state_; }
 };
 
 }  // cobalt::kinematics

@@ -41,7 +41,8 @@ add_executable(cobalt_tests
 
 # Include paths
 target_include_directories(cobalt_tests PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include      # Cobalt Headers
+    ${CMAKE_SOURCE_DIR}/include      # Cobalt Headers
+    ${CMAKE_SOURCE_DIR}/generated    # Generated Robots
 )
 
 # Link Libraries
