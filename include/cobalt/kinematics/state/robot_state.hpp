@@ -1,6 +1,9 @@
 #pragma once
 
-#include "config.hpp"
+#include <array>
+
+#include "cobalt/kinematics/config.hpp"
+
 #include "cobalt/math/linear_algebra/vector/vector.hpp"
 #include "cobalt/math/linear_algebra/matrix/matrix.hpp"
 #include "cobalt/math/geometry/transform/transform.hpp"

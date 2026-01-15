@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "config.hpp"
+#include "cobalt/kinematics/config.hpp"
 
 #include "cobalt/math/config.hpp"
 #include "cobalt/math/linear_algebra/matrix/matrix.hpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "cobalt/kinematics/config.hpp"
 
 #include "cobalt/math/linear_algebra/vector/vector.hpp"
 #include "cobalt/math/linear_algebra/vector/vector_util.hpp"
@@ -8,12 +8,18 @@
 
 namespace cobalt::kinematics {
 
-enum class JointType {
+/**
+ *  @brief Type of a joint in a robot. (fixed, revolute, prismatic, etc.)
+ */
+enum class JointType : uint8_t {
     Fixed,
     Revolute,
     Prismatic
 };
 
+/**
+ *  @brief Wrapper for representing the limits and limitedness of a joint
+ */
 struct JointLimits {
     float min = 0.0f;
     float max = 0.0f;

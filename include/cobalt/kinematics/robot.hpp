@@ -1,8 +1,8 @@
 #pragma once
 
 #include "config.hpp"
-#include "robot_model.hpp"
-#include "robot_state.hpp"
+#include "model/robot_model.hpp"
+#include "state/robot_state.hpp"
 
 namespace cobalt::kinematics {
 

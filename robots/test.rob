@@ -14,6 +14,9 @@
 \link l3 {
     .mass = 1.0
 }
+\link l4 {
+    .mass = 1.0
+}
 
 \joint revolute {
     .links = [base, l1]
@@ -33,6 +36,14 @@
 
 \joint revolute {
     .links = [l2, l3]
+    .limits = [-pi, pi]
+    .axis = [0, 0, 1]
+    .init = 0
+    .home = 0
+}
+
+\joint revolute {
+    .links = [l1, l4]
     .limits = [-pi, pi]
     .axis = [0, 0, 1]
     .init = 0

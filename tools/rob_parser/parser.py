@@ -379,11 +379,11 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     code += "#include \"cobalt/math/linear_algebra/matrix/matrix.hpp\"\n"
     code += "#include \"cobalt/math/geometry/transform/transform.hpp\"\n\n"
 
-    code += "#include \"cobalt/kinematics/joint.hpp\"\n"
-    code += "#include \"cobalt/kinematics/link.hpp\"\n"
-    code += "#include \"cobalt/kinematics/frame_attachment.hpp\"\n"
-    code += "#include \"cobalt/kinematics/robot_model.hpp\"\n"
-    code += "#include \"cobalt/kinematics/robot_state.hpp\"\n"
+    code += "#include \"cobalt/kinematics/core/joint.hpp\"\n"
+    code += "#include \"cobalt/kinematics/core/link.hpp\"\n"
+    code += "#include \"cobalt/kinematics/core/frame_attachment.hpp\"\n"
+    code += "#include \"cobalt/kinematics/model/robot_model.hpp\"\n"
+    code += "#include \"cobalt/kinematics/state/robot_state.hpp\"\n"
     code += "#include \"cobalt/kinematics/robot.hpp\"\n\n"
     
     code += f"namespace cobalt::kinematics::robot {{\n\n"
@@ -441,8 +441,8 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     initial_velocities = ", ".join(["0.0"]*J)
 
     code += f"  inline RobotState<{L}, {J}, {F}> {name}_state{{\n"
-    code += f"      cobalt::math::linear_algebra::Vector<3>({initial_vals}),  // q \n"
-    code += f"      cobalt::math::linear_algebra::Vector<3>({initial_velocities}),  // dq\n"
+    code += f"      cobalt::math::linear_algebra::Vector<{J}>({initial_vals}),  // q \n"
+    code += f"      cobalt::math::linear_algebra::Vector<{J}>({initial_velocities}),  // dq\n"
     code += f"      {{}},    // J\n"
     code += f"      {{}},    // linkTransforms\n"
     code += f"      {{}},    // frameTransforms\n"

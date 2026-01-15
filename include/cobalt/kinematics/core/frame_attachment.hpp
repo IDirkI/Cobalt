@@ -2,7 +2,8 @@
 
 #include <string>
 
-#include "config.hpp"
+#include "cobalt/kinematics/config.hpp"
+
 #include "cobalt/math/geometry/transform/transform.hpp"
 
 namespace cobalt::kinematics {

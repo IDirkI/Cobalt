@@ -1,15 +1,19 @@
 #pragma once
 
 #include <string>
+#include <array>
 #include <cassert>
 
-#include "config.hpp"
-#include "joint.hpp"
-#include "link.hpp"
-#include "frame_attachment.hpp"
+#include "cobalt/kinematics/config.hpp"
+#include "cobalt/kinematics/core/link.hpp"
+#include "cobalt/kinematics/core/joint.hpp"
+#include "cobalt/kinematics/core/frame_attachment.hpp"
 
 namespace cobalt::kinematics {
 
+/**
+ *  @brief Type of a robot based on its structure
+ */
 enum class RobotType : std::uint8_t {
     Invalid,
     Serial,

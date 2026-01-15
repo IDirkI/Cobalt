@@ -5,7 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
-#include "cobalt/kinematics/link.hpp"
+#include "cobalt/kinematics/core/link.hpp"
 
 using cobalt::kinematics::Link;
 
