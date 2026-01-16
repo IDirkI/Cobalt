@@ -10,3 +10,5 @@
 #include "core/frame_attachment.hpp"        // ---- Tools/Frames attached to links
 
 #include "solvers/forward_kinematics.hpp"   // Forward Kinematics solver for general robots
+
+#include "util/robot_logger.hpp"    // RobotState CVS file generator

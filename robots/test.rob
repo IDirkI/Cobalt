@@ -7,49 +7,66 @@
 \link base
 \link l1 {
     .mass = 1.0
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
 }
 \link l2 {
     .mass = 1.0
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
 }
 \link l3 {
     .mass = 1.0
-}
-\link l4 {
-    .mass = 1.0
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
 }
 
 \joint revolute {
     .links = [base, l1]
     .limits = [-pi, pi]
     .axis = [0, 0, 1]
-    .init = 0
+    .origin = {
+        .xyz = [0, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = pi/6
     .home = 0
 }
 
 \joint revolute {
     .links = [l1, l2]
     .limits = [-pi, pi]
-    .axis = [0, 0, 1]
-    .init = 0
+    .axis = [0, 1, 0]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = -pi/4
     .home = 0
 }
 
-\joint revolute {
+\joint prismatic {
     .links = [l2, l3]
     .limits = [-pi, pi]
-    .axis = [0, 0, 1]
-    .init = 0
-    .home = 0
-}
-
-\joint revolute {
-    .links = [l1, l4]
-    .limits = [-pi, pi]
-    .axis = [0, 0, 1]
-    .init = 0
+    .axis = [1, 0, 0]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = 0.8
     .home = 0
 }
 
 \frame ee {
     .link = l3
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
 }

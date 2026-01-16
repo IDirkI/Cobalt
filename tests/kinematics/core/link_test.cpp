@@ -11,5 +11,6 @@ using cobalt::kinematics::Link;
 
 TEST_CASE("Link, default construction", "[kinematics]") {
     Link link = Link();
+    
     REQUIRE(true);
 } 

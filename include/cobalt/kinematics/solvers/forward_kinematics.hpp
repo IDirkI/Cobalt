@@ -11,6 +11,7 @@
 
 #include "cobalt/math/linear_algebra/vector/vector.hpp"
 #include "cobalt/math/geometry/transform/transform.hpp"
+#include "cobalt/math/geometry/transform/transform_ops.hpp"
 
 namespace cobalt::kinematics::solvers {
 
@@ -33,7 +34,7 @@ struct FKSolution {
  */
 template<id_t nL, id_t nJ, id_t nE>
 class ForwardKinematics {
-    public:
+    private:
         struct JointFKData {
             id_t idParent;
             id_t idChild;
@@ -118,8 +119,79 @@ class ForwardKinematics {
         explicit ForwardKinematics(const RobotModel<nL, nJ, nE> &model) : model_(model) { fillJointData(model_); }
 
         // ---------------- Member Functions ----------------
-        void solve(RobotState<nL, nJ, nE> &state) const;
-        FKSolution<nL, nE> solve(cobalt::math::linear_algebra::Vector<nJ> &q) const;
+        /**
+         *  @brief Given a current robot state solve the FK for the known RobotModel to solve for link & frame transformations
+         *  @param state Current RobotState of a robot to solve FK for
+         */
+        void solve(RobotState<nL, nJ, nE> &state) const {
+            state.validLinks = false;
+            for(id_t j : jointOrder_) { // Link Transforms
+                const JointFKData &jd = jointData_[j];
+
+                const cobalt::math::geometry::Transform<> T_parent = state.linkTransforms[jd.idParent];
+                const cobalt::math::geometry::Transform<> T_link = model_.getLinks()[jd.idChild].getOrigin();
+                cobalt::math::geometry::Transform<> &T_child = state.linkTransforms[jd.idChild];
+
+                cobalt::math::geometry::Transform<> T_joint = jd.origin;
+                cobalt::math::geometry::Transform<> T_motion = cobalt::math::geometry::Transform<>::eye();
+
+                switch(jd.type) {
+                    case (JointType::Prismatic): {
+                        T_motion.translate(
+                            jd.axis * state.q[j]
+                        );
+                        break;
+                    }
+                    case (JointType::Revolute): {
+                        T_motion.rotate(
+                            cobalt::math::geometry::Quaternion<>::fromAxisAngle(
+                                jd.axis, state.q[j]
+                            )
+                        );
+                        break;
+                    }
+                    case (JointType::Fixed): {
+                        break;
+                    }
+                    default: {  // Default: Fixed
+                        break;
+                    }
+                }
+
+                T_child = T_parent * T_joint * T_motion * T_link;
+            }
+            state.validLinks = true;
+
+            state.validFrames = false;
+            for(const FrameAttachment &f : model_.getFrames()) { // Frame Transforms
+                const cobalt::math::geometry::Transform<> T_parent = state.linkTransforms[f.getLinkId()];
+                cobalt::math::geometry::Transform<> &T_frame = state.frameTransforms[f.getId()];
+
+                cobalt::math::geometry::Transform<> T_origin = f.getOrigin();
+
+                T_frame = T_parent * T_origin;
+            }
+            state.validFrames = true;
+        }
+
+        /**
+         *  @brief Given a current robot configuration solve the FK for the known RobotModel to solve for link & frame transformations
+         *  @param q Current configuration vector for a robot without full RobotState bloat
+         *  @return Struct containing link and frame transformation results as well as a valid solution falg
+         */
+        FKSolution<nL, nE> solve(cobalt::math::linear_algebra::Vector<nJ> &q) const {
+            FKSolution<nL, nE> output;
+
+            RobotState<nL, nJ, nE> tmp;
+            tmp.q() = q;
+            solve(tmp);
+
+            output.linkTransforms = tmp.linkTransforms;
+            output.frameTransforms = tmp.frameTransforms;
+            output.valid = (tmp.validLinks && tmp.validFrames);
+
+            return output;
+        }
 };
 
 }; // cobalt::kinematics::solver

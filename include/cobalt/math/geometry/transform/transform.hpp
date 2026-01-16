@@ -136,7 +136,7 @@ struct Transform {
         constexpr Transform<T> &rotateX(T angle) {
             Transform<T> R = Transform<T>::fromRotationX(angle);
             t_ = R.apply(t_);
-            q_ = R.rotation() * q_;
+            q_ *= R.rotation();
             return *this;
         }
 
@@ -148,7 +148,7 @@ struct Transform {
         constexpr Transform<T> &rotateY(T angle) {
             Transform<T> R = Transform<T>::fromRotationY(angle);
             t_ = R.apply(t_);
-            q_ = R.rotation() * q_;
+            q_ *= R.rotation();
             return *this;
         }
 
@@ -160,7 +160,7 @@ struct Transform {
         constexpr Transform<T> &rotateZ(T angle) {
             Transform<T> R = Transform<T>::fromRotationZ(angle);
             t_ = R.apply(t_);
-            q_ = R.rotation() * q_;
+            q_ *= R.rotation();
             return *this;
         }
 
@@ -170,6 +170,7 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotate(cobalt::math::geometry::Quaternion<T> rotation) {
+            t_ = cobalt::math::geometry::rotate(rotation, t_);
             q_ *= rotation;
             return *this;
         } 
@@ -222,11 +223,11 @@ struct Transform {
          *  @brief In-place multiplication of two transformations (concatenation)
          *  @param rhs Right-hand side transformation
          *  @return Reference to this transformation after multiplication
-         *  @note The resulting transformation is equivalent to first applying `rhs`, then `this`
+         *  @note The resulting transformation is equivalent to first applying `this`, then `rhs`
          */
         Transform<T> &operator*=(const Transform<T> &rhs) {
-            t_ = rhs.apply(t_);
-            q_ = rhs.rotation() * q_;
+            t_ += cobalt::math::geometry::rotate(q_, rhs.t_);
+            q_ *= rhs.q_;
 
             return *this;
         }

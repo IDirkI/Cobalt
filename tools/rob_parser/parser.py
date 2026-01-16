@@ -45,6 +45,7 @@ class Joint:
 
 @dataclass
 class Frame:
+    id: int                     # ID of the frame
     link_id: int                # ID of the link the frame is attached to
     name: str                   # Name of the frame
     origin_xyz: List[float]     # Origin in x-y-z coordinates
@@ -52,9 +53,11 @@ class Frame:
 
 @dataclass
 class PartBlock:
-    type: str
-    subtype: str
-    content: List[str]
+    def __init__(self, type: str, subtype: str):
+        self.type = type
+        self.subtype = subtype
+        self.fields = {}
+        self.subblocks = {}
 
 ## ========== MATH ==========
 def safe_eval(expr: str) -> float:
@@ -83,42 +86,63 @@ def safe_eval(expr: str) -> float:
     return _eval(node)
 
 ## ========== HELPER FUNCTIONS/PARSERS ==========
-def collect_blocks(lines : List[str]) -> List[PartBlock]:
+def collect_blocks(lines):
     blocks = []
-    working_block = None
-    in_block = False
+    current = None
+    brace_depth = 0
+    subblock_stack = []
 
-    for line in lines:
-        line = line.strip().lower()
-
+    for raw in lines:
+        line = raw.strip()
         if not line or line.startswith("#"):
             continue
 
-        if line.startswith("\\"):   # Block Start
-            parts = line.strip().lstrip("\\").split()
+        lower = line.lower()
 
+        # -------- Block start --------
+        if lower.startswith("\\"):
+            parts = lower.lstrip("\\").split()
             if len(parts) < 2:
                 raise ValueError("[ ERROR ] | Invalid block declaration")
 
-            type = parts[0]
-            subtype = parts[1]
+            block_type, subtype = parts[0], parts[1]
 
-            if line.endswith("{"):  # Skip for the 'base' link case
-                working_block = PartBlock(type, subtype, [])
-                in_block = True
+            if lower.endswith("{"):
+                current = PartBlock(block_type, subtype)
+                brace_depth = 1
+                subblock_stack.clear()
             else:
-                blocks.append(PartBlock(type, subtype, []))
-                
+                blocks.append(PartBlock(block_type, subtype))
             continue
-            
-        if in_block:
-            if line.startswith("}"): # Block End
-                blocks.append(working_block)
-                working_block = None
-                in_block = False
+
+        if current is None:
+            continue
+
+        # -------- Inside block --------
+        # Start of named subblock
+        if "=" in line and line.endswith("{"):
+            name = line.split("=", 1)[0].strip().lstrip(".")
+            current.subblocks[name] = []
+            subblock_stack.append(name)
+            brace_depth += 1
+            continue
+
+        # Closing brace
+        if line == "}":
+            brace_depth -= 1
+            if subblock_stack:
+                subblock_stack.pop()
             else:
-                if working_block is not None:   # Should always pass
-                    working_block.content.append(line)
+                blocks.append(current)
+                current = None
+            continue
+
+        # Regular field or subblock content
+        if subblock_stack:
+            current.subblocks[subblock_stack[-1]].append(lower)
+        else:
+            k, v = line.split("=", 1)
+            current.fields[k.strip().lstrip(".")] = v.strip()
 
     return blocks
 
@@ -238,18 +262,12 @@ def parse_rob_file(file_path: str):
             continue
 
         name = block.subtype
-        fields = {}
-
-        for line in block.content:
-            k, v = line.split("=", 1)
-            fields[k.strip().lstrip(".")] = v.strip()
         
-        mass = safe_eval(fields.get("mass", LINK_DEFAULT_MASS))
-        inertia = parse_inertia(fields.get("inertia", LINK_DEFAULT_INERTIA))
+        mass = safe_eval(block.fields.get("mass", LINK_DEFAULT_MASS))
+        inertia = parse_inertia(block.fields.get("inertia", LINK_DEFAULT_INERTIA))
 
-        com_block = extract_named_block(block.content, "com")
-        if com_block:
-            com_xyz, com_rpy = parse_transform_block(com_block)
+        if "com" in block.subblocks:
+            com_xyz, com_rpy = parse_transform_block(block.subblocks["com"])
         else:
             com_xyz = LINK_DEFAULT_COM_XYZ
             com_rpy = LINK_DEFAULT_COM_RPY
@@ -279,25 +297,19 @@ def parse_rob_file(file_path: str):
             continue
 
         joint_type = parse_joint_type(block.subtype)
-        fields = {}
-
-        for line in block.content:
-            k, v = line.split("=", 1)
-            fields[k.strip().lstrip(".")] = v.strip()
         
-        parent_name, child_name = parse_parent_child(fields["links"])
+        parent_name, child_name = parse_parent_child(block.fields["links"])
         parent_id = name_to_id[parent_name]
         child_id = name_to_id[child_name]
         joint_id = len(joints)
 
-        axis = parse_bracket(fields.get("axis", JOINT_DEFAULT_AXIS))
-        limits = parse_bracket(fields.get("limits", JOINT_DEFAULT_LIMITS))
-        home = safe_eval(fields.get("home", JOINT_DEFAULT_HOME))
-        initial = safe_eval(fields.get("init", JOINT_DEFAULT_INIT))
+        axis = parse_bracket(block.fields.get("axis", JOINT_DEFAULT_AXIS))
+        limits = parse_bracket(block.fields.get("limits", JOINT_DEFAULT_LIMITS))
+        home = safe_eval(block.fields.get("home", JOINT_DEFAULT_HOME))
+        initial = safe_eval(block.fields.get("init", JOINT_DEFAULT_INIT))
         
-        origin_block = extract_named_block(block.content, "origin")
-        if origin_block:
-            origin_xyz, origin_rpy = parse_transform_block(origin_block)
+        if "origin" in block.subblocks:
+            origin_xyz, origin_rpy = parse_transform_block(block.subblocks["origin"])
         else:
             origin_xyz = JOINT_DEFAULT_ORIGIN_XYZ
             origin_rpy = JOINT_DEFAULT_ORIGIN_RPY
@@ -334,25 +346,20 @@ def parse_rob_file(file_path: str):
         if block.type != "frame":
             continue
     
-        fields = {}
-
-        for line in block.content:
-            k, v = line.split("=", 1)
-            fields[k.strip().lstrip(".")] = v.strip()
-
+        frame_id = len(frames)
         frame_name = block.subtype
-        frame_link_name = fields["link"]
+        frame_link_name = block.fields["link"]
         frame_link_id = name_to_id[frame_link_name]
         
-        frame_block = extract_named_block(block.content, "origin")
-        if frame_block:
-            frame_xyz, frame_rpy = parse_transform_block(frame_block)
+        if "origin" in block.subblocks:
+            frame_xyz, frame_rpy = parse_transform_block(block.subblocks["origin"])
         else:
             frame_xyz = FRAME_DEFAULT_ORIGIN_XYZ
             frame_rpy = FRAME_DEFAULT_ORIGIN_RPY
 
         frames.append(
             Frame(
+                id=frame_id,
                 link_id=frame_link_id,
                 name=frame_name,
                 origin_xyz=frame_xyz,
@@ -427,7 +434,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
         code += f"// ===== Frames =====\n"
         code += f"  const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
         for frame in frames:
-            code += f"      FrameAttachment({frame.link_id}, \"{frame.name}\",\n"
+            code += f"      FrameAttachment({frame.id}, {frame.link_id}, \"{frame.name}\",\n"
             code += f"            cobalt::math::geometry::Transform<>::eye().rotateX({frame.origin_rpy[0]}).rotateY({frame.origin_rpy[1]}).rotateZ({frame.origin_rpy[2]}).translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))),\n"
         code += f"  }};\n\n"
 

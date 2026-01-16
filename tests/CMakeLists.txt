@@ -28,12 +28,17 @@ add_executable(cobalt_tests
         #./math/geometry/transform/transform_ops_test.cpp
         #./math/geometry/transform/transform_util_test.cpp
 
+    ### ===== Kinematics =====
+        ## ----- Core -----
+        ./kinematics/core/link_test.cpp
+        ./kinematics/core/joint_test.cpp
+        ./kinematics/core/frame_test.cpp
+
+        ## ----- Solvers -----
+        ./kinematics/solvers/fk_test.cpp
+    
     ### ===== Control =====
     #./control/controller/pid_test.cpp
-
-    ### ===== Kinematics =====
-    ./kinematics/link_test.cpp
-    ./kinematics/joint_test.cpp
 
     ### ===== Utility =====
     #./util/meta_test.cpp
