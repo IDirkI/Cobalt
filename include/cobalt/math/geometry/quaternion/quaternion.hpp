@@ -116,22 +116,22 @@ struct Quaternion {
                     x = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(0,0));
 
                     w = static_cast<T>(0.25)*(R(2, 1) - R(1, 2))/x;
-                    y = static_cast<T>(0.25)*(R(0, 1) - R(1, 0))/x;
-                    z = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/x;
+                    y = static_cast<T>(0.25)*(R(0, 1) + R(1, 0))/x;
+                    z = static_cast<T>(0.25)*(R(0, 2) + R(2, 0))/x;
                 }
                 else if(std::abs(max - R(1,1)) < epsilon_<T>) {
                     y = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(1,1));
 
                     w = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/y;
-                    x = static_cast<T>(0.25)*(R(0, 1) - R(1, 0))/y;
-                    z = static_cast<T>(0.25)*(R(1, 2) - R(2, 1))/y;
+                    x = static_cast<T>(0.25)*(R(0, 1) + R(1, 0))/y;
+                    z = static_cast<T>(0.25)*(R(1, 2) + R(2, 1))/y;
                 }
                 else if(std::abs(max - R(2,2)) < epsilon_<T>) {
                     z = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(2,2));
 
                     w = static_cast<T>(0.25)*(R(1, 0) - R(0, 1))/z;
-                    x = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/z;
-                    y = static_cast<T>(0.25)*(R(1, 2) - R(2, 1))/z;
+                    x = static_cast<T>(0.25)*(R(0, 2) + R(2, 0))/z;
+                    y = static_cast<T>(0.25)*(R(1, 2) + R(2, 1))/z;
                 }
             }
             

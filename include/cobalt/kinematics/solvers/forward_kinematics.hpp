@@ -137,8 +137,8 @@ class ForwardKinematics {
 
                 switch(jd.type) {
                     case (JointType::Prismatic): {
-                        T_motion.translate(
-                            jd.axis * state.q[j]
+                        T_motion.translate( // Issue with transformation
+                            cobalt::math::geometry::rotate(inv(T_joint.rotation()), jd.axis) * state.q[j]
                         );
                         break;
                     }

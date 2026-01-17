@@ -412,7 +412,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
             code += f"      cobalt::math::linear_algebra::Matrix<3,3>({{{{ {link.inertia[0][0]}, {link.inertia[1][0]}, {link.inertia[2][0]} }},\n"
             code += f"                                                 {{ {link.inertia[0][1]}, {link.inertia[1][1]}, {link.inertia[2][1]} }},\n"
             code += f"                                                 {{ {link.inertia[0][2]}, {link.inertia[1][2]}, {link.inertia[2][2]} }}}}),\n"
-            code += f"      cobalt::math::geometry::Transform<>::eye().rotateX({link.com_rpy[0]}).rotateY({link.com_rpy[1]}).rotateZ({link.com_rpy[2]}).translate(cobalt::math::linear_algebra::Vector<3>({link.com_xyz[0]}, {link.com_xyz[1]}, {link.com_xyz[2]}))),\n"
+            code += f"      cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({link.com_xyz[0]}, {link.com_xyz[1]}, {link.com_xyz[2]})).rotateZ({link.com_rpy[2]}).rotateY({link.com_rpy[1]}).rotateX({link.com_rpy[0]})),\n"
         code += f"  }};\n\n"
 
     # ========== Joints ==========
@@ -423,7 +423,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
             limitsEnabled = (joint.type != "fixed")
 
             code += f"      Joint({joint.id}, {joint.parent_id}, {joint.child_id}, JointType::{joint.type.capitalize()},\n"
-            code += f"            cobalt::math::geometry::Transform<>::eye().rotateX({joint.origin_rpy[0]}).rotateY({joint.origin_rpy[1]}).rotateZ({joint.origin_rpy[2]}).translate(cobalt::math::linear_algebra::Vector<3>({joint.origin_xyz[0]}, {joint.origin_xyz[1]}, {joint.origin_xyz[2]})),\n"
+            code += f"            cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({joint.origin_xyz[0]}, {joint.origin_xyz[1]}, {joint.origin_xyz[2]})).rotateZ({joint.origin_rpy[2]}).rotateY({joint.origin_rpy[1]}).rotateX({joint.origin_rpy[0]}),\n"
             code += f"            cobalt::math::linear_algebra::Vector<3>({float(joint.axis[0])}, {float(joint.axis[1])}, {float(joint.axis[2])}),\n"
             code += f"            JointLimits{{ {float(joint.limits[0])}, {float(joint.limits[1])}, {str(limitsEnabled).lower()} }},\n"
             code += f"            {float(joint.home)}),\n"
@@ -435,7 +435,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
         code += f"  const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
         for frame in frames:
             code += f"      FrameAttachment({frame.id}, {frame.link_id}, \"{frame.name}\",\n"
-            code += f"            cobalt::math::geometry::Transform<>::eye().rotateX({frame.origin_rpy[0]}).rotateY({frame.origin_rpy[1]}).rotateZ({frame.origin_rpy[2]}).translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))),\n"
+            code += f"            cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]})).rotateZ({frame.origin_rpy[2]}).rotateY({frame.origin_rpy[1]}).rotateX({frame.origin_rpy[0]})),\n"
         code += f"  }};\n\n"
 
     # ========== MAKE MODEL ==========

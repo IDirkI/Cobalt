@@ -134,9 +134,10 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotateX(T angle) {
-            Transform<T> R = Transform<T>::fromRotationX(angle);
-            t_ = R.apply(t_);
-            q_ *= R.rotation();
+            Quaternion<T> Q = Quaternion<T>::fromAxisAngle(
+                cobalt::math::linear_algebra::Vector<3>(1,0,0), angle
+            );
+            q_ *= Q;
             return *this;
         }
 
@@ -146,9 +147,10 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotateY(T angle) {
-            Transform<T> R = Transform<T>::fromRotationY(angle);
-            t_ = R.apply(t_);
-            q_ *= R.rotation();
+            Quaternion<T> Q = Quaternion<T>::fromAxisAngle(
+                cobalt::math::linear_algebra::Vector<3>(0,1,0), angle
+            );
+            q_ *= Q;
             return *this;
         }
 
@@ -158,9 +160,10 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotateZ(T angle) {
-            Transform<T> R = Transform<T>::fromRotationZ(angle);
-            t_ = R.apply(t_);
-            q_ *= R.rotation();
+            Quaternion<T> Q = Quaternion<T>::fromAxisAngle(
+                cobalt::math::linear_algebra::Vector<3>(0,0,1), angle
+            );
+            q_ *= Q;
             return *this;
         }
 
@@ -170,7 +173,6 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotate(cobalt::math::geometry::Quaternion<T> rotation) {
-            t_ = cobalt::math::geometry::rotate(rotation, t_);
             q_ *= rotation;
             return *this;
         } 
@@ -181,7 +183,7 @@ struct Transform {
          *  @return Reference to this transformation after translation for chaining
          */
         constexpr Transform<T> &translate(cobalt::math::linear_algebra::Vector<3, T> translation) {
-            t_ += translation;
+            t_ += cobalt::math::geometry::rotate(q_, translation);
             return *this;
         }
 

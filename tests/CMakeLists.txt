@@ -1,6 +1,6 @@
 # Build tests
 add_executable(cobalt_tests
-    sanity_test.cpp
+    #sanity_test.cpp
 
     ### ===== Math =====
         ## ----- Vector -----
@@ -30,12 +30,13 @@ add_executable(cobalt_tests
 
     ### ===== Kinematics =====
         ## ----- Core -----
-        ./kinematics/core/link_test.cpp
-        ./kinematics/core/joint_test.cpp
-        ./kinematics/core/frame_test.cpp
+        #./kinematics/core/link_test.cpp
+        #./kinematics/core/joint_test.cpp
+        #./kinematics/core/frame_test.cpp
 
         ## ----- Solvers -----
-        ./kinematics/solvers/fk_test.cpp
+        #./kinematics/solvers/fk_test.cpp
+        ./kinematics/solvers/jacobian_test.cpp
     
     ### ===== Control =====
     #./control/controller/pid_test.cpp

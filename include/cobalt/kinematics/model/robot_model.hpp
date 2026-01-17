@@ -22,6 +22,26 @@ enum class RobotType : std::uint8_t {
 };
 
 // --------------------------------------
+//         Kinematic Path   
+// --------------------------------------
+/**
+ *  @brief Traversal order of a path, usually from base -> end effector frame
+ */
+template<id_t nJ>
+struct KinematicPath {
+    public:
+        std::array<id_t, nJ> joints{};
+        id_t length{0};
+
+        bool contains(id_t jointId) {
+            for(id_t i = 0; i < length; i++) {
+                if(jointId == joints[i]) { return true; }
+            }
+            return false;
+        }
+};
+
+// --------------------------------------
 //         Robot Model    
 // --------------------------------------
 /**
@@ -36,6 +56,9 @@ struct RobotModel {
         std::array<Link, nL> links_{};
         std::array<Joint, nJ> joints_{};
         std::array<FrameAttachment, nE> frames_{};
+
+        std::array<KinematicPath<nJ>, nL> linkPaths_{};
+        std::array<KinematicPath<nJ>, nE> framePaths_{};
 
         // ---------------- Private Helpers ----------------
         enum class VisitColor : uint8_t { 
@@ -155,6 +178,47 @@ struct RobotModel {
                 }
             }
         }
+
+        KinematicPath<nJ> generateLinkPath(id_t linkId) {
+            KinematicPath<nJ> path;
+            
+            std::array<id_t, nL> linkToJoint{};
+            linkToJoint.fill(invalidID_);
+
+            for(id_t j = 0; j < nJ; j++) {
+                const Joint &joint = joints_[j];
+                linkToJoint[joint.getChildId()] = j;
+            }
+
+            id_t currLink = linkId;
+            while(currLink != invalidID_) {
+                id_t parentJointId = linkToJoint[currLink];
+
+                if(parentJointId == invalidID_) {
+                    break;
+                }
+                
+                path.joints[path.length++] = parentJointId;
+                currLink = joints_[parentJointId].getParentId();
+            }
+
+            for(id_t i = 0; i < path.length / 2; i++) {
+                std::swap(path.joints[i], path.joints[path.length - 1 - i]);
+            }
+
+            return path;
+        }
+
+        void computeKinematicPaths() {
+            for(id_t i = 0 ; i < nL; i++) { // For links
+                linkPaths_[i] = generateLinkPath(i);
+            }
+
+            for(id_t i = 0 ; i < nL; i++) { // For frames
+                const FrameAttachment &frame = frames_[i];
+                framePaths_[i] = linkPaths_[frame.getLinkId()];
+            }
+        }
            
 
     public:
@@ -182,8 +246,9 @@ struct RobotModel {
 
                 validate(color);
                 type_ = decideType(adj, color, rootCount, hasCycle);
-
                 assert((type_ != RobotType::Invalid) && "[ROBOT MODEL Error] : Robot model topology is invalid.");
+
+                computeKinematicPaths();
             }
 
         // ---------------- Getters ----------------
@@ -192,6 +257,22 @@ struct RobotModel {
          *  @return RobotType enum indicating the type of robot
          */
         constexpr RobotType getType() const { return type_; }
+        /**
+         *  @brief Get the number of defined links in the robot model
+         *  @return Number of links
+         */
+        constexpr id_t getLinkNum() const { return nL; }
+       /**
+         *  @brief Get the number of defined joints in the robot model
+         *  @return Number of joints
+         */
+        constexpr id_t getJointNum() const { return nJ; }
+        /**
+         *  @brief Get the number of defined frames in the robot model
+         *  @return Number of frames/tools
+         */
+        constexpr id_t getFrameNum() const { return nE; }
+        
         
         /**
          *  @brief Get the name of the robot
@@ -213,6 +294,16 @@ struct RobotModel {
          *  @return Array of frames/tools in the robot
          */
         const std::array<FrameAttachment, nE> &getFrames() const { return frames_; }
+        /**
+         *  @brief Get the kinematic paths from base to each links
+         *  @return Array of KinematicPath to each link
+         */
+        const std::array<KinematicPath<nJ>, nL> &getLinkPaths() const { return linkPaths_; }
+        /**
+         *  @brief Get the kinematic paths from base to each frame
+         *  @return Array of KinematicPath to each frame
+         */
+        const std::array<KinematicPath<nJ>, nE> &getFramePaths() const { return framePaths_; }
 };
 
 }  // cobalt::kinematics
