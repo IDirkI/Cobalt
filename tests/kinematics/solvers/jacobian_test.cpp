@@ -6,6 +6,7 @@
 #include <catch2/catch_approx.hpp>
 
 #include "test_robot.hpp"
+#include "cobalt/kinematics/robot.hpp"
 #include "cobalt/kinematics/solvers/forward_kinematics.hpp"
 #include "cobalt/kinematics/solvers/inverse_kinematics/jacobian_builder.hpp"
 #include "cobalt/kinematics/util/robot_logger.hpp"
@@ -15,7 +16,8 @@
 #include "cobalt/math/geometry/quaternion/quaternion.hpp"
 #include "cobalt/math/geometry/quaternion/quaternion_util.hpp"
 
-using cobalt::kinematics::robot::test_robot;
+using cobalt::kinematics::robot::makeTestRobot;
+using cobalt::kinematics::Robot;
 using cobalt::kinematics::solvers::JacobianBuilder;
 using cobalt::kinematics::solvers::ForwardKinematics;
 using cobalt::kinematics::util::logRobotState;
@@ -26,6 +28,7 @@ using cobalt::math::linear_algebra::Matrix;
 using cobalt::math::geometry::Transform;
 
 TEST_CASE("JacobianBuilder, default construction", "[kinematics]") {
+    Robot test_robot = makeTestRobot();
     ForwardKinematics fk = ForwardKinematics(test_robot);
     fk.solve(test_robot.state());
 
@@ -77,5 +80,10 @@ TEST_CASE("JacobianBuilder, default construction", "[kinematics]") {
         printf("|\n");
     }
 
+    REQUIRE(true);
+} 
+
+
+TEST_CASE("JacobianBuilder, test2", "[kinematics]") {
     REQUIRE(true);
 } 

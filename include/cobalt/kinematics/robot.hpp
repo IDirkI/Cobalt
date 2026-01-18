@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "config.hpp"
 #include "model/robot_model.hpp"
 #include "state/robot_state.hpp"
@@ -16,7 +18,7 @@ template<id_t nL, id_t nJ, id_t nE>
 struct Robot {
     private:
         const RobotModel<nL, nJ, nE> &model_;
-        RobotState<nL, nJ, nE> &state_;
+        RobotState<nL, nJ, nE> state_;
 
     public:
         // ---------------- Constructors ----------------
@@ -24,11 +26,17 @@ struct Robot {
          *  @brief Construct a robot from a robot model and robot state
          *  @param model Reference to the robot model
          *  @param state Reference to the robot state
-         *  @note Wrapper stores reference to both model and state
+         *  @note Wrapper stores reference to model and a robot owned state
          */
-        explicit Robot(RobotModel<nL, nJ, nE> &model,
-                       RobotState<nL, nJ, nE> &state)
+        explicit Robot(const RobotModel<nL, nJ, nE> &model, RobotState<nL, nJ, nE> state) noexcept
             : model_(model), state_(state) {}
+
+        /**
+         *  @brief Constructor a robot from a copied robot
+         *  @param robot Robot to copy
+         */
+        Robot(Robot &&robot) noexcept
+            : model_(robot.model_), state_(std::move(robot.state_)) {}
 
         // ---------------- Accessors ----------------
         /**

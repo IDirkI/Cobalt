@@ -214,7 +214,7 @@ struct RobotModel {
                 linkPaths_[i] = generateLinkPath(i);
             }
 
-            for(id_t i = 0 ; i < nL; i++) { // For frames
+            for(id_t i = 0 ; i < nE; i++) { // For frames
                 const FrameAttachment &frame = frames_[i];
                 framePaths_[i] = linkPaths_[frame.getLinkId()];
             }

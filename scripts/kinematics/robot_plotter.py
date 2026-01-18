@@ -234,8 +234,12 @@ def visualize_robot(csv_file):
         p_parent = links[j['parent']]['pos']
         p_child = links[j['child']]['pos']
         p_joint = j['pos']
-        axis = j['axis']
+        axis_world = j['axis']  # Axis is already in world frame from C++
         value = j['value']
+        
+        # Get parent link orientation to rotate joint visuals
+        parent_quat = links[j['parent']]['quat']
+        R_parent = quat_to_rot(parent_quat)
         
         # 1. Parent COM to Joint (dimgrey)
         draw_line(ax, p_parent, p_joint, '-', 'dimgrey', lw=2)
@@ -246,12 +250,12 @@ def visualize_robot(csv_file):
             draw_line(ax, p_joint, p_child, '-', 'dimgrey', lw=2)
             
         elif jtype == 1:  # Revolute - cylinder with red axis
-            if np.linalg.norm(axis) > 1e-8:
-                # Draw cylinder
-                draw_cylinder(ax, p_joint, axis, radius=0.035, length=0.12, color='orange')
+            if np.linalg.norm(axis_world) > 1e-8:
+                # Draw cylinder aligned with world-frame axis
+                draw_cylinder(ax, p_joint, axis_world, radius=0.035, length=0.12, color='orange')
                 
                 # Draw axis line through cylinder (thin red)
-                axis_norm = axis / np.linalg.norm(axis)
+                axis_norm = axis_world / np.linalg.norm(axis_world)
                 axis_length = 0.20
                 p_axis_start = p_joint - axis_norm * axis_length / 2
                 p_axis_end = p_joint + axis_norm * axis_length / 2
@@ -260,12 +264,12 @@ def visualize_robot(csv_file):
             draw_line(ax, p_joint, p_child, '-', 'dimgrey', lw=2)
             
         elif jtype == 2:  # Prismatic - box with blue axis and extension
-            if np.linalg.norm(axis) > 1e-8:
-                # Draw box (dark turquoise)
-                draw_box(ax, p_joint, axis, width=0.05, height=0.05, length=0.10, color='darkturquoise')
+            if np.linalg.norm(axis_world) > 1e-8:
+                # Draw box aligned with world-frame axis
+                draw_box(ax, p_joint, axis_world, width=0.05, height=0.05, length=0.10, color='darkturquoise')
                 
                 # Draw axis line through box (thin blue)
-                axis_norm = axis / np.linalg.norm(axis)
+                axis_norm = axis_world / np.linalg.norm(axis_world)
                 axis_length = 0.18
                 p_axis_start = p_joint - axis_norm * axis_length / 2
                 p_axis_end = p_joint + axis_norm * axis_length / 2

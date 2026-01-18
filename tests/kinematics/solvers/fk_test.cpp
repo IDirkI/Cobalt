@@ -14,7 +14,8 @@
 #include "cobalt/math/geometry/quaternion/quaternion.hpp"
 #include "cobalt/math/geometry/quaternion/quaternion_util.hpp"
 
-using cobalt::kinematics::robot::test_robot;
+using cobalt::kinematics::robot::makeTestRobot;
+using cobalt::kinematics::Robot;
 using cobalt::kinematics::solvers::ForwardKinematics;
 using cobalt::kinematics::util::logRobotState;
 
@@ -23,6 +24,7 @@ using cobalt::math::linear_algebra::Matrix;
 using cobalt::math::geometry::Transform;
 
 TEST_CASE("ForwardKinematics, default construction", "[kinematics]") {
+    Robot test_robot = makeTestRobot();
     ForwardKinematics fk = ForwardKinematics(test_robot);
 
     fk.solve(test_robot.state());
@@ -60,5 +62,9 @@ TEST_CASE("ForwardKinematics, default construction", "[kinematics]") {
         printf("    [  0.000000  0.000000  0.000000 |  1.000000 ]\n\n");
     }
 
+    REQUIRE(true);
+} 
+
+TEST_CASE("ForwardKinematics, test2", "[kinematics]") {
     REQUIRE(true);
 } 
