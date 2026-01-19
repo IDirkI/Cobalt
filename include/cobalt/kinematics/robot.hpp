@@ -6,6 +6,8 @@
 #include "model/robot_model.hpp"
 #include "state/robot_state.hpp"
 
+#include "cobalt/math/linear_algebra/vector/vector.hpp"
+
 namespace cobalt::kinematics {
 
 // --------------------------------------
@@ -35,7 +37,7 @@ struct Robot {
          *  @brief Constructor a robot from a copied robot
          *  @param robot Robot to copy
          */
-        Robot(Robot &&robot) noexcept
+        Robot(const Robot &&robot) noexcept
             : model_(robot.model_), state_(std::move(robot.state_)) {}
 
         // ---------------- Accessors ----------------
@@ -55,6 +57,35 @@ struct Robot {
          * @return Const reference to the robot state
          */
         const RobotState<nL, nJ, nE> &state() const { return state_; }
+
+        // ---------------- Member Functions ----------------
+        /**
+         *  @brief Set the joints of the robot with a configuration vector
+         *  @param q Configuration vector to set the joints to
+         *  @return `true` if none of the joints hit their limit, `false` otherwise
+         *  @note Joint value and limits are always relative to the joints home value
+         *  @warning Values exceeding a joints limit will be clamped 
+         */
+        inline bool setJoints(const cobalt::math::linear_algebra::Vector<nJ> q) {
+            bool withinLimits = true;
+            
+            for(id_t j = 0; j < nJ; j++) {
+                float value = q[j];
+
+                if(value < model_.getJoints()[j].getMinLimit()) { 
+                    value = model_.getJoints()[j].getMinLimit(); 
+                    withinLimits = false;
+                }
+                else if (model_.getJoints()[j].getMaxLimit() < value) { 
+                    value = model_.getJoints()[j].getMaxLimit(); 
+                    withinLimits = false;
+                }
+
+                state_.q[j] = value;
+            }
+
+            return withinLimits;
+        }
 };
 
 }  // cobalt::kinematics

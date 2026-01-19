@@ -26,7 +26,6 @@ using cobalt::math::geometry::Transform;
 TEST_CASE("ForwardKinematics, default construction", "[kinematics]") {
     Robot test_robot = makeTestRobot();
     ForwardKinematics fk = ForwardKinematics(test_robot);
-
     fk.solve(test_robot.state());
 
     logRobotState(test_robot, "test_state");
@@ -62,9 +61,5 @@ TEST_CASE("ForwardKinematics, default construction", "[kinematics]") {
         printf("    [  0.000000  0.000000  0.000000 |  1.000000 ]\n\n");
     }
 
-    REQUIRE(true);
-} 
-
-TEST_CASE("ForwardKinematics, test2", "[kinematics]") {
     REQUIRE(true);
 } 

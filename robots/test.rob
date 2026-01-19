@@ -26,72 +26,45 @@
         .rpy = [0, 0, 0]
     }
 }
-\link l4 {
-    .mass = 1.0
-    .com = {
-        .xyz = [0.5, 0, 0]
-        .rpy = [0, 0, 0]
-    }
-}
 
 \joint revolute {
     .links = [base, l1]
-    .limits = [-pi, pi]
+    .limits = [-pi/2, pi/2]
     .axis = [0, 0, 1]
     .origin = {
         .xyz = [0, 0, 0]
         .rpy = [0, 0, -pi/2]
     }
-    .init = -pi/4
+    .init = 0.3
     .home = 0
 }
 
 \joint revolute {
     .links = [l1, l2]
-    .limits = [-pi, pi]
+    .limits = [-pi/2, pi/2]
     .axis = [0, 1, 0]
     .origin = {
         .xyz = [0.5, 0, 0]
         .rpy = [0, 0, 0]
     }
-    .init = pi/6
+    .init = 0.2
     .home = 0
 }
 
 \joint revolute {
     .links = [l2, l3]
-    .limits = [-pi, pi]
-    .axis = [1, 0, 0]
+    .limits = [-pi/2, pi/2]
+    .axis = [0, 0, 1]
     .origin = {
         .xyz = [0.5, 0, 0]
         .rpy = [0, 0, 0]
     }
-    .init = -pi/2
-    .home = 0
-}
-
-\joint p {
-    .links = [l2, l4]
-    .limits = [-pi, pi]
-    .axis = [0, 1, 0]
-    .origin = {
-        .xyz = [0, 0, 0]
-        .rpy = [0, 0, pi/2]
-    }
-    .init = 0.3
+    .init = 0.1
     .home = 0
 }
 
 \frame ee {
     .link = l3
-    .origin = {
-        .xyz = [0.5, 0, 0]
-        .rpy = [0, 0, 0]
-    }
-}
-
-\frame ee2 {
-    .link = l4
     .origin = {
         .xyz = [0.5, 0, 0]
         .rpy = [0, 0, 0]

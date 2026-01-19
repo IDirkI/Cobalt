@@ -414,8 +414,8 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     # ========== Links ==========
     if(L > 0):
         code += f"// ===== Links =====\n"
-        code += f"inline const std::array<Link, {L}> getLinks() {{\n"
-        code += f"  const std::array<Link, {L}> {name}_links = {{\n"
+        code += f"inline const std::array<Link, {L}> &getLinks() {{\n"
+        code += f"  static const std::array<Link, {L}> {name}_links = {{\n"
         for link in links:
             code += f"    Link({link.id}, \"{link.name}\", {link.mass},\n"
             code += f"      cobalt::math::linear_algebra::Matrix<3,3>({{{{ {link.inertia[0][0]}, {link.inertia[1][0]}, {link.inertia[2][0]} }},\n"
@@ -430,8 +430,8 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     # ========== Joints ==========
     if(J > 0):
         code += f"// ===== Joints =====\n"
-        code += f"inline const std::array<Joint, {J}> getJoints() {{\n"
-        code += f"      const std::array<Joint, {J}> {name}_joints = {{\n"
+        code += f"inline const std::array<Joint, {J}> &getJoints() {{\n"
+        code += f"  static const std::array<Joint, {J}> {name}_joints = {{\n"
         for joint in joints:
             limitsEnabled = (joint.type != "fixed")
 
@@ -448,8 +448,8 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     # ========== Frames ==========
     if(F > 0):
         code += f"// ===== Frames =====\n"
-        code += f"inline const std::array<FrameAttachment, {F}> getFrames() {{\n"
-        code += f"  const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
+        code += f"inline const std::array<FrameAttachment, {F}> &getFrames() {{\n"
+        code += f"  static const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
         for frame in frames:
             code += f"      FrameAttachment({frame.id}, {frame.link_id}, \"{frame.name}\",\n"
             code += f"                      cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))\n"
@@ -460,7 +460,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
 
     # ========== MAKE MODEL ==========
     code += f"// ===== RobotModel =====\n"
-    code += f"inline const RobotModel<{L}, {J}, {F}> getModel() {{\n"
+    code += f"inline const RobotModel<{L}, {J}, {F}> &getModel() {{\n"
     code += f"  static const RobotModel<{L}, {J}, {F}> {name}_model(\"{name}\", getLinks(), getJoints(), getFrames());\n"
     code += f"  return {name}_model;\n"
     code += f"}}\n\n"

@@ -15,6 +15,7 @@
 #include "cobalt/math/linear_algebra/matrix/matrix.hpp"
 #include "cobalt/math/geometry/quaternion/quaternion.hpp"
 #include "cobalt/math/geometry/transform/transform.hpp"
+#include "cobalt/math/geometry/transform/transform_ops.hpp"
 
 namespace cobalt::kinematics::util {
 

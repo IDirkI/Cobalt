@@ -58,7 +58,7 @@ class ForwardKinematics {
             };
 
             std::array<Edge, nJ> edges{};
-            std::array<id_t, nJ> childCount{};
+            std::array<id_t, nL> childCount{};
             childCount.fill(0);
 
             // Fill JointFKData
@@ -138,14 +138,14 @@ class ForwardKinematics {
                 switch(jd.type) {
                     case (JointType::Prismatic): {
                         T_motion.translate( // Issue with transformation
-                            cobalt::math::geometry::rotate(inv(T_joint.rotation()), jd.axis) * state.q[j]
+                            cobalt::math::geometry::rotate(inv(T_joint.rotation()), jd.axis) * (state.q[j] + model_.getJoints()[j].getHome())
                         );
                         break;
                     }
                     case (JointType::Revolute): {
                         T_motion.rotate(
                             cobalt::math::geometry::Quaternion<>::fromAxisAngle(
-                                jd.axis, state.q[j]
+                                jd.axis, (state.q[j] + model_.getJoints()[j].getHome())
                             )
                         );
                         break;
