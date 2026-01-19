@@ -39,12 +39,16 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
 
     IKTarget target {
         0,
-        Transform<>(Quaternion<>::eye(), Vector<3>(2,1,0)),
+        Transform<>(Quaternion<>::eye(), Vector<3>(2,4,3)),
         IKMode::Position
     };
 
     IKSolution sol = ik.solve(target);
-    printf(">> q = [ %3.4f, %3.4f, %3.4f ]\n", sol.q[0], sol.q[1], sol.q[2]);
+    printf(">> q = [ ");
+    for(int i = 0; i < test_robot.model().getJointNum(); i++) {
+        if(i != test_robot.model().getJointNum()-1) { printf("%3.4f, ", sol.q[i]); }
+        else { printf("%3.4f ]\n", sol.q[i]); }
+    }
     printf(">> err = [ %3.4f, %3.4f, %3.4f ]\n", sol.error[0], sol.error[1], sol.error[2]);
     printf(">> iterations = %d\n", sol.iterations);
     printf(">> status = %d\n", static_cast<int>(sol.status));

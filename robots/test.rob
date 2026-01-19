@@ -5,6 +5,28 @@
 > test_robot
 
 \link base
+\link l0_0 {
+    .mass = 1.0
+    .com = {
+        .xyz = [0, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+\link l0_1 {
+    .mass = 1.0
+    .com = {
+        .xyz = [0, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+\link l0 {
+    .mass = 1.0
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+
 \link l1 {
     .mass = 1.0
     .com = {
@@ -12,6 +34,7 @@
         .rpy = [0, 0, 0]
     }
 }
+
 \link l2 {
     .mass = 1.0
     .com = {
@@ -28,23 +51,33 @@
 }
 
 \joint revolute {
-    .links = [base, l1]
-    .limits = [-pi/2, pi/2]
+    .links = [base, l0_0]
+    .limits = [-pi, pi]
     .axis = [0, 0, 1]
     .origin = {
         .xyz = [0, 0, 0]
-        .rpy = [0, 0, -pi/2]
+        .rpy = [0, 0, 0]
     }
-    .init = 0.3
+    .init = 0.8
     .home = 0
 }
-
 \joint revolute {
-    .links = [l1, l2]
-    .limits = [-pi/2, pi/2]
+    .links = [l0_0, l0_1]
+    .limits = [-pi, pi]
     .axis = [0, 1, 0]
     .origin = {
-        .xyz = [0.5, 0, 0]
+        .xyz = [0, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = 0.2
+    .home = 0
+}
+\joint revolute {
+    .links = [l0_1, l0]
+    .limits = [-pi, pi]
+    .axis = [1, 0, 0]
+    .origin = {
+        .xyz = [0, 0, 0]
         .rpy = [0, 0, 0]
     }
     .init = 0.2
@@ -52,14 +85,38 @@
 }
 
 \joint revolute {
-    .links = [l2, l3]
-    .limits = [-pi/2, pi/2]
+    .links = [l0, l1]
+    .limits = [-3*pi/4, 3*pi/4]
     .axis = [0, 0, 1]
     .origin = {
         .xyz = [0.5, 0, 0]
         .rpy = [0, 0, 0]
     }
+    .init = 0.5
+    .home = 0
+}
+
+\joint revolute {
+    .links = [l1, l2]
+    .limits = [-3*pi/4, 3*pi/4]
+    .axis = [0, 1, 0]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
     .init = 0.1
+    .home = 0
+}
+
+\joint prismatic {
+    .links = [l2, l3]
+    .limits = [0, 3]
+    .axis = [1, 0, 0]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = 0.3
     .home = 0
 }
 
