@@ -36,11 +36,13 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     Robot test_robot = makeTestRobot();
     
     InverseKinematics ik(test_robot);
+    Quaternion q = Quaternion<>::fromAxisAngle(Vector<3>::unitX(), M_PI);
+    printf(">> Q = [ %3.4f, %3.4f, %3.4f, %3.4f ]\n\n", q.w(), q.x(), q.y(), q.z());
 
     IKTarget target {
         0,
-        Transform<>(Quaternion<>::eye(), Vector<3>(2,4,3)),
-        IKMode::Position
+        Transform<>(q, Vector<3>(1,1.5,1.25)),
+        IKMode::Orientation
     };
 
     IKSolution sol = ik.solve(target);
@@ -49,7 +51,8 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
         if(i != test_robot.model().getJointNum()-1) { printf("%3.4f, ", sol.q[i]); }
         else { printf("%3.4f ]\n", sol.q[i]); }
     }
-    printf(">> err = [ %3.4f, %3.4f, %3.4f ]\n", sol.error[0], sol.error[1], sol.error[2]);
+    printf(">> err_p = [ %3.4f, %3.4f, %3.4f ]\n", sol.error[0], sol.error[1], sol.error[2]);
+    printf(">> err_o = [ %3.4f, %3.4f, %3.4f ]\n", sol.error[3], sol.error[4], sol.error[5]);
     printf(">> iterations = %d\n", sol.iterations);
     printf(">> status = %d\n", static_cast<int>(sol.status));
 

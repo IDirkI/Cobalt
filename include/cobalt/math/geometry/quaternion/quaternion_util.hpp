@@ -193,14 +193,10 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
  */
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     inline Quaternion<T> shortestPath(const Quaternion<T> &q, const Quaternion<T> &p) noexcept {
-        Quaternion<T> qn = normalize(q);
-        Quaternion<T> pn = normalize(p);
+        Quaternion<T> dq = normalize(difference(q, p));
 
-        if(dot(qn, pn) < epsilon_<T>) {
-            pn = -pn;
-        }
-
-        return pn;
+        //if(dq.w() < epsilon_<T>) { dq = -dq; }
+        return dq;
     }
 
 // ---------------- Dynamics & Motion ----------------
@@ -362,11 +358,17 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     inline cobalt::math::linear_algebra::Vector<3, T> toRotationVector(const Quaternion<T> &q) noexcept {
         Quaternion<T> qn = normalize(q);
+        if(qn.w() < epsilon_<T>) { qn = -qn; }
 
         T angle = 2*std::acos(qn.w());
-        T s = std::sqrt(1 - qn.w()*qn.w());
+        T s = std::sqrt(std::max(static_cast<T>(0), 1 - qn.w()*qn.w()));
+
         if(s < epsilon_<T>) {
-            return cobalt::math::linear_algebra::Vector<3, T>::zero();
+            return cobalt::math::linear_algebra::Vector<3, T>{
+                2*qn.x(),
+                2*qn.y(),
+                2*qn.z()
+            };
         }
 
         cobalt::math::linear_algebra::Vector<3, T> axis = {qn.x()/s, qn.y()/s, qn.z()/s};

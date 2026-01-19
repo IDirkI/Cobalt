@@ -15,6 +15,7 @@
 #include "cobalt/math/linear_algebra/matrix/matrix_ops.hpp"
 #include "cobalt/math/geometry/quaternion/quaternion.hpp"
 #include "cobalt/math/geometry/quaternion/quaternion_ops.hpp"
+#include "cobalt/math/geometry/quaternion/quaternion_util.hpp"
 #include "cobalt/math/geometry/transform/transform.hpp"
 
 namespace cobalt::kinematics::solvers {
@@ -24,7 +25,7 @@ constexpr iter_t IK_SINGULAR_THRESHOLD = 100;
 constexpr iter_t IK_DEFAULT_MAX_ITERATIONS = 200;
 constexpr float IK_DEFAULT_THRESHOLD = 1e-3;
 constexpr float IK_DEFAULT_DAMPING = 1e-2;
-constexpr float IK_DEFAULT_STEP = 0.2f;
+constexpr float IK_DEFAULT_STEP = 0.5f;
 constexpr float IK_DEFAULT_MARGIN = 0.05f;
 
 enum class IKStatus : uint8_t {
@@ -81,16 +82,24 @@ class InverseKinematics {
 
         // ---------------- Helper Functions ----------------
         /**
-         *  @brief Compute the current error of the robot state vs the target destination
+         *  @brief Compute the current error of the robot frame position vs the target position
          */
         inline cobalt::math::linear_algebra::Vector<3> computePosError(const IKTarget &target, const cobalt::math::geometry::Transform<> &T_frame) {
             return target.pose.translation() - T_frame.translation();
         }
 
         /**
+         *  @brief Compute the current error of the robot frame orientation vs the target orientation
+         */
+        inline cobalt::math::linear_algebra::Vector<3> computeOriError(const IKTarget &target, const cobalt::math::geometry::Transform<> &T_frame) {
+            cobalt::math::geometry::Quaternion errQ =  cobalt::math::geometry::shortestPath(T_frame.rotation(), target.pose.rotation());
+            return cobalt::math::geometry::toRotationVector(errQ);
+        }
+
+        /**
          *  @brief Compute the damped psuedo-inverse of the position jacobian
          */
-        inline cobalt::math::linear_algebra::Matrix<nJ, 3> computePosPseudoInv(const cobalt::math::linear_algebra::Matrix<3, nJ> &J, float errNorm) {
+        inline cobalt::math::linear_algebra::Matrix<nJ, 3> computePseudoInv(const cobalt::math::linear_algebra::Matrix<3, nJ> &J, float errNorm) {
             float lambda = damping_*(1.0f + errNorm);
 
             cobalt::math::linear_algebra::Matrix<3, 3> JJt= J * transpose(J);
@@ -174,16 +183,34 @@ class InverseKinematics {
             for(iter = 0; iter < maxIterations_; iter++) {
                 fk_.solve(robot_.state());
 
-                cobalt::math::linear_algebra::Vector<3> posErr = computePosError(target, robot_.state().frameTransforms[target.frameId]);
+                cobalt::math::linear_algebra::Vector<3> err;
+                switch(target.mode) {
+                    case (IKMode::Position): {
+                        err = computePosError(target, robot_.state().frameTransforms[target.frameId]);
 
-                output.error[0] = posErr.x();
-                output.error[1] = posErr.y();
-                output.error[2] = posErr.z();
-                output.error[3] = 0.0f;
-                output.error[4] = 0.0f;
-                output.error[5] = 0.0f;
+                        output.error[0] = err.x();
+                        output.error[1] = err.y();
+                        output.error[2] = err.z();
+                        output.error[3] = 0.0f;
+                        output.error[4] = 0.0f;
+                        output.error[5] = 0.0f;
+                        break;
+                    }
+                    case (IKMode::Orientation): {
+                        err = computeOriError(target, robot_.state().frameTransforms[target.frameId]);
+                        output.error[0] = 0.0f;
+                        output.error[1] = 0.0f;
+                        output.error[2] = 0.0f;
+                        output.error[3] = err.x();
+                        output.error[4] = err.y();
+                        output.error[5] = err.z();
 
-                if(norm(posErr) < threshold_) {
+                        break;
+                    }
+                    default: { break; }
+                }
+
+                if(norm(err) < threshold_) {
                     output.status = IKStatus::Success;
                     output.iterations = iter;
                     output.q = robot_.state().q;
@@ -192,15 +219,38 @@ class InverseKinematics {
                 }
 
                 cobalt::math::linear_algebra::Matrix<6, nJ> J = jacobian_.compute(robot_.state(), target.frameId);
-                cobalt::math::linear_algebra::Matrix<3, nJ> posJ = cobalt::math::linear_algebra::Matrix<3, nJ>::zero();
-                for(cobalt::math::index_t i = 0; i < 3; i++) {
-                    for(cobalt::math::index_t j = 0; j < nJ; j++) {
-                        posJ(i, j) = J(i, j);
+                cobalt::math::linear_algebra::Matrix<3, nJ> smallJ = cobalt::math::linear_algebra::Matrix<3, nJ>::zero();
+
+
+                switch(target.mode) {
+                    case (IKMode::Position): {
+                        for(cobalt::math::index_t i = 0; i < 3; i++) {
+                            for(cobalt::math::index_t j = 0; j < nJ; j++) {
+                                smallJ(i, j) = J(i, j);
+                            }
+                        }
+                        break;
                     }
+                    case (IKMode::Orientation): {
+                        for(cobalt::math::index_t i = 0; i < 3; i++) {
+                            for(cobalt::math::index_t j = 0; j < nJ; j++) {
+                                smallJ(i, j) = J(i+3, j);
+                            }
+                        }
+                        break;
+                    }
+                    default: { break; }
                 }
 
-                cobalt::math::linear_algebra::Matrix<nJ, 3> Jpinv = computePosPseudoInv(posJ, norm(posErr));
-                cobalt::math::linear_algebra::Vector<nJ> dq = Jpinv * posErr;
+
+                cobalt::math::linear_algebra::Matrix<nJ, 3> Jpinv = computePseudoInv(smallJ, norm(err));
+                cobalt::math::linear_algebra::Vector<nJ> dq = Jpinv * err;
+
+                printf(">> dq = [ ");
+                for(int i = 0; i < nJ; i++) {
+                    if(i != nJ-1) { printf("%3.4f, ", dq[i]); }
+                    else { printf("%3.4f ]\n", dq[i]); }
+                }
 
                 projectAwayFromLimits(robot_.state().q, dq);
 
@@ -214,12 +264,32 @@ class InverseKinematics {
                 output.q = robot_.state().q;
 
                 fk_.solve(robot_.state());
-                cobalt::math::linear_algebra::Vector<3> finalPos = robot_.state().frameTransforms[target.frameId].translation();
-                cobalt::math::linear_algebra::Vector<3> finalErr = target.pose.translation() - finalPos;
 
-                output.error[0] = finalErr.x();
-                output.error[1] = finalErr.y();
-                output.error[2] = finalErr.z();
+                cobalt::math::linear_algebra::Vector<3> finalErr;
+                switch(target.mode) {
+                    case (IKMode::Position): {
+                        finalErr = computePosError(target, robot_.state().frameTransforms[target.frameId]);
+
+                        output.error[0] = finalErr.x();
+                        output.error[1] = finalErr.y();
+                        output.error[2] = finalErr.z();
+                        output.error[3] = 0.0f;
+                        output.error[4] = 0.0f;
+                        output.error[5] = 0.0f;
+                        break;
+                    }
+                    case (IKMode::Orientation): {
+                        finalErr = computePosError(target, robot_.state().frameTransforms[target.frameId]);
+                        output.error[0] = 0.0f;
+                        output.error[1] = 0.0f;
+                        output.error[2] = 0.0f;
+                        output.error[3] = finalErr.x();
+                        output.error[4] = finalErr.y();
+                        output.error[5] = finalErr.z();
+                        break;
+                    }
+                    default: { break; }
+                }
             }
             
             robot_.setJoints(q_init);
