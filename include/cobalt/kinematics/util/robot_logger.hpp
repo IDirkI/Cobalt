@@ -72,10 +72,6 @@ void logRobotState(const Robot<nL, nJ, nE> &robot, const std::string &filename) 
     for(id_t j = 0; j < nJ; j++) {
         const Joint &joint = model.getJoints()[j];
         
-        // Debug output to console
-        std::cout << "Joint " << j << ": type = " << static_cast<int>(joint.getType()) 
-                  << " (0=Fixed, 1=Revolute, 2=Prismatic)" << std::endl;
-        
         // Compute joint position in world frame
         const cobalt::math::geometry::Transform<> &T_parent = state.linkTransforms[joint.getParentId()];
         cobalt::math::geometry::Transform<> T_joint = T_parent * joint.getOrigin();
