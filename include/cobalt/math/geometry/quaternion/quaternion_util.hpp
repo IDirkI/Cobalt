@@ -181,7 +181,7 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
         Quaternion<T> qn = normalize(q);
         Quaternion<T> pn = normalize(p);
 
-        return inv(qn) * pn;
+        return pn * inv(qn);
     }
 
 /**
@@ -189,18 +189,16 @@ template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
  *  @param q First quaternion
  *  @param p Second quaternion
  *  @return Shortest path quaternion
- *  @note If the dot product between q and p is negative, p is negated to ensure the shortest path is taken between the two quaternions
  */
 template<typename T = def_floating, typename = std::enable_if_t<Floating<T>>>
     inline Quaternion<T> shortestPath(const Quaternion<T> &q, const Quaternion<T> &p) noexcept {
-        Quaternion<T> qn = normalize(q);
-        Quaternion<T> pn = normalize(p);
+        Quaternion<T> dq = difference(q, p);
 
-        if(dot(qn, pn) < epsilon_<T>) {
-            pn = -pn;
+        if(dq.w() < static_cast<T>(0)) {
+            dq = -dq;
         }
 
-        return pn;
+        return dq;
     }
 
 // ---------------- Dynamics & Motion ----------------

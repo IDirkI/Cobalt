@@ -1,0 +1,52 @@
+> R3
+
+\link base
+
+\link l1 {
+    .mass = 1.0
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+
+\link l2 {
+    .mass = 1.0
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+
+
+\joint revolute {
+    .links = [base, l1]
+    .limits = [-pi, pi]
+    .axis = [0, 0, 1]
+    .origin = {
+        .xyz = [0, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = 0.2
+    .home = 0
+}
+\joint revolute {
+    .links = [l1, l2]
+    .limits = [-pi, pi]
+    .axis = [0, 0, 1]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = -0.1
+    .home = 0
+}
+
+
+\frame ee {
+    .link = l2
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}

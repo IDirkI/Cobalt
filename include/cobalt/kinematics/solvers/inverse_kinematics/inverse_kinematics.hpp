@@ -24,7 +24,7 @@ constexpr iter_t IK_SINGULAR_THRESHOLD = 100;
 constexpr iter_t IK_DEFAULT_MAX_ITERATIONS = 200;
 constexpr float IK_DEFAULT_THRESHOLD = 1e-3;
 constexpr float IK_DEFAULT_DAMPING = 1e-2;
-constexpr float IK_DEFAULT_STEP = 0.2f;
+constexpr float IK_DEFAULT_STEP = 0.3f;
 constexpr float IK_DEFAULT_MARGIN = 0.05f;
 
 enum class IKStatus : uint8_t {
@@ -32,6 +32,7 @@ enum class IKStatus : uint8_t {
     Unreachable,
     MaxIterations,
     Singular,
+    InvalidMode,
 };
 
 enum class IKMode : uint8_t {
@@ -82,29 +83,156 @@ class InverseKinematics {
         // ---------------- Helper Functions ----------------
         /**
          *  @brief Compute the current error of the robot state vs the target destination
+         *  @param dst Destination frame
+         *  @param src Source frame
+         *  @return 6-Vector total error from T_src to T_dst
          */
-        inline cobalt::math::linear_algebra::Vector<3> computePosError(const IKTarget &target, const cobalt::math::geometry::Transform<> &T_frame) {
-            return target.pose.translation() - T_frame.translation();
+        inline cobalt::math::linear_algebra::Vector<6> computeError(const cobalt::math::geometry::Transform<> &dst, const cobalt::math::geometry::Transform<> &src) {
+            cobalt::math::linear_algebra::Vector<6> err = cobalt::math::linear_algebra::Vector<6>::zero();
+
+            // Position error
+            cobalt::math::linear_algebra::Vector<3> posErr = dst.translation() - src.translation();
+
+            // Orientation error
+            cobalt::math::geometry::Quaternion<> dstQ = normalize(dst.rotation());
+            cobalt::math::geometry::Quaternion<> srcQ = normalize(src.rotation());
+
+            cobalt::math::geometry::Quaternion<> qErr = cobalt::math::geometry::shortestPath(srcQ, dstQ);
+
+            cobalt::math::linear_algebra::Vector<3> rotErr = cobalt::math::geometry::toRotationVector(qErr);
+
+            // Full error
+            err[0] = posErr.x();
+            err[1] = posErr.y();
+            err[2] = posErr.z();
+            err[3] = rotErr.x();
+            err[4] = rotErr.y();
+            err[5] = rotErr.z();
+
+            return err;
+        }
+
+        /**
+         *  @brief Extract task-space error associated with the given IKMode from the total error
+         *  @param err Total 6-Vector error
+         *  @param mode IKMode the target frame wants to achieve
+         *  @return 3/6-Vector task error extracted from the full error
+         */
+        template<cobalt::math::index_t M>
+        inline cobalt::math::linear_algebra::Vector<M> extractTaskError(const cobalt::math::linear_algebra::Vector<6> &err, IKMode mode) {
+            cobalt::math::linear_algebra::Vector<M> taskErr = cobalt::math::linear_algebra::Vector<M>::zero();
+
+            switch(mode) {
+                case(IKMode::Position): {
+                    assert(M == 3 &&"Position IK uses a 3-Vector error");
+                    taskErr[0] = err[0];
+                    taskErr[1] = err[1];
+                    taskErr[2] = err[2];
+                    break;
+                }
+                case(IKMode::Orientation): {
+                    assert(M == 3 && "Orientation IK uses a 3-Vector error");
+                    taskErr[0] = err[3];
+                    taskErr[1] = err[4];
+                    taskErr[2] = err[5];
+                    break;
+                }
+                case(IKMode::Pose): {
+                    assert(M == 6 && "Pose IK uses a 6-Vector error");
+                    for(cobalt::math::index_t i = 0; i < M; i++) {
+                        taskErr[i] = err[i];
+                    }
+                    break;
+                }
+                default: { break; }
+            }
+
+            return taskErr;
+        }
+
+        /**
+         *  @brief Extracts the task-space jacobian associated with the given IKMode from the total jacobian
+         *  @param J Full robot jacobian
+         *  @param mode IKMode the target frame wants to achieve
+         *  @return 3/6xnJ task-space jacobian extracted from the full jacobian
+         */
+        template<cobalt::math::index_t M>
+        inline cobalt::math::linear_algebra::Matrix<M, nJ> extractTaskJacobian(const cobalt::math::linear_algebra::Matrix<6, nJ> &J, IKMode mode) {
+            cobalt::math::linear_algebra::Matrix<M, nJ> J_task = cobalt::math::linear_algebra::Matrix<M, nJ>::zero();
+
+            switch(mode) {
+                case(IKMode::Position): {
+                    assert(M == 3 && "Position IK uses a 3xnJ-Jacobian");
+                    for(cobalt::math::index_t i = 0; i < 3; i++) {
+                        for(cobalt::math::index_t j = 0; j < nJ; j++) {
+                            J_task(i, j) = J(i, j);
+                        }
+                    }
+                    break;
+                }
+                case(IKMode::Orientation): {
+                    assert(M == 3 && "Orientation IK uses a 3xnJ-Jacobian");
+                    for(cobalt::math::index_t i = 0; i < 3; i++) {
+                        for(cobalt::math::index_t j = 0; j < nJ; j++) {
+                            J_task(i, j) = J(i+3, j);
+                        }
+                    }
+                    break;
+                }
+                case(IKMode::Pose): {
+                    assert(M == 6 && "Pose IK uses a 6xnJ-Jacobian");
+                    for(cobalt::math::index_t i = 0; i < M; i++) {
+                        for(cobalt::math::index_t j = 0; j < nJ; j++) {
+                            J_task(i, j) = J(i, j);
+                        }
+                    }
+                    break;
+                }
+                default: { break; }
+            }
+
+            return J_task;
         }
 
         /**
          *  @brief Compute the damped psuedo-inverse of the position jacobian
+         *  @param J Task-jacobian of the current robot state
+         *  @param errNorm Last norm of the error to be used in adaptive damping
+         *  @return nJx3/6 damped pseudo-inverse of the task jacobian
+         *  @note Uses right-inverse for [nJ >= M] and left-inverse for [nJ < M]
          */
-        inline cobalt::math::linear_algebra::Matrix<nJ, 3> computePosPseudoInv(const cobalt::math::linear_algebra::Matrix<3, nJ> &J, float errNorm) {
+        template<cobalt::math::index_t M>
+        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInv(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm) {
             float lambda = damping_*(1.0f + errNorm);
 
-            cobalt::math::linear_algebra::Matrix<3, 3> JJt= J * transpose(J);
+            if constexpr (nJ >= M) {    // Wide J, J† = Jᵀ(JJᵀ + λ²I)⁻¹
+                cobalt::math::linear_algebra::Matrix<M, M> JJt = J * transpose(J);
+                cobalt::math::linear_algebra::Matrix<M, M> A = JJt + cobalt::math::linear_algebra::Matrix<M, M>::eye()*(lambda * lambda);
 
-            cobalt::math::linear_algebra::Matrix<3, 3> A = JJt + cobalt::math::linear_algebra::Matrix<3, 3>::eye()*(lambda*lambda);
-            cobalt::math::linear_algebra::Matrix<3, 3> Ainv;
-            bool success = inv(A, Ainv);
+                cobalt::math::linear_algebra::Matrix<M, M> Ainv;
+                bool success = inv(A, Ainv);
+                if(!success) { return cobalt::math::linear_algebra::Matrix<nJ, M>::zero(); }
 
-            cobalt::math::linear_algebra::Matrix<nJ, 3> Jpinv = transpose(J) * Ainv;
-            return Jpinv;
+                cobalt::math::linear_algebra::Matrix<nJ, M> Jpinv = transpose(J) * Ainv;
+                return Jpinv;
+            }
+            else {                      // Tall J, J† = (JᵀJ + λ²I)⁻¹Jᵀ
+                cobalt::math::linear_algebra::Matrix<nJ, nJ> JtJ = transpose(J) * J;
+                cobalt::math::linear_algebra::Matrix<nJ, nJ> A = JtJ + cobalt::math::linear_algebra::Matrix<nJ, nJ>::eye()*(lambda * lambda);
+
+                cobalt::math::linear_algebra::Matrix<nJ, nJ> Ainv;
+                bool success = inv(A, Ainv);
+                if(!success) { return cobalt::math::linear_algebra::Matrix<nJ, M>::zero(); }
+
+                cobalt::math::linear_algebra::Matrix<nJ, M> Jpinv = Ainv * transpose(J);
+                return Jpinv;
+            }
         }
 
         /**
          *  @brief Precompute joint values and move away from them instead of towards them
+         *  @param q Current joint values
+         *  @param dq proposed jonit value steps 
          */
         inline void projectAwayFromLimits(const cobalt::math::linear_algebra::Vector<nJ> &q, cobalt::math::linear_algebra::Vector<nJ> &dq) {
             for(id_t j = 0; j < nJ; j++) {
@@ -116,6 +244,75 @@ class InverseKinematics {
                 if((q[j] + dq[j] * step_ < lowerMargin) && (dq[j] < 0)) { dq[j] = 0.0f; }
             }
             
+        }
+
+        /**
+         *  @brief Solve the IK problem for the given task-mode
+         */
+        template<cobalt::math::index_t M>
+        inline IKSolution<nJ> solveTask(const IKTarget &target) {
+            // Save initial values to restore later
+            cobalt::math::linear_algebra::Vector<nJ> q_init = robot_.state().q;
+
+            // Generate output
+            IKSolution<nJ> output;
+            output.status = IKStatus::MaxIterations;
+            output.q = robot_.state().q;
+            output.error = cobalt::math::linear_algebra::Vector<6>::zero();
+            output.iterations = 0;
+
+            // Main IK loop
+            iter_t iter;
+            for(iter = 0; iter < maxIterations_; iter++) {
+                fk_.solve(robot_.state());
+
+                const cobalt::math::geometry::Transform<> &T_curr = robot_.state().frameTransforms[target.frameId];
+
+                cobalt::math::linear_algebra::Vector<6> error = computeError(target.pose, T_curr);
+                cobalt::math::linear_algebra::Vector<M> taskErr = extractTaskError<M>(error, target.mode);
+                output.error = error;
+                float errNorm = norm(taskErr);
+
+                if(norm(taskErr) < threshold_) {    // IK end-check
+                    output.status = IKStatus::Success;
+                    output.iterations = iter;
+                    output.q = robot_.state().q;
+                    break;
+                }
+
+                cobalt::math::linear_algebra::Matrix<6, nJ> J = jacobian_.compute(robot_.state(), target.frameId);
+                cobalt::math::linear_algebra::Matrix<M, nJ> J_task = extractTaskJacobian<M>(J, target.mode);
+                cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInv(J_task, errNorm);
+
+                cobalt::math::linear_algebra::Vector<nJ> delta_q = J_pinv*taskErr;
+                projectAwayFromLimits(robot_.state().q, delta_q);
+
+                cobalt::math::linear_algebra::Vector<nJ> q_new = robot_.state().q + delta_q * step_;
+
+                printf("q = [ ");
+                for(cobalt::math::index_t i = 0; i < nJ; i++) {
+                    printf("%4.3f ", delta_q[i]);
+                }
+                printf("]\n\n");
+                
+                robot_.setJoints(q_new);
+            }
+
+            if(iter >= maxIterations_) {
+                output.status = IKStatus::MaxIterations;
+                output.iterations = iter;
+                output.q = robot_.state().q;
+
+                fk_.solve(robot_.state());
+ 
+                const cobalt::math::geometry::Transform<> T_final = robot_.state().frameTransforms[target.frameId];
+                output.error = computeError(target.pose, T_final);
+            }
+
+            robot_.setJoints(q_init);
+            fk_.solve(robot_.state());
+
+            return output;
         }
 
     public:
@@ -161,70 +358,28 @@ class InverseKinematics {
         // ---------------- Member Functions ----------------
         /**
          *  @brief Compute the joint angles needed to achieve a single target state of the robot
+         *  @param target The IK solvers target containing frame info, final pose and IK-mode to solve for
+         *  @return Struct of IKSolution that contains the optimal joint values, final errors, amount of iterations IK took and status of the solution
          */
         IKSolution<nJ> solve(const IKTarget &target) {
-            cobalt::math::linear_algebra::Vector<nJ> q_init = robot_.state().q;
-
-            IKSolution<nJ> output;
-            output.status = IKStatus::MaxIterations;
-            output.error = cobalt::math::linear_algebra::Vector<6>::zero();
-            output.q = robot_.state().q;
-
-            iter_t iter;
-            for(iter = 0; iter < maxIterations_; iter++) {
-                fk_.solve(robot_.state());
-
-                cobalt::math::linear_algebra::Vector<3> posErr = computePosError(target, robot_.state().frameTransforms[target.frameId]);
-
-                output.error[0] = posErr.x();
-                output.error[1] = posErr.y();
-                output.error[2] = posErr.z();
-                output.error[3] = 0.0f;
-                output.error[4] = 0.0f;
-                output.error[5] = 0.0f;
-
-                if(norm(posErr) < threshold_) {
-                    output.status = IKStatus::Success;
-                    output.iterations = iter;
-                    output.q = robot_.state().q;
-
-                    break;
+            switch (target.mode) {
+                case (IKMode::Position): {
+                    return solveTask<3>(target);
                 }
-
-                cobalt::math::linear_algebra::Matrix<6, nJ> J = jacobian_.compute(robot_.state(), target.frameId);
-                cobalt::math::linear_algebra::Matrix<3, nJ> posJ = cobalt::math::linear_algebra::Matrix<3, nJ>::zero();
-                for(cobalt::math::index_t i = 0; i < 3; i++) {
-                    for(cobalt::math::index_t j = 0; j < nJ; j++) {
-                        posJ(i, j) = J(i, j);
-                    }
+                case (IKMode::Orientation): {
+                    return solveTask<3>(target);
                 }
-
-                cobalt::math::linear_algebra::Matrix<nJ, 3> Jpinv = computePosPseudoInv(posJ, norm(posErr));
-                cobalt::math::linear_algebra::Vector<nJ> dq = Jpinv * posErr;
-
-                projectAwayFromLimits(robot_.state().q, dq);
-
-                cobalt::math::linear_algebra::Vector<nJ> q = robot_.state().q + dq * step_;
-                robot_.setJoints(q);
+                case (IKMode::Pose): {
+                    return solveTask<6>(target);
+                }
+                default: {
+                    IKSolution<nJ> invalidOutput;
+                    invalidOutput.status = IKStatus::InvalidMode;
+                    invalidOutput.iterations = 0;
+                    return invalidOutput;
+                }
+                   
             }
-
-            if(iter >= maxIterations_) { 
-                output.status = IKStatus::MaxIterations; 
-                output.iterations = maxIterations_;
-                output.q = robot_.state().q;
-
-                fk_.solve(robot_.state());
-                cobalt::math::linear_algebra::Vector<3> finalPos = robot_.state().frameTransforms[target.frameId].translation();
-                cobalt::math::linear_algebra::Vector<3> finalErr = target.pose.translation() - finalPos;
-
-                output.error[0] = finalErr.x();
-                output.error[1] = finalErr.y();
-                output.error[2] = finalErr.z();
-            }
-            
-            robot_.setJoints(q_init);
-
-            return output;
         }
 };
 

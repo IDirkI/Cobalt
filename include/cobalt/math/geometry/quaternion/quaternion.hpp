@@ -148,12 +148,12 @@ struct Quaternion {
          *  @note Uses the ZYX rotation order (yaw-pitch-roll)
          */
         static inline Quaternion fromEuler(T roll, T pitch, T yaw) noexcept {
-            T cr = std::cos(roll * 0.5f);
-            T sr = std::sin(roll * 0.5f);
-            T cp = std::cos(pitch * 0.5f);
-            T sp = std::sin(pitch * 0.5f);
-            T cy = std::cos(yaw * 0.5f);
-            T sy = std::sin(yaw * 0.5f);
+            T cr = std::cos(roll * static_cast<T>(0.5));
+            T sr = std::sin(roll * static_cast<T>(0.5));
+            T cp = std::cos(pitch * static_cast<T>(0.5));
+            T sp = std::sin(pitch * static_cast<T>(0.5));
+            T cy = std::cos(yaw * static_cast<T>(0.5));
+            T sy = std::sin(yaw * static_cast<T>(0.5));
 
             return Quaternion(
                 cr*cp*cy + sr*sp*sy,
