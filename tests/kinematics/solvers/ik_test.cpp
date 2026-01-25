@@ -41,11 +41,12 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
 
     IKTarget target {
         0,
-        Transform<>(Quaternion<>::fromEuler(M_PI, -M_PI_2, 0), Vector<3>(-1,-1,0)),
+        Transform<>(Quaternion<>::fromEuler(M_PI, -M_PI_2, 0), Vector<3>(1.2,-1.2,0)),
         IKMode::Position
     };
-
+    
     IKSolution sol = ik.solve(target);
+
     printf(">> q = [ ");
     for(int i = 0; i < test_robot.model().getJointNum(); i++) {
         if(i != test_robot.model().getJointNum()-1) { printf("%3.4f, ", sol.q[i]); }
@@ -56,6 +57,7 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     printf(">> status = %d\n", static_cast<int>(sol.status));
 
     test_robot.setJoints(sol.q);
+    
 
     ForwardKinematics fk = ForwardKinematics(test_robot);
     fk.solve(test_robot.state());
