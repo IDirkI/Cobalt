@@ -37,18 +37,24 @@ using cobalt::math::geometry::Transform;
 using cobalt::math::geometry::Quaternion;
 
 TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
-    Robot test_robot = makeJointRobot();
-    /*
+    Robot test_robot = makeArmRobot();
+    
     InverseKinematics ik(test_robot);
     
     IKTarget target {
         0,
-        Transform<>(Quaternion<>::fromEuler(0, 0, 0), Vector<3>(0,0,1)),
-        IKMode::Position
+        IKMode::Pose,
+        Transform<>(Quaternion<>::fromEuler(0, -M_PI_2, 0), Vector<3>(0.04,0.7,0.2)),
+        {1, 1, 1, 0.8, 0.8, 0.8}
     };
-    
+
     IKSolution sol = ik.solve(target);
 
+    printf(">> w = [ ");
+    for(int i = 0; i < 6; i++) {
+        if(i != 5) { printf("%3.4f, ", target.weight[i]); }
+        else { printf("%3.4f ]\n", target.weight[i]); }
+    }
     printf(">> q = [ ");
     for(int i = 0; i < test_robot.model().getJointNum(); i++) {
         if(i != test_robot.model().getJointNum()-1) { printf("%3.4f, ", sol.q[i]); }
@@ -59,7 +65,7 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     printf(">> status = %d\n", static_cast<int>(sol.status));
 
     test_robot.setJoints(sol.q);
-*/
+
 
     ForwardKinematics fk = ForwardKinematics(test_robot);
     fk.solve(test_robot.state());

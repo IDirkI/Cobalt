@@ -8,7 +8,7 @@ import operator as op
 from defaults import *
 
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List
 from math import sqrt
 
 _ALLOWED_OPERATORS = {
@@ -494,6 +494,13 @@ def parse_rob_file(file_path: str):
             if len(limits) != 2 or len(init_vals) != 2 or len(home_vals) != 2:
                 raise ValueError("[ ERROR ] | Universal joint must have 2 DOF parameters")
             
+            # Axis orthogonality validation
+            axis0 = axes[0]
+            axis1 = axes[1]
+            dot_prod = axis0[0]*axis1[0] + axis0[1]*axis1[1] + axis0[2]*axis1[2]
+            if abs(dot_prod) > JOINT_AXIS_THRESHOLD:
+                raise ValueError("[ ERROR ] | Universal joint axes must be orthogonal")
+            
             # Create 2 revolute joints + 1 invisible link
             base_joint_id = len(joints)
             invisible_link_id = len(links)
@@ -697,6 +704,116 @@ def parse_rob_file(file_path: str):
                     comp_type=joint_type,
                     comp_index=i
                 ))
+        elif joint_type == "planar":
+            # Parse planar joint parameters
+            axes_str = block.fields.get("axis", None)
+            if axes_str is None:
+                axes = PLANAR_DEFAULT_AXES
+            else:
+                axes = parse_multi_axes(axes_str)
+            
+            limits_str = block.fields.get("limits", None)
+            if limits_str is None:
+                limits = PLANAR_DEFAULT_LIMITS
+            else:
+                limits = parse_multi_limits(limits_str)
+            
+            init_str = block.fields.get("init", None)
+            if init_str is None:
+                init_vals = PLANAR_DEFAULT_INIT
+            else:
+                init_vals = parse_multi_values(init_str)
+            
+            home_str = block.fields.get("home", None)
+            if home_str is None:
+                home_vals = PLANAR_DEFAULT_HOME
+            else:
+                home_vals = parse_multi_values(home_str)
+            
+            # Validation
+            if len(axes) != 3:
+                raise ValueError("[ ERROR ] | Planar joint must have exactly 3 axes")
+            if len(limits) != 3 or len(init_vals) != 3 or len(home_vals) != 3:
+                raise ValueError("[ ERROR ] | Planar joint must have 3 DOF parameters")
+            
+            # Axis orthogonality validation
+            axis0 = axes[0]
+            axis1 = axes[1]
+            axis2 = axes[2]
+            dot_prod1 = axis0[0]*axis1[0] + axis0[1]*axis1[1] + axis0[2]*axis1[2]
+            dot_prod2 = axis0[0]*axis2[0] + axis0[1]*axis2[1] + axis0[2]*axis2[2]
+            dot_prod3 = axis1[0]*axis2[0] + axis1[1]*axis2[1] + axis1[2]*axis2[2]
+            if abs(dot_prod1) > JOINT_AXIS_THRESHOLD or abs(dot_prod2) > JOINT_AXIS_THRESHOLD or abs(dot_prod3) > JOINT_AXIS_THRESHOLD:
+                raise ValueError("[ ERROR ] | Planar joint axes must be orthogonal")
+            
+            # Create 2 prismatic joints + 1 revolute joint + 2 invisible link
+            base_joint_id = len(joints)
+            invisible_link_1_id = len(links)
+            invisible_link_2_id = len(links) + 1
+            
+            # Create invisible intermediate links
+            links.append(Link(
+                id=invisible_link_1_id,
+                name=f"_e_link1_{base_joint_id}",
+                mass=0.0,
+                inertia=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                com_xyz=[0.0, 0.0, 0.0],
+                com_rpy=[0.0, 0.0, 0.0],
+                virtual=True
+            ))
+            name_to_id[f"_e_link1_{base_joint_id}"] = invisible_link_1_id
+
+            links.append(Link(
+                id=invisible_link_1_id,
+                name=f"_e_link2_{base_joint_id}",
+                mass=0.0,
+                inertia=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                com_xyz=[0.0, 0.0, 0.0],
+                com_rpy=[0.0, 0.0, 0.0],
+                virtual=True
+            ))
+            name_to_id[f"_e_link2_{base_joint_id}"] = invisible_link_1_id
+            
+            # Create prismatic and revolute joints
+            for i, (axis, limit, init_val, home_val) in enumerate(zip(axes, limits, init_vals, home_vals)):
+                if limits[i][0] > limits[i][1]:
+                    raise ValueError(f"[ ERROR ] | Planar joint DOF {i}: max limit < min limit")
+                if not ((limits[i][0] <= init_vals[i]) and (init_vals[i] <= limits[i][1])):
+                    raise ValueError(f"[ ERROR ] | Planar joint DOF {i}: initial value must be valid")
+                
+                if i == 0:
+                    current_parent = parent_id
+                    current_child = invisible_link_1_id
+                    current_origin_xyz = origin_xyz
+                    current_origin_rpy = origin_rpy
+                    currnt_type = "prismatic"
+                elif i == 1:
+                    current_parent = invisible_link_1_id
+                    current_child = invisible_link_2_id
+                    current_origin_xyz = [0.0, 0.0, 0.0]
+                    current_origin_rpy = [0.0, 0.0, 0.0]
+                    currnt_type = "prismatic"
+                else:   # i == 2
+                    current_parent = invisible_link_2_id
+                    current_child = child_id
+                    current_origin_xyz = [0.0, 0.0, 0.0]
+                    current_origin_rpy = [0.0, 0.0, 0.0]
+                    currnt_type = "revolute"
+                
+                joints.append(Joint(
+                    id=len(joints),
+                    parent_id=current_parent,
+                    child_id=current_child,
+                    type=currnt_type,
+                    axis=axis,
+                    limits=limit,
+                    init=init_val,
+                    home=home_val,
+                    origin_xyz=current_origin_xyz,
+                    origin_rpy=current_origin_rpy,
+                    comp_type=joint_type,
+                    comp_index=i
+                ))
         else:  # Regular joint (fixed, revolute, prismatic)
             axis = parse_bracket(block.fields.get("axis", JOINT_DEFAULT_AXIS))
             limits = parse_bracket(block.fields.get("limits", JOINT_DEFAULT_LIMITS))
@@ -804,8 +921,8 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
         code += f"      cobalt::math::linear_algebra::Matrix<3,3>({{{{ {link.inertia[0][0]}, {link.inertia[1][0]}, {link.inertia[2][0]} }},\n"
         code += f"                                                 {{ {link.inertia[0][1]}, {link.inertia[1][1]}, {link.inertia[2][1]} }},\n"
         code += f"                                                 {{ {link.inertia[0][2]}, {link.inertia[1][2]}, {link.inertia[2][2]} }}}}),\n"
-        code += f"      cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({link.com_xyz[0]}, {link.com_xyz[1]}, {link.com_xyz[2]}))\n"
-        code += f"                                                .rotateZ({link.com_rpy[2]}).rotateY({link.com_rpy[1]}).rotateX({link.com_rpy[0]}),\n"
+        code += f"      cobalt::math::geometry::Transform<>::eye().rotateZ({link.com_rpy[2]}).rotateY({link.com_rpy[1]}).rotateX({link.com_rpy[0]})\n"
+        code += f"                                                .translate(cobalt::math::linear_algebra::Vector<3>({link.com_xyz[0]}, {link.com_xyz[1]}, {link.com_xyz[2]})),\n"
         code += f"      {str(link.virtual).lower()}),\n"
     code += f"  }};\n\n"
     code += f"  return {name}_links;\n"
@@ -836,8 +953,8 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     code += f"  static const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
     for frame in frames:
         code += f"      FrameAttachment({frame.id}, {frame.link_id}, \"{frame.name}\",\n"
-        code += f"                      cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))\n"
-        code += f"                                                                .rotateZ({frame.origin_rpy[2]}).rotateY({frame.origin_rpy[1]}).rotateX({frame.origin_rpy[0]})),\n"
+        code += f"                      cobalt::math::geometry::Transform<>::eye().rotateZ({frame.origin_rpy[2]}).rotateY({frame.origin_rpy[1]}).rotateX({frame.origin_rpy[0]})\n"
+        code += f"                                                                .translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))),\n"
     code += f"  }};\n\n"
     code += f"  return {name}_frames;\n"
     code += f"}}\n\n"

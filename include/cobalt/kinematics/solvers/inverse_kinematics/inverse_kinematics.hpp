@@ -56,9 +56,10 @@ enum class IKMode : uint8_t {
  */
 struct IKTarget {
     id_t frameId;
-    cobalt::math::geometry::Transform<> pose;
     IKMode mode;
-};
+    cobalt::math::geometry::Transform<> pose;
+    cobalt::math::linear_algebra::Vector<6> weight{1,1,1,1,1,1};
+};  
 
 /**
  *  @brief Best joint configuration for desierd IKTargets
@@ -385,15 +386,19 @@ class InverseKinematics {
                 }
             }
 
+            // Error DOF weights
+            cobalt::math::linear_algebra::Matrix<6,6> W =  cobalt::math::linear_algebra::Matrix<6,6>::diagonal(target.weight);
+
             // Main IK loop
             iter_t iter;
             for(iter = 0; iter < maxIterations_; iter++) {
                 fk_.solve(robot_.state());
 
                 const cobalt::math::geometry::Transform<> &T_curr = robot_.state().frameTransforms[target.frameId];
-
+                
                 cobalt::math::linear_algebra::Vector<6> error = computeError(target.pose, T_curr);
-                cobalt::math::linear_algebra::Vector<M> taskErr = extractTaskError<M>(error, target.mode);
+                cobalt::math::linear_algebra::Vector<6> error_W = W * error;
+                cobalt::math::linear_algebra::Vector<M> taskErr = extractTaskError<M>(error_W, target.mode);
                 output.error = error;
                 float errNorm = norm(taskErr);
 
@@ -425,7 +430,8 @@ class InverseKinematics {
 
                 // Jacobian computation
                 cobalt::math::linear_algebra::Matrix<6, nJ> J = jacobian_.compute(robot_.state(), target.frameId);
-                cobalt::math::linear_algebra::Matrix<M, nJ> J_task = extractTaskJacobian<M>(J, target.mode);
+                cobalt::math::linear_algebra::Matrix<6, nJ> J_W = W * J;
+                cobalt::math::linear_algebra::Matrix<M, nJ> J_task = extractTaskJacobian<M>(J_W, target.mode);
 
                 bool isSingular = false;
                 bool nearSignularity = isNearSingularity<M>(J_task);

@@ -27,7 +27,7 @@
 
 \joint S {
     .links = [base, l1]
-    .limits = [[0, pi], [-3*pi/4, 3*pi/4], [-pi/2, pi]]
+    .limits = [[-pi/2, pi], [-3*pi/4, 3*pi/4], [0, pi]]
     .origin = {
         .xyz = [0, 0, 0]
         .rpy = [0, 0, 0]
@@ -46,16 +46,15 @@
     .init = 0
     .home = 0
 }
-\joint U {
+\joint S {
     .links = [l2, l3]
-    .limits = [[-pi/2, pi/2], [-pi/2, pi/2]]
-    .axis = [[0, 1, 0], [0, 0, 1]]
+    .limits = [[-pi/2, pi/2], [-pi/2, pi/2], [-pi/2, pi/2]]
     .origin = {
         .xyz = [0.5, 0, 0]
         .rpy = [0, 0, 0]
     }
-    .init = [0, 0]
-    .home = [0, 0]
+    .init = [0, 0, 0]
+    .home = [0, 0, 0]
 }
 
 \frame gripper { 

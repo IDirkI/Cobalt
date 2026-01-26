@@ -12,21 +12,20 @@ namespace cobalt::kinematics {
  *  @brief Type of a joint in a robot. (fixed, revolute, prismatic, etc.)
  */
 enum class JointType : uint8_t {
-    Fixed,
-    Revolute,
-    Prismatic
+    Fixed = 0,
+    Revolute = 1,
+    Prismatic = 2,
 };
 
 /**
  *  @brief Type of a compound joint in a robot.
  */
 enum class CompoundJointType : uint8_t {
-    None,
-    Spherical,
-    Universal,
-    Cylinderical,
-    Helical,
-    Planar,
+    None = 0,
+    Spherical = 1,
+    Universal = 2,
+    Cylinderical = 3,
+    Planar = 3,
 };
 
 

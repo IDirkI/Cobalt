@@ -6,10 +6,9 @@
     .mass = 1.0
     .com = {
         .xyz = [0.5, 0, 0]
-        .rpy = [0, 0, 0]
+        .rpy = [0, -pi/2, 0]
     }
 }
-
 \link l2 {
     .mass = 1.0
     .com = {
@@ -18,30 +17,26 @@
     }
 }
 
-
-\joint revolute {
+\joint e {
     .links = [base, l1]
-    .limits = [-pi, pi]
-    .axis = [0, 0, 1]
+    .limits = [[-5, 5], [-5, 5], [-pi, pi]]
     .origin = {
         .xyz = [0, 0, 0]
         .rpy = [0, 0, 0]
     }
-    .init = 0.2
-    .home = 0
+    .init = [0.7, 0.5, 0]
+    .home = [0, 0, 0]
 }
 
-
-\joint cylinderical {
+\joint p {
     .links = [l1, l2]
-    .limits = [[-pi, pi], [0, 3]]
-    .axis = [0, 0, 1]
+    .limits = [-5, 5]
     .origin = {
         .xyz = [0.5, 0, 0]
-        .rpy = [0, 0, 0]
+        .rpy = [0, -pi/2, 0]
     }
-    .init = [pi/4, 0.4]
-    .home = [0.0, 0.0]
+    .init = 0.4
+    .home = 0
 }
 
 

@@ -37,7 +37,10 @@ JOINT_TYPE_ALIASES = {
     "s":         "spherical",
 
     "cylinderical": "cylinderical",
-    "c":            "cylinderical"
+    "c":            "cylinderical",
+
+    "planar":       "planar",
+    "e":            "planar"
 }
 
 JOINT_AXIS_THRESHOLD = 0.0001
@@ -49,7 +52,7 @@ UNIVERSAL_DEFAULT_INIT = [0.0, 0.0]
 UNIVERSAL_DEFAULT_HOME= [0.0, 0.0]
 
 ## Spherical Joint
-SPHERICAL_DEFAULT_AXES = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+SPHERICAL_DEFAULT_AXES = [[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]]
 SPHERICAL_DEFAULT_LIMITS = [[-pi, pi], [-pi, pi], [-pi, pi]]
 SPHERICAL_DEFAULT_INIT = [0.0, 0.0, 0.0]
 SPHERICAL_DEFAULT_HOME= [0.0, 0.0, 0.0]
@@ -59,6 +62,12 @@ CYLINDERICAL_DEFAULT_AXIS = [1.0, 0.0, 0.0]
 CYLINDERICAL_DEFAULT_LIMITS = [[-pi, pi], [-1, 1]]
 CYLINDERICAL_DEFAULT_INIT = [0.0, 0.0]
 CYLINDERICAL_DEFAULT_HOME= [0.0, 0.0]
+
+## Planar Joint
+PLANAR_DEFAULT_AXES = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+PLANAR_DEFAULT_LIMITS = [[-1, 1], [-1, 1], [-pi, pi]]
+PLANAR_DEFAULT_INIT = [0.0, 0.0, 0.0]
+PLANAR_DEFAULT_HOME= [0.0, 0.0, 0.0]
 
 # === FRAME ===
 FRAME_DEFAULT_ORIGIN_XYZ = [0.0, 0.0, 0.0]

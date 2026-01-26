@@ -6,6 +6,7 @@ import pathlib
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from scipy.spatial.transform import Rotation as R
 
 # -------------------------------
 # Colors
@@ -43,8 +44,9 @@ COLOR_HELICAL = 'hotpink'
 COLOR_HELICAL_AXIS = 'mediumvioletred'
 
 # Planar 
-COLOR_HELICAL = 'gold'
-COLOR_HELICAL_AXIS = 'goldenrod'
+COLOR_PLANAR = 'gold'
+COLOR_PLANAR_AXIS = 'goldenrod'
+COLOR_PLANAR_EXTENSION = 'darkkhaki'
 
 # Unknown/Unrecognizes/Missing/Error
 COLOR_UNKNOWN = 'mistyrose'
@@ -69,8 +71,9 @@ JOINT_FIXED_ALPHA = 0.6
 JOINT_REVOLUTE_ALPHA = 0.7
 JOINT_PRISMATIC_ALPHA = 0.7
 JOINT_UNIVERSAL_ALPHA = 0.7
-JOINT_SPHERICAL_ALPHA = 0.8
+JOINT_SPHERICAL_ALPHA = 0.85
 JOINT_CYLINDERICAL_ALPHA = 0.7
+JOINT_PLANAR_ALPHA = 0.6
 
 ## Axis-len
 JOINT_REVOLUTE_AXIS_LENGTH = 0.20
@@ -78,12 +81,18 @@ JOINT_PRISMATIC_AXIS_LENGTH = 0.18
 JOINT_UNIVERSAL_AXIS_LENGTH = 0.22
 JOINT_SPHERICAL_AXIS_LENGTH = 0.16
 JOINT_CYLINDERICAL_AXIS_LENGTH = 0.1
+JOINT_PLANAR_LONGAXIS_LENGTH = 0.15
+JOINT_PLANAR_SHORTAXIS_LENGTH = 0.06
 
 ## Dimention
+JOINT_FIXED_SIDE = 0.03
+JOINT_PLANAR_LONG_SIZE = 0.1
+JOINT_PLANAR_SHORT_SIZE = 0.005
+JOINT_PLANAR_EXTENSION_SIZE = 90
 JOINT_UNKNOWN_SIZE = 180
 
 # -------------------------------
-# Quaternion utilities
+# Rotation utilities
 # -------------------------------
 def quat_to_rot(q):
     qw, qx, qy, qz = q
@@ -92,6 +101,14 @@ def quat_to_rot(q):
         [2*(qx*qy + qz*qw),     1 - 2*(qx*qx + qz*qz), 2*(qy*qz - qx*qw)],
         [2*(qx*qz - qy*qw),     2*(qy*qz + qx*qw),     1 - 2*(qx*qx + qy*qy)]
     ])
+
+def axisangle_to_rot(axis, angle_radians):
+  rot_vector = np.array(axis) * angle_radians
+  r = R.from_rotvec(rot_vector)
+  
+  rotation_matrix = r.as_matrix()
+  
+  return rotation_matrix
 
 # -------------------------------
 # Drawing helpers
@@ -342,39 +359,91 @@ def visualize_robot(csv_file):
 
     # --- Compound Joints (Spherical and Universal) ---
     for group in compound_groups:
+        compound_type = joints[group[0]]['comp_type']
         if len(group) == 3:  # Spherical joint
-            # Use the first joint's position and parent orientation
-            j0 = joints[group[0]]
-            j1 = joints[group[1]]
-            j2 = joints[group[2]]
-            p_joint = j0['pos']
-            p_parent = links[j0['parent']]['pos']
-            p_child = links[j2['child']]['pos']
-            parent_quat = links[j0['parent']]['quat']
+            if compound_type == 1:  # Spherical Joint, type: 1
+                # Use the first joint's position and parent orientation
+                j0 = joints[group[0]]
+                j1 = joints[group[1]]
+                j2 = joints[group[2]]
+                p_joint = j0['pos']
+                p_parent = links[j0['parent']]['pos']
+                p_child = links[j2['child']]['pos']
 
-            axis0 = j0['axis']
-            axis1 = j1['axis']
-            axis2 = j2['axis']
-            
-            # Draw connection from parent to joint
-            draw_line(ax, p_parent, p_joint, '-', COLOR_LINK, lw=LINK_THICKNESS)
-            
-            # Draw sphere for spherical joint
-            draw_sphere(ax, p_joint, radius=0.055, color=COLOR_SPHERICAL, alpha=JOINT_SPHERICAL_ALPHA, resolution=25)
-            
-            # Draw spherical axis lines
-            for axis in [axis0, axis1, axis2]:
-                axis_norm = axis / np.linalg.norm(axis)
-                axis_length = JOINT_SPHERICAL_AXIS_LENGTH
-                p_axis_start = p_joint - axis_norm * axis_length / 2
-                p_axis_end = p_joint + axis_norm * axis_length / 2
-                draw_line(ax, p_axis_start, p_axis_end, '-', COLOR_SPHERICAL_AXIS, lw=JOINT_AXIS_THICKNESS)
-            
-            # Draw connection from joint to child
-            draw_line(ax, p_joint, p_child, '-', COLOR_LINK, lw=LINK_THICKNESS)
+                axis0 = j0['axis']
+                axis1 = j1['axis']
+                axis2 = j2['axis']
+
+                # Draw connection from parent to joint
+                draw_line(ax, p_parent, p_joint, '-', COLOR_LINK, lw=LINK_THICKNESS)
+                
+                # Draw sphere for spherical joint
+                draw_sphere(ax, p_joint, radius=0.055, color=COLOR_SPHERICAL, alpha=JOINT_SPHERICAL_ALPHA, resolution=25)
+                
+                # Draw spherical axis lines
+                for axis in [axis0, axis1, axis2]:
+                    axis_norm = axis / np.linalg.norm(axis)
+                    axis_length = JOINT_SPHERICAL_AXIS_LENGTH
+                    p_axis_start = p_joint - axis_norm * axis_length / 2
+                    p_axis_end = p_joint + axis_norm * axis_length / 2
+                    draw_line(ax, p_axis_start, p_axis_end, '-', COLOR_SPHERICAL_AXIS, lw=JOINT_AXIS_THICKNESS)
+                
+                # Draw connection from joint to child
+                draw_line(ax, p_joint, p_child, '-', COLOR_LINK, lw=LINK_THICKNESS)
+            elif compound_type == 3: # Planar Joint, type: 3
+                # Use the first joint's position and parent orientation
+                j0 = joints[group[0]]
+                j1 = joints[group[1]]
+                j2 = joints[group[2]]
+                p_joint = j0['pos']
+                p_parent = links[j0['parent']]['pos']
+                p_child = links[j2['child']]['pos']
+
+                axis0 = j0['axis']
+                axis1 = j1['axis']
+                axis2 = j2['axis']
+
+                axis0_norm = axis0 / np.linalg.norm(axis0)
+                axis1_norm = axis1 / np.linalg.norm(axis1)
+                value0 = j0['value']
+                value1 = j1['value']
+                value2 = j2['value']
+
+                p_extended0 = p_joint + (axis0_norm * value0)
+                p_extended = p_extended0 + (axis1_norm * value1)
+                
+                # Draw connection from parent to joint
+                draw_line(ax, p_parent, p_extended0, '--', COLOR_PLANAR_EXTENSION, lw=JOINT_AXIS_THICKNESS)
+                draw_line(ax, p_extended0, p_extended, '--', COLOR_PLANAR_EXTENSION, lw=JOINT_AXIS_THICKNESS)
+                ax.scatter(p_joint[0], p_joint[1], p_joint[2], color=COLOR_PLANAR_EXTENSION, s=JOINT_PLANAR_EXTENSION_SIZE, marker='s', edgecolors=COLOR_PLANAR_EXTENSION, linewidths=JOINT_AXIS_THICKNESS)
+
+                Rot = axisangle_to_rot(axis2, value2)
+                axes = Rot @ (np.array([
+                        [axis0[0], axis1[0], axis2[0]], 
+                        [axis0[1], axis1[1], axis2[1]], 
+                        [axis0[2], axis1[2], axis2[2]], 
+                    ]))
+
+                # Draw flat rectangle plane for planar joint
+                draw_box(ax, p_extended, axes[0], width=JOINT_PLANAR_LONG_SIZE, height=JOINT_PLANAR_SHORT_SIZE, length=JOINT_PLANAR_LONG_SIZE, color=COLOR_PLANAR, alpha=JOINT_PLANAR_ALPHA)
+                # Draw planar axis lines
+                for axis in [axes[0], axes[1]]:
+                    axis_norm = axis / np.linalg.norm(axis)
+                    axis_length = JOINT_PLANAR_LONGAXIS_LENGTH 
+                    p_axis_start = p_extended - axis_norm * axis_length / 2
+                    p_axis_end = p_extended + axis_norm * axis_length / 2
+                    draw_line(ax, p_axis_start, p_axis_end, '-', COLOR_PLANAR_AXIS, lw=JOINT_AXIS_THICKNESS)
+                # Draw short planar axis line
+                axis_norm = axes[2] / np.linalg.norm(axes[2])
+                axis_length = JOINT_PLANAR_SHORTAXIS_LENGTH 
+                p_axis_start = p_extended - axis_norm * axis_length / 2
+                p_axis_end = p_extended + axis_norm * axis_length / 2
+                draw_line(ax, p_axis_start, p_axis_end, '-', COLOR_PLANAR_AXIS, lw=JOINT_AXIS_THICKNESS)
+                
+                # Draw connection from joint to child
+                draw_line(ax, p_extended, p_child, '-', COLOR_LINK, lw=LINK_THICKNESS)
             
         elif len(group) == 2: 
-            compound_type = joints[group[0]]['comp_type']
             if compound_type == 2: # Universal Joint, type: 2
                 # Use the first joint's position
                 j0 = joints[group[0]]
@@ -471,7 +540,7 @@ def visualize_robot(csv_file):
         draw_line(ax, p_parent, p_joint, '-', COLOR_LINK, lw=LINK_THICKNESS)
         
         if jtype == 0:  # Fixed
-            draw_box(ax, p_joint, [1, 0, 0], width=0.05, height=0.05, length=0.05, color=COLOR_FIXED, alpha=JOINT_FIXED_ALPHA)
+            draw_box(ax, p_joint, [1, 0, 0], width=JOINT_FIXED_SIDE, height=JOINT_FIXED_SIDE, length=JOINT_FIXED_SIDE, color=COLOR_FIXED, alpha=JOINT_FIXED_ALPHA)
             draw_line(ax, p_joint, p_child, '-', COLOR_LINK, lw=LINK_THICKNESS)
             
         elif jtype == 1:  # Revolute
