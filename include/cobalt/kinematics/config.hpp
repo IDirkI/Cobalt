@@ -9,6 +9,10 @@ namespace cobalt::kinematics {
      *  @brief Default alias for ids
      */
     using id_t  = std::uint16_t;
+    /**
+     *  @brief Default alias for compound indexes
+     */
+    using cidx_t  = std::int16_t;
 
     /**
      *  @brief Default alias for iterations

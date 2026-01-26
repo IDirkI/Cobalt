@@ -29,6 +29,7 @@ class Link:
     inertia: List[List[float]]  # 3x3 inertia matrix
     com_xyz: List[float]        # COM in x-y-z coordinates
     com_rpy: List[float]        # COM in roll-pitch-yaw angles
+    virtual: bool = False       # Virtualness of a link
 
 @dataclass
 class Joint:
@@ -42,6 +43,8 @@ class Joint:
     home: float                  # Home(reference) position of the joint
     origin_xyz: List[float]      # Origin in x-y-z coordinates
     origin_rpy: List[float]      # Origin in roll-pitch-yaw angles
+    comp_type: str               # True if the joint is a compound collection of R & P
+    comp_index: int = -1         # Index within the compound joint
 
 @dataclass
 class Frame:
@@ -221,10 +224,153 @@ def parse_joint_type(joint: str) -> str:
     if key not in JOINT_TYPE_ALIASES:
         raise ValueError(
             f"[ ERROR ] | Invalid joint type '{joint}'. "
-            f">>> Allowed joint types: fixed/f, revolute/r, prismatic/p"
+            f">>> Allowed joint types: fixed/f, revolute/r, prismatic/p, universal/u, spherical/s"
         )
 
     return JOINT_TYPE_ALIASES[key]
+
+def parse_nested_list(value: str) -> List:
+    # Remove outer brackets and whitespace
+    value = value.strip()
+    if not (value.startswith('[') and value.endswith(']')):
+        raise ValueError("[ ERROR ] | Value must be a list")
+    
+    # Remove outer brackets
+    inner = value[1:-1].strip()
+    
+    # Split by '], [' to get individual sublists
+    # Handle the case where there are nested lists
+    result = []
+    depth = 0
+    current = ""
+    
+    for char in inner:
+        if char == '[':
+            depth += 1
+            current += char
+        elif char == ']':
+            depth -= 1
+            current += char
+            if depth == 0 and current.strip():
+                # Parse this sublist
+                result.append(parse_sublist(current.strip()))
+                current = ""
+        elif char == ',' and depth == 0:
+            if current.strip() and not current.strip().startswith('['):
+                # Single value
+                result.append(safe_eval(current.strip()))
+                current = ""
+        else:
+            current += char
+    
+    # Don't forget the last item
+    if current.strip():
+        if current.strip().startswith('['):
+            result.append(parse_sublist(current.strip()))
+        else:
+            result.append(safe_eval(current.strip()))
+    
+    return result
+
+def parse_sublist(value: str) -> List[float]:
+
+    value = value.strip()
+    if not (value.startswith('[') and value.endswith(']')):
+        raise ValueError("[ ERROR ] | Sublist must be enclosed in brackets")
+    
+    inner = value[1:-1].strip()
+    elements = [elem.strip() for elem in inner.split(',')]
+    
+    return [safe_eval(elem) for elem in elements if elem]
+
+def parse_multi_limits(value) -> List[List[float]]:
+    # First check if it's already a list (from defaults)
+    if isinstance(value, list):
+        return [[safe_eval(str(v[0])) if not isinstance(v[0], (int, float)) else float(v[0]), 
+                 safe_eval(str(v[1])) if not isinstance(v[1], (int, float)) else float(v[1])] 
+                for v in value]
+    
+    # Parse the string
+    try:
+        mat = parse_nested_list(value)
+    except:
+        raise ValueError("[ ERROR ] | Failed to parse multi-DOF limits")
+    
+    # Check if it's a list of lists
+    if not isinstance(mat, list):
+        raise ValueError("[ ERROR ] | Multi-DOF limits must be a list of limit pairs")
+    
+    result = []
+    for limit_pair in mat:
+        if not isinstance(limit_pair, list) or len(limit_pair) != 2:
+            raise ValueError("[ ERROR ] | Each limit must be [min, max]")
+        
+        # Use safe_eval to handle any remaining expressions
+        min_val = limit_pair[0] if isinstance(limit_pair[0], (int, float)) else safe_eval(str(limit_pair[0]))
+        max_val = limit_pair[1] if isinstance(limit_pair[1], (int, float)) else safe_eval(str(limit_pair[1]))
+        result.append([min_val, max_val])
+    
+    return result
+
+def parse_multi_axes(value) -> List[List[float]]:
+    # Handle if it's already a list (from defaults)
+    if isinstance(value, list):
+        mat = value
+    else:
+        try:
+            mat = parse_nested_list(value)
+        except:
+            raise ValueError("[ ERROR ] | Failed to parse multi-axis")
+    
+    if not isinstance(mat, list):
+        raise ValueError("[ ERROR ] | Multi-axis must be a list of axes")
+    
+    result = []
+    for axis in mat:
+        if not isinstance(axis, list) or len(axis) != 3:
+            raise ValueError("[ ERROR ] | Each axis must have 3 components")
+        
+        # Handle each component
+        parsed_axis = []
+        for i in range(3):
+            if isinstance(axis[i], (int, float)):
+                parsed_axis.append(float(axis[i]))
+            else:
+                parsed_axis.append(safe_eval(str(axis[i])))
+        
+        # Normalize check
+        norm = sqrt(sum(a**2 for a in parsed_axis))
+        if abs(norm - 1.0) > JOINT_AXIS_THRESHOLD:
+            raise ValueError(f"[ ERROR ] | Each axis must be normalized (got norm={norm})")
+        
+        result.append(parsed_axis)
+    
+    return result
+
+def parse_multi_values(value) -> List[float]:
+    # Handle if it's already a list (from defaults)
+    if isinstance(value, list):
+        return [safe_eval(str(v)) if not isinstance(v, (int, float)) else float(v) for v in value]
+    
+    try:
+        vals = parse_nested_list(value)
+        # Flatten if it's a list of lists (shouldn't be for init/home)
+        if vals and isinstance(vals[0], list):
+            raise ValueError("[ ERROR ] | init/home values must be a flat list")
+    except:
+        raise ValueError("[ ERROR ] | Failed to parse multi-DOF values")
+    
+    if not isinstance(vals, list):
+        raise ValueError("[ ERROR ] | Multi-DOF values must be a list")
+    
+    result = []
+    for v in vals:
+        if isinstance(v, (int, float)):
+            result.append(float(v))
+        else:
+            result.append(safe_eval(str(v)))
+    
+    return result
 
 def pascal_case(str : str) -> str:
     s = str.replace("_", " ").replace("-", " ");
@@ -294,6 +440,7 @@ def parse_rob_file(file_path: str):
                 inertia=inertia,
                 com_xyz=com_xyz,
                 com_rpy=com_rpy,
+                virtual=False
             )
         )
     
@@ -307,12 +454,6 @@ def parse_rob_file(file_path: str):
         parent_name, child_name = parse_parent_child(block.fields["links"])
         parent_id = name_to_id[parent_name]
         child_id = name_to_id[child_name]
-        joint_id = len(joints)
-
-        axis = parse_bracket(block.fields.get("axis", JOINT_DEFAULT_AXIS))
-        limits = parse_bracket(block.fields.get("limits", JOINT_DEFAULT_LIMITS))
-        home = safe_eval(block.fields.get("home", JOINT_DEFAULT_HOME))
-        initial = safe_eval(block.fields.get("init", JOINT_DEFAULT_INIT))
         
         if "origin" in block.subblocks:
             origin_xyz, origin_rpy = parse_transform_block(block.subblocks["origin"])
@@ -320,21 +461,262 @@ def parse_rob_file(file_path: str):
             origin_xyz = JOINT_DEFAULT_ORIGIN_XYZ
             origin_rpy = JOINT_DEFAULT_ORIGIN_RPY
 
-         # Attribute checks
-        if (parent_id == -1) or (child_id == -1):                                           # Parent/child links index must exist
-            raise ValueError("[ ERROR ] | Joint must have a parent and child")
-        if (parent_id == child_id):                                                         # Parent =/= child link
-            raise ValueError("[ ERROR ] | Joint parent and child link cannot be the same link")
-        if limits[0] > limits[1]:                                                           # Min limit < Max limit
-            raise ValueError("[ ERROR ] | max limit < min limit")
-        if abs(1 - sqrt(axis[0]**2 + axis[1]**2 + axis[2]**2)) > JOINT_AXIS_THRESHOLD:      # Normalized axis
-            raise ValueError("[ ERROR ] | Joint axis must be normalized")
-        if not ((limits[0] <= initial - home) and (initial - home <= limits[1])):           # Initial value is valid
-            raise ValueError("[ ERROR ] | Joint initial value must be valid")
-
-        joints.append(
-            Joint(
-                id=joint_id,
+        # Handle different joint types
+        if joint_type == "universal":
+            # Parse universal joint parameters
+            axes_str = block.fields.get("axis", None)
+            if axes_str is None:
+                axes = UNIVERSAL_DEFAULT_AXES
+            else:
+                axes = parse_multi_axes(axes_str)
+            
+            limits_str = block.fields.get("limits", None)
+            if limits_str is None:
+                limits = UNIVERSAL_DEFAULT_LIMITS
+            else:
+                limits = parse_multi_limits(limits_str)
+            
+            init_str = block.fields.get("init", None)
+            if init_str is None:
+                init_vals = UNIVERSAL_DEFAULT_INIT
+            else:
+                init_vals = parse_multi_values(init_str)
+            
+            home_str = block.fields.get("home", None)
+            if home_str is None:
+                home_vals = UNIVERSAL_DEFAULT_HOME
+            else:
+                home_vals = parse_multi_values(home_str)
+            
+            # Validation
+            if len(axes) != 2:
+                raise ValueError("[ ERROR ] | Universal joint must have exactly 2 axes")
+            if len(limits) != 2 or len(init_vals) != 2 or len(home_vals) != 2:
+                raise ValueError("[ ERROR ] | Universal joint must have 2 DOF parameters")
+            
+            # Create 2 revolute joints + 1 invisible link
+            base_joint_id = len(joints)
+            invisible_link_id = len(links)
+            
+            # Create invisible intermediate link
+            links.append(Link(
+                id=invisible_link_id,
+                name=f"_u_link_{base_joint_id}",
+                mass=0.0,
+                inertia=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                com_xyz=[0.0, 0.0, 0.0],
+                com_rpy=[0.0, 0.0, 0.0],
+                virtual=True
+            ))
+            name_to_id[f"_u_link_{base_joint_id}"] = invisible_link_id
+            
+            # Create revolute joints
+            for i, (axis, limit, init_val, home_val) in enumerate(zip(axes, limits, init_vals, home_vals)):
+                if limits[i][0] > limits[i][1]:
+                    raise ValueError(f"[ ERROR ] | Universal joint DOF {i}: max limit < min limit")
+                if not ((limits[i][0] <= init_vals[i]) and (init_vals[i] <= limits[i][1])):
+                    raise ValueError(f"[ ERROR ] | Universal joint DOF {i}: initial value must be valid")
+                
+                current_parent = parent_id if i == 0 else invisible_link_id
+                current_child = invisible_link_id if i == 0 else child_id
+                current_origin_xyz = origin_xyz if i == 0 else [0.0, 0.0, 0.0]
+                current_origin_rpy = origin_rpy if i == 0 else [0.0, 0.0, 0.0]
+                
+                joints.append(Joint(
+                    id=len(joints),
+                    parent_id=current_parent,
+                    child_id=current_child,
+                    type="revolute",
+                    axis=axis,
+                    limits=limit,
+                    init=init_val,
+                    home=home_val,
+                    origin_xyz=current_origin_xyz,
+                    origin_rpy=current_origin_rpy,
+                    comp_type=joint_type,
+                    comp_index=i
+                ))
+        elif joint_type == "spherical":
+            # Parse spherical joint parameters
+            limits_str = block.fields.get("limits", None)
+            if limits_str is None:
+                limits = SPHERICAL_DEFAULT_LIMITS
+            else:
+                limits = parse_multi_limits(limits_str)
+            
+            init_str = block.fields.get("init", None)
+            if init_str is None:
+                init_vals = SPHERICAL_DEFAULT_INIT
+            else:
+                init_vals = parse_multi_values(init_str)
+            
+            home_str = block.fields.get("home", None)
+            if home_str is None:
+                home_vals = SPHERICAL_DEFAULT_HOME
+            else:
+                home_vals = parse_multi_values(home_str)
+            
+            # Spherical always uses X, Y, Z axes in parent frame
+            axes = SPHERICAL_DEFAULT_AXES
+            
+            # Validation
+            if len(limits) != 3 or len(init_vals) != 3 or len(home_vals) != 3:
+                raise ValueError("[ ERROR ] | Spherical joint must have 3 DOF parameters")
+            
+            # Create 3 revolute joints + 2 invisible links
+            base_joint_id = len(joints)
+            invisible_link_1_id = len(links)
+            invisible_link_2_id = len(links) + 1
+            
+            # Create first invisible link
+            links.append(Link(
+                id=invisible_link_1_id,
+                name=f"_s_link1_{base_joint_id}",
+                mass=0.0,
+                inertia=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                com_xyz=[0.0, 0.0, 0.0],
+                com_rpy=[0.0, 0.0, 0.0],
+                virtual=True
+            ))
+            name_to_id[f"_s_link1_{base_joint_id}"] = invisible_link_1_id
+            
+            # Create second invisible link
+            links.append(Link(
+                id=invisible_link_2_id,
+                name=f"_s_link2_{base_joint_id}",
+                mass=0.0,
+                inertia=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                com_xyz=[0.0, 0.0, 0.0],
+                com_rpy=[0.0, 0.0, 0.0],
+                virtual=True
+            ))
+            name_to_id[f"_s_link2_{base_joint_id}"] = invisible_link_2_id
+            
+            # Create 3 revolute joints
+            for i, (axis, limit, init_val, home_val) in enumerate(zip(axes, limits, init_vals, home_vals)):
+                if limits[i][0] > limits[i][1]:
+                    raise ValueError(f"[ ERROR ] | Spherical joint DOF {i}: max limit < min limit")
+                if not ((limits[i][0] <= init_vals[i]) and (init_vals[i] <= limits[i][1])):
+                    raise ValueError(f"[ ERROR ] | Spherical joint DOF {i}: initial value must be valid")
+                
+                if i == 0:
+                    current_parent = parent_id
+                    current_child = invisible_link_1_id
+                    current_origin_xyz = origin_xyz
+                    current_origin_rpy = origin_rpy
+                elif i == 1:
+                    current_parent = invisible_link_1_id
+                    current_child = invisible_link_2_id
+                    current_origin_xyz = [0.0, 0.0, 0.0]
+                    current_origin_rpy = [0.0, 0.0, 0.0]
+                else:  # i == 2
+                    current_parent = invisible_link_2_id
+                    current_child = child_id
+                    current_origin_xyz = [0.0, 0.0, 0.0]
+                    current_origin_rpy = [0.0, 0.0, 0.0]
+                
+                joints.append(Joint(
+                    id=len(joints),
+                    parent_id=current_parent,
+                    child_id=current_child,
+                    type="revolute",
+                    axis=axis,
+                    limits=limit,
+                    init=init_val,
+                    home=home_val,
+                    origin_xyz=current_origin_xyz,
+                    origin_rpy=current_origin_rpy,
+                    comp_type=joint_type,
+                    comp_index=i
+                ))
+        elif joint_type == "cylinderical":
+            # Parse cylinderical joint parameters
+            axis = parse_bracket(block.fields.get("axis", JOINT_DEFAULT_AXIS))
+            
+            limits_str = block.fields.get("limits", None)
+            if limits_str is None:
+                limits = CYLINDERICAL_DEFAULT_LIMITS
+            else:
+                limits = parse_multi_limits(limits_str)
+            
+            init_str = block.fields.get("init", None)
+            if init_str is None:
+                init_vals = CYLINDERICAL_DEFAULT_INIT
+            else:
+                init_vals = parse_multi_values(init_str)
+            
+            home_str = block.fields.get("home", None)
+            if home_str is None:
+                home_vals = CYLINDERICAL_DEFAULT_HOME
+            else:
+                home_vals = parse_multi_values(home_str)
+            
+            # Validation
+            if len(limits) != 2 or len(init_vals) != 2 or len(home_vals) != 2:
+                raise ValueError("[ ERROR ] | Cylinderical joint must have 2 DOF parameters")
+            
+            # Create 1 revolute joints + 1 prismatic joint + 1 invisible link
+            base_joint_id = len(joints)
+            invisible_link_id = len(links)
+            
+            # Create invisible intermediate link
+            links.append(Link(
+                id=invisible_link_id,
+                name=f"_c_link_{base_joint_id}",
+                mass=0.0,
+                inertia=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                com_xyz=[0.0, 0.0, 0.0],
+                com_rpy=[0.0, 0.0, 0.0],
+                virtual=True
+            ))
+            name_to_id[f"_c_link_{base_joint_id}"] = invisible_link_id
+            
+            # Create revolute joint
+            for i, (limit, init_val, home_val) in enumerate(zip(limits, init_vals, home_vals)):
+                if limits[i][0] > limits[i][1]:
+                    raise ValueError(f"[ ERROR ] | Cylinderical joint DOF {i}: max limit < min limit")
+                if not ((limits[i][0] <= init_vals[i]) and (init_vals[i] <= limits[i][1])):
+                    raise ValueError(f"[ ERROR ] | Cylinderical joint DOF {i}: initial value must be valid")
+                
+                current_parent = parent_id if i == 0 else invisible_link_id
+                current_child = invisible_link_id if i == 0 else child_id
+                current_origin_xyz = origin_xyz if i == 0 else [0.0, 0.0, 0.0]
+                current_origin_rpy = origin_rpy if i == 0 else [0.0, 0.0, 0.0]
+                
+                joints.append(Joint(
+                    id=len(joints),
+                    parent_id=current_parent,
+                    child_id=current_child,
+                    type= "revolute" if i == 0 else "prismatic",
+                    axis=axis,
+                    limits=limit,
+                    init=init_val,
+                    home=home_val,
+                    origin_xyz=current_origin_xyz,
+                    origin_rpy=current_origin_rpy,
+                    comp_type=joint_type,
+                    comp_index=i
+                ))
+        else:  # Regular joint (fixed, revolute, prismatic)
+            axis = parse_bracket(block.fields.get("axis", JOINT_DEFAULT_AXIS))
+            limits = parse_bracket(block.fields.get("limits", JOINT_DEFAULT_LIMITS))
+            home = safe_eval(block.fields.get("home", JOINT_DEFAULT_HOME))
+            initial = safe_eval(block.fields.get("init", JOINT_DEFAULT_INIT))
+            
+            # Attribute checks
+            if (parent_id == -1) or (child_id == -1):
+                raise ValueError("[ ERROR ] | Joint must have a parent and child")
+            if (parent_id == child_id):
+                raise ValueError("[ ERROR ] | Joint parent and child link cannot be the same link")
+            if limits[0] > limits[1]:
+                raise ValueError("[ ERROR ] | max limit < min limit")
+            if abs(1 - sqrt(axis[0]**2 + axis[1]**2 + axis[2]**2)) > JOINT_AXIS_THRESHOLD:
+                raise ValueError("[ ERROR ] | Joint axis must be normalized")
+            if not ((limits[0] <= initial - home) and (initial - home <= limits[1])):
+                raise ValueError("[ ERROR ] | Joint initial value must be valid")
+            
+            joints.append(Joint(
+                id=len(joints),
                 parent_id=parent_id,
                 child_id=child_id,
                 type=joint_type,
@@ -344,8 +726,9 @@ def parse_rob_file(file_path: str):
                 home=home,
                 origin_xyz=origin_xyz,
                 origin_rpy=origin_rpy,
-            )
-        )
+                comp_type="none",
+                comp_index=-1
+            ))
     
     # === Frame === 
     for block in blocks:
@@ -392,6 +775,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     code += "#include \"cobalt/math/linear_algebra/matrix/matrix.hpp\"\n"
     code += "#include \"cobalt/math/geometry/transform/transform.hpp\"\n\n"
 
+    code += "#include \"cobalt/kinematics/config.hpp\"\n"
     code += "#include \"cobalt/kinematics/core/joint.hpp\"\n"
     code += "#include \"cobalt/kinematics/core/link.hpp\"\n"
     code += "#include \"cobalt/kinematics/core/frame_attachment.hpp\"\n"
@@ -412,51 +796,51 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
 
     code += f"namespace {name}_internals {{\n"
     # ========== Links ==========
-    if(L > 0):
-        code += f"// ===== Links =====\n"
-        code += f"inline const std::array<Link, {L}> &getLinks() {{\n"
-        code += f"  static const std::array<Link, {L}> {name}_links = {{\n"
-        for link in links:
-            code += f"    Link({link.id}, \"{link.name}\", {link.mass},\n"
-            code += f"      cobalt::math::linear_algebra::Matrix<3,3>({{{{ {link.inertia[0][0]}, {link.inertia[1][0]}, {link.inertia[2][0]} }},\n"
-            code += f"                                                 {{ {link.inertia[0][1]}, {link.inertia[1][1]}, {link.inertia[2][1]} }},\n"
-            code += f"                                                 {{ {link.inertia[0][2]}, {link.inertia[1][2]}, {link.inertia[2][2]} }}}}),\n"
-            code += f"      cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({link.com_xyz[0]}, {link.com_xyz[1]}, {link.com_xyz[2]}))\n"
-            code += f"                                                .rotateZ({link.com_rpy[2]}).rotateY({link.com_rpy[1]}).rotateX({link.com_rpy[0]})),\n"
-        code += f"  }};\n\n"
-        code += f"  return {name}_links;\n"
-        code += f"}}\n"
+    code += f"// ===== Links =====\n"
+    code += f"inline const std::array<Link, {L}> &getLinks() {{\n"
+    code += f"  static const std::array<Link, {L}> {name}_links = {{\n"
+    for link in links:
+        code += f"    Link({link.id}, \"{link.name}\", {link.mass},\n"
+        code += f"      cobalt::math::linear_algebra::Matrix<3,3>({{{{ {link.inertia[0][0]}, {link.inertia[1][0]}, {link.inertia[2][0]} }},\n"
+        code += f"                                                 {{ {link.inertia[0][1]}, {link.inertia[1][1]}, {link.inertia[2][1]} }},\n"
+        code += f"                                                 {{ {link.inertia[0][2]}, {link.inertia[1][2]}, {link.inertia[2][2]} }}}}),\n"
+        code += f"      cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({link.com_xyz[0]}, {link.com_xyz[1]}, {link.com_xyz[2]}))\n"
+        code += f"                                                .rotateZ({link.com_rpy[2]}).rotateY({link.com_rpy[1]}).rotateX({link.com_rpy[0]}),\n"
+        code += f"      {str(link.virtual).lower()}),\n"
+    code += f"  }};\n\n"
+    code += f"  return {name}_links;\n"
+    code += f"}}\n"
 
     # ========== Joints ==========
-    if(J > 0):
-        code += f"// ===== Joints =====\n"
-        code += f"inline const std::array<Joint, {J}> &getJoints() {{\n"
-        code += f"  static const std::array<Joint, {J}> {name}_joints = {{\n"
-        for joint in joints:
-            limitsEnabled = (joint.type != "fixed")
+    code += f"// ===== Joints =====\n"
+    code += f"inline const std::array<Joint, {J}> &getJoints() {{\n"
+    code += f"  static const std::array<Joint, {J}> {name}_joints = {{\n"
+    for joint in joints:
+        limitsEnabled = (joint.type != "fixed")
 
-            code += f"          Joint({joint.id}, {joint.parent_id}, {joint.child_id}, JointType::{joint.type.capitalize()},\n"
-            code += f"              cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({joint.origin_xyz[0]}, {joint.origin_xyz[1]}, {joint.origin_xyz[2]}))\n"
-            code += f"                                                        .rotateZ({joint.origin_rpy[2]}).rotateY({joint.origin_rpy[1]}).rotateX({joint.origin_rpy[0]}),\n"
-            code += f"               cobalt::math::linear_algebra::Vector<3>({float(joint.axis[0])}, {float(joint.axis[1])}, {float(joint.axis[2])}),\n"
-            code += f"              JointLimits{{ {float(joint.limits[0])}, {float(joint.limits[1])}, {str(limitsEnabled).lower()} }},\n"
-            code += f"               {float(joint.home)}),\n"
-        code += f"  }};\n\n"
-        code += f"  return {name}_joints;\n"
-        code += f"}}\n\n"
+        code += f"          Joint({joint.id}, {joint.parent_id}, {joint.child_id}, JointType::{joint.type.capitalize()},\n"
+        code += f"              cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({joint.origin_xyz[0]}, {joint.origin_xyz[1]}, {joint.origin_xyz[2]}))\n"
+        code += f"                                                        .rotateZ({joint.origin_rpy[2]}).rotateY({joint.origin_rpy[1]}).rotateX({joint.origin_rpy[0]}),\n"
+        code += f"               cobalt::math::linear_algebra::Vector<3>({float(joint.axis[0])}, {float(joint.axis[1])}, {float(joint.axis[2])}),\n"
+        code += f"              JointLimits{{ {float(joint.limits[0])}, {float(joint.limits[1])}, {str(limitsEnabled).lower()} }},\n"
+        code += f"               {float(joint.home)},\n"
+        code += f"               CompoundJointType::{joint.comp_type.capitalize()},\n"
+        code += f"               (cidx_t){int(joint.comp_index)}),\n"
+    code += f"  }};\n\n"
+    code += f"  return {name}_joints;\n"
+    code += f"}}\n\n"
 
     # ========== Frames ==========
-    if(F > 0):
-        code += f"// ===== Frames =====\n"
-        code += f"inline const std::array<FrameAttachment, {F}> &getFrames() {{\n"
-        code += f"  static const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
-        for frame in frames:
-            code += f"      FrameAttachment({frame.id}, {frame.link_id}, \"{frame.name}\",\n"
-            code += f"                      cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))\n"
-            code += f"                                                                .rotateZ({frame.origin_rpy[2]}).rotateY({frame.origin_rpy[1]}).rotateX({frame.origin_rpy[0]})),\n"
-        code += f"  }};\n\n"
-        code += f"  return {name}_frames;\n"
-        code += f"}}\n\n"
+    code += f"// ===== Frames =====\n"
+    code += f"inline const std::array<FrameAttachment, {F}> &getFrames() {{\n"
+    code += f"  static const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
+    for frame in frames:
+        code += f"      FrameAttachment({frame.id}, {frame.link_id}, \"{frame.name}\",\n"
+        code += f"                      cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))\n"
+        code += f"                                                                .rotateZ({frame.origin_rpy[2]}).rotateY({frame.origin_rpy[1]}).rotateX({frame.origin_rpy[0]})),\n"
+    code += f"  }};\n\n"
+    code += f"  return {name}_frames;\n"
+    code += f"}}\n\n"
 
     # ========== MAKE MODEL ==========
     code += f"// ===== RobotModel =====\n"
@@ -496,10 +880,9 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
 
     return code
 
-
 def generate_header(name : str, code : str, out_dir : str):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    realtive_out_dir = "..\\..\\include\\cobalt\\kinematics\\robots"
+    script_dir = os.path.dirname(os.path.abspath(file))
+    realtive_out_dir = "../../include/cobalt/kinematics/robots"
 
     if out_dir == "":
         out_path = os.path.join(script_dir, realtive_out_dir, f"{name}.hpp")
@@ -510,7 +893,7 @@ def generate_header(name : str, code : str, out_dir : str):
 
     with open(out_path, "w") as f:
             f.write(code)
-    
+
     print(f"[ SUCCESS ] | Generated {name}.hpp Robot header: {out_path}")
 
 # ========== MAIN ==========

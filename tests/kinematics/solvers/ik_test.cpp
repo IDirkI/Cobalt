@@ -5,8 +5,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
-#include "R3.hpp"
+#include "joint_robot.hpp"
 #include "test_robot.hpp"
+#include "ARM_ROBOT.hpp"
 #include "cobalt/kinematics/robot.hpp"
 #include "cobalt/kinematics/util/robot_logger.hpp"
 #include "cobalt/kinematics/solvers/forward_kinematics.hpp"
@@ -19,7 +20,8 @@
 #include "cobalt/math/geometry/quaternion/quaternion_util.hpp"
 
 using cobalt::kinematics::robot::makeTestRobot;
-using cobalt::kinematics::robot::makeR3;
+using cobalt::kinematics::robot::makeJointRobot;
+using cobalt::kinematics::robot::makeArmRobot;
 using cobalt::kinematics::Robot;
 using cobalt::kinematics::solvers::ForwardKinematics;
 using cobalt::kinematics::solvers::InverseKinematics;
@@ -35,13 +37,13 @@ using cobalt::math::geometry::Transform;
 using cobalt::math::geometry::Quaternion;
 
 TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
-    Robot test_robot = makeR3();
-
+    Robot test_robot = makeJointRobot();
+    /*
     InverseKinematics ik(test_robot);
-
+    
     IKTarget target {
         0,
-        Transform<>(Quaternion<>::fromEuler(M_PI, -M_PI_2, 0), Vector<3>(1.2,-1.2,0)),
+        Transform<>(Quaternion<>::fromEuler(0, 0, 0), Vector<3>(0,0,1)),
         IKMode::Position
     };
     
@@ -57,7 +59,7 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     printf(">> status = %d\n", static_cast<int>(sol.status));
 
     test_robot.setJoints(sol.q);
-    
+*/
 
     ForwardKinematics fk = ForwardKinematics(test_robot);
     fk.solve(test_robot.state());

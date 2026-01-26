@@ -18,6 +18,19 @@ enum class JointType : uint8_t {
 };
 
 /**
+ *  @brief Type of a compound joint in a robot.
+ */
+enum class CompoundJointType : uint8_t {
+    None,
+    Spherical,
+    Universal,
+    Cylinderical,
+    Helical,
+    Planar,
+};
+
+
+/**
  *  @brief Wrapper for representing the limits and limitedness of a joint
  */
 struct JointLimits {
@@ -32,6 +45,9 @@ constexpr JointType JOINT_DEFAULT_TYPE = JointType::Fixed;
 
 const cobalt::math::geometry::Transform<> JOINT_DEFAULT_ORIGIN = cobalt::math::geometry::Transform<>::eye();
 const cobalt::math::linear_algebra::Vector<3> JOINT_DEFAULT_AXIS = cobalt::math::linear_algebra::Vector<3>::unitZ();
+
+constexpr CompoundJointType JOINT_DEFAULT_COMPTYPE = CompoundJointType::None;
+constexpr cidx_t JOINT_DEFAULT_COMP_INDEX = -1;
 
 
 // --------------------------------------
@@ -53,6 +69,9 @@ struct Joint  {
         
         JointLimits limits_{};
         float home_{JOINT_DEFAULT_HOME};
+
+        CompoundJointType compoundType_{JOINT_DEFAULT_COMPTYPE};
+        cidx_t compIndex_{JOINT_DEFAULT_COMP_INDEX};
 
         // ---------------- Helper Function ----------------
         constexpr void validate() {
@@ -84,6 +103,8 @@ struct Joint  {
          *  @param axis Axis of rotation/translation for revolute/prismatic joints
          *  @param limits Joint limits for revolute/prismatic joints
          *  @param home Home position of the joint
+         *  @param compoundType Type of the compound joint. (None-[0] if not compound)
+         *  @param compIndex Index of the joint in its compound joint. (-1 if not compound)
          *  @note Validates the joint parameters upon construction
          *  @throws AssertionError if the joint parameters are invalid
          */
@@ -94,8 +115,10 @@ struct Joint  {
                        const cobalt::math::geometry::Transform<> &origin = JOINT_DEFAULT_ORIGIN,
                        const cobalt::math::linear_algebra::Vector<3> &axis = JOINT_DEFAULT_AXIS,
                        const JointLimits &limits = JointLimits(),
-                       float home = JOINT_DEFAULT_HOME)
-            : id_(id), idParent_(idParent), idChild_(idChild), type_(type), origin_(origin), axis_(axis), limits_(limits), home_(home) {
+                       float home = JOINT_DEFAULT_HOME,
+                       CompoundJointType compoundType = JOINT_DEFAULT_COMPTYPE,
+                       cidx_t compIndex = JOINT_DEFAULT_COMP_INDEX)
+            : id_(id), idParent_(idParent), idChild_(idChild), type_(type), origin_(origin), axis_(axis), limits_(limits), home_(home), compoundType_(compoundType), compIndex_(compIndex) {
                 validate();
             }
 
@@ -137,9 +160,21 @@ struct Joint  {
         constexpr float getHome() const { return home_; }
         /**
          *  @brief Check if joint limits are enabled
-         *  @return True if joint limits are enabled, false otherwise
+         *  @return `true` if joint limits are enabled, `false` otherwise
          */
         constexpr bool areLimitsEnabled() const { return limits_.enabled; }
+        /**
+         *  @brief Get the type of the compound joint
+         *  @return CompoundJointType enum indicating the type of compound joint
+         *  @note None/0 if joint isn't compound
+         */
+        constexpr CompoundJointType getCompoundType() const { return compoundType_; }
+        /**
+         *  @brief Get the compound index of the primitive joint inside the compound joint
+         *  @return Compound (signed) index.
+         *  @note -1 if joint isn't compound
+         */
+        constexpr cidx_t getCompoundIndex() const { return compIndex_; }
 
         /**
          *  @brief Get the origin transform of the joint

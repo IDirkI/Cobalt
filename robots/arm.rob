@@ -1,0 +1,67 @@
+# 6-DOF SPS arm for IK testing
+
+> ARM_ROBOT
+
+\link base
+\link l1 {
+    .mass = 1.0
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+\link l2 {
+    .mass = 1.0
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+\link l3 {
+    .mass = 1.0
+    .com = {
+        .xyz = [0.25, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+
+\joint S {
+    .links = [base, l1]
+    .limits = [[0, pi], [-3*pi/4, 3*pi/4], [-pi/2, pi]]
+    .origin = {
+        .xyz = [0, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = [0, 0, 0]
+    .home = [0, 0, 0]
+}
+\joint R {
+    .links = [l1, l2]
+    .limits = [0, pi]
+    .axis = [0, 0, 1]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = 0
+    .home = 0
+}
+\joint U {
+    .links = [l2, l3]
+    .limits = [[-pi/2, pi/2], [-pi/2, pi/2]]
+    .axis = [[0, 1, 0], [0, 0, 1]]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .init = [0, 0]
+    .home = [0, 0]
+}
+
+\frame gripper { 
+    .link = l3
+    .origin = {
+        .xyz = [0, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}

@@ -33,6 +33,8 @@ struct Link {
         cobalt::math::linear_algebra::Matrix<3,3> inertia_{LINK_DEFAULT_INERTIA};
         cobalt::math::geometry::Transform<> origin_{LINK_DEFAULT_COM};
 
+        bool isVirtual_{false};
+
         // ---------------- Helper Function ----------------
         constexpr void validate() {
             assert(mass_ >= 0.0f && "[LINK Error] : Link mass cannot be negative.");
@@ -53,6 +55,7 @@ struct Link {
          *  @param mass Mass of the link
          *  @param inertia Inertia matrix of the link about the center of mass
          *  @param origin Transform of the link's center of mass relative to the link frame
+         *  @param isVirtual Flag to set a link as virtual (part of a compound joint)
          *  @note Validates the link parameters upon construction
          *  @throws AssertionError if the link parameters are invalid
          */
@@ -60,8 +63,9 @@ struct Link {
                       const std::string &name = "",
                       float mass = LINK_DEFAULT_MASS,
                       const cobalt::math::linear_algebra::Matrix<3,3> &inertia = LINK_DEFAULT_INERTIA,
-                      const cobalt::math::geometry::Transform<> &origin = LINK_DEFAULT_COM)
-            : id_(id), name_(name), mass_(mass), inertia_(inertia), origin_(origin) {
+                      const cobalt::math::geometry::Transform<> &origin = LINK_DEFAULT_COM,
+                      bool isVirtual = false)
+            : id_(id), name_(name), mass_(mass), inertia_(inertia), origin_(origin), isVirtual_(isVirtual) {
                 validate();
             }
 
@@ -76,6 +80,11 @@ struct Link {
          *  @return Mass of the link
          */
         constexpr float getMass() const { return mass_; }
+        /**
+         *  @brief Get if the link is virtual
+         *  @return Virtualness of link
+         */
+        constexpr bool getVirtual() const { return isVirtual_; }
 
 
         /**

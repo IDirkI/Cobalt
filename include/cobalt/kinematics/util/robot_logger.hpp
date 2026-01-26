@@ -43,7 +43,7 @@ void logRobotState(const Robot<nL, nJ, nE> &robot, const std::string &filename) 
     }
 
     // CSV header
-    file << "type,name,parent,child,x,y,z,qw,qx,qy,qz,axis_x,axis_y,axis_z,value,joint_type\n";
+    file << "type,name,parent,child,x,y,z,qw,qx,qy,qz,axis_x,axis_y,axis_z,value,joint_type,virtual,comp_type,comp_index\n";
     
     const RobotState<nL, nJ, nE> &state = robot.state();
     const RobotModel<nL, nJ, nE> &model = robot.model();
@@ -65,7 +65,9 @@ void logRobotState(const Robot<nL, nJ, nE> &robot, const std::string &filename) 
              << T.rotation().z() << ","
              << ",,,"       // axis_x, axis_y, axis_z (empty for links)
              << ","         // value (empty for links)
-             << "\n";       // joint_type (empty for links)
+             << ","         // joint_type (empty for links)
+             << model.getLinks()[i].getVirtual() << ","  // virtualness of link
+             << ",\n";     // is_compound & comp_index (empty for links)
     }
 
     // --- Joints ---
@@ -94,10 +96,11 @@ void logRobotState(const Robot<nL, nJ, nE> &robot, const std::string &filename) 
              << axis_world[0] << ","
              << axis_world[1] << ","
              << axis_world[2] << ","
-             << state.q[j] << ",";
-        
-        // Joint type as plain integer (no fixed precision)
-        file << static_cast<int>(joint.getType()) << "\n";
+             << state.q[j] << ","
+             << static_cast<int>(joint.getType()) << ","
+             << ","// virtualness of link (empty for joints)  
+             << static_cast<int>(joint.getCompoundType()) <<","            // is_compound
+             << joint.getCompoundIndex() << "\n";    // compound_index
     }
     
     // --- Frames ---
@@ -119,7 +122,10 @@ void logRobotState(const Robot<nL, nJ, nE> &robot, const std::string &filename) 
              << T.rotation().z() << ","
              << ",,,"       // axis_x, axis_y, axis_z (empty for frames)
              << ","         // value (empty for frames)
-             << "\n";       // joint_type (empty for frames)
+             << ","        // joint_type (empty for frames)
+             << ","        // virtualness of link (empty for frames)
+             << ","        // is_compound (empty for frames)
+             << "\n";      // compound_index (empty for frames)
     }
 
     file.close();

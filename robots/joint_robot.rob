@@ -1,4 +1,4 @@
-> R3
+> joint_robot
 
 \link base
 
@@ -30,16 +30,18 @@
     .init = 0.2
     .home = 0
 }
-\joint revolute {
+
+
+\joint cylinderical {
     .links = [l1, l2]
-    .limits = [-pi, pi]
+    .limits = [[-pi, pi], [0, 3]]
     .axis = [0, 0, 1]
     .origin = {
         .xyz = [0.5, 0, 0]
         .rpy = [0, 0, 0]
     }
-    .init = -0.1
-    .home = 0
+    .init = [pi/4, 0.4]
+    .home = [0.0, 0.0]
 }
 
 

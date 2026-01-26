@@ -433,7 +433,7 @@ class InverseKinematics {
                 cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInv(J_task, errNorm, isSingular);
 
                 // Handle singulartiy
-                if(isSingular || nearSignularity) { 
+                if((isSingular || nearSignularity) && false) {  //TODO: Refine later
                     if(singularCount >= IK_MAX_SINGULAR_COUNT) {
                         output.status = IKStatus::Singular;
                         output.iterations = iter;

@@ -29,9 +29,36 @@ JOINT_TYPE_ALIASES = {
 
     "prismatic": "prismatic",
     "p":         "prismatic",
+
+    "universal": "universal",
+    "u":         "universal",
+
+    "spherical": "spherical",
+    "s":         "spherical",
+
+    "cylinderical": "cylinderical",
+    "c":            "cylinderical"
 }
 
 JOINT_AXIS_THRESHOLD = 0.0001
+
+## Universal Joint
+UNIVERSAL_DEFAULT_AXES = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+UNIVERSAL_DEFAULT_LIMITS = [[-pi, pi], [-pi, pi]]
+UNIVERSAL_DEFAULT_INIT = [0.0, 0.0]
+UNIVERSAL_DEFAULT_HOME= [0.0, 0.0]
+
+## Spherical Joint
+SPHERICAL_DEFAULT_AXES = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+SPHERICAL_DEFAULT_LIMITS = [[-pi, pi], [-pi, pi], [-pi, pi]]
+SPHERICAL_DEFAULT_INIT = [0.0, 0.0, 0.0]
+SPHERICAL_DEFAULT_HOME= [0.0, 0.0, 0.0]
+
+## Cylinderical Joint
+CYLINDERICAL_DEFAULT_AXIS = [1.0, 0.0, 0.0]
+CYLINDERICAL_DEFAULT_LIMITS = [[-pi, pi], [-1, 1]]
+CYLINDERICAL_DEFAULT_INIT = [0.0, 0.0]
+CYLINDERICAL_DEFAULT_HOME= [0.0, 0.0]
 
 # === FRAME ===
 FRAME_DEFAULT_ORIGIN_XYZ = [0.0, 0.0, 0.0]
