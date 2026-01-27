@@ -270,8 +270,16 @@ class InverseKinematics {
                 cobalt::math::linear_algebra::Matrix<M, M> JJt = J * transpose(J);
                 cobalt::math::linear_algebra::Matrix<M, M> A = JJt + cobalt::math::linear_algebra::Matrix<M, M>::eye()*(lambda * lambda);
 
+                // Singularity avoidance
                 float cond = cobalt::math::linear_algebra::conditionNum(JJt);
-                isSingular = (cond > IK_SINGULAR_THRESHOLD);
+                if(cond > IK_SINGULAR_THRESHOLD) {
+                    isSingular = true;
+                    lambda *= 10.0f;
+                }
+                float manip = computeManipulability<M>(J);
+                if(manip < IK_MANIPULABILITY_THRESHOLD) {
+                    lambda *= (IK_MANIPULABILITY_THRESHOLD / manip);
+                }
 
                 cobalt::math::linear_algebra::Matrix<M, M> Ainv;
                 bool success = inv(A, Ainv);
@@ -287,8 +295,16 @@ class InverseKinematics {
                 cobalt::math::linear_algebra::Matrix<nJ, nJ> JtJ = transpose(J) * J;
                 cobalt::math::linear_algebra::Matrix<nJ, nJ> A = JtJ + cobalt::math::linear_algebra::Matrix<nJ, nJ>::eye()*(lambda * lambda);
 
+                // Singularity avoidance
                 float cond = cobalt::math::linear_algebra::conditionNum(JtJ);
-                isSingular = (cond > IK_SINGULAR_THRESHOLD);
+                if(cond > IK_SINGULAR_THRESHOLD) {
+                    isSingular = true;
+                    lambda *= 10.0f;
+                }
+                float manip = computeManipulability<M>(J);
+                if(manip < IK_MANIPULABILITY_THRESHOLD) {
+                    lambda *= (IK_MANIPULABILITY_THRESHOLD / manip);
+                }
 
                 cobalt::math::linear_algebra::Matrix<nJ, nJ> Ainv;
                 bool success = inv(A, Ainv);
@@ -415,7 +431,6 @@ class InverseKinematics {
                     noProgCount++;
                     if(noProgCount >= IK_NOPROG_THRESHOLD) {
                         if(errNorm > threshold_ * IK_UNREACHABLE_MULT) {
-                            printf(">>>>NO-PROG\n");
                             output.status = IKStatus::Unreachable;
                             output.iterations = iter;
                             output.q = robot_.state().q;
@@ -461,7 +476,6 @@ class InverseKinematics {
                 if((norm(delta_q)*step_ < IK_MIN_STEP_SIZE) && (errNorm > threshold_ * IK_UNREACHABLE_MULT)) {
                     smallProgCount++;
                     if(smallProgCount >= IK_SMALLPROG_THRESHOLD) {
-                            printf(">>>>SMALL-PROG\n");
                             output.status = IKStatus::Unreachable;
                             output.iterations = iter;
                             output.q = robot_.state().q;
@@ -474,19 +488,11 @@ class InverseKinematics {
 
                 // Actuate
                 cobalt::math::linear_algebra::Vector<nJ> q_new = robot_.state().q + delta_q * step_;
-
-                printf("q = [ ");
-                for(cobalt::math::index_t i = 0; i < nJ; i++) {
-                    printf("%4.3f ", delta_q[i]);
-                }
-                printf("]\n\n");
-                
                 robot_.setJoints(q_new);
             }
 
             if(iter >= maxIterations_) {
                 if(minErr > threshold_ * IK_UNREACHABLE_MULT) {
-                    printf(">>>>MAX-ITER\n");
                     output.status = IKStatus::Unreachable;
                 }
                 else {

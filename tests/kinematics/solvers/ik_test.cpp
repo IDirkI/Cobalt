@@ -5,9 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
-#include "joint_robot.hpp"
-#include "test_robot.hpp"
-#include "ARM_ROBOT.hpp"
+#include "arm_robot.hpp"
 #include "cobalt/kinematics/robot.hpp"
 #include "cobalt/kinematics/util/robot_logger.hpp"
 #include "cobalt/kinematics/solvers/forward_kinematics.hpp"
@@ -19,8 +17,6 @@
 #include "cobalt/math/geometry/quaternion/quaternion.hpp"
 #include "cobalt/math/geometry/quaternion/quaternion_util.hpp"
 
-using cobalt::kinematics::robot::makeTestRobot;
-using cobalt::kinematics::robot::makeJointRobot;
 using cobalt::kinematics::robot::makeArmRobot;
 using cobalt::kinematics::Robot;
 using cobalt::kinematics::solvers::ForwardKinematics;
@@ -43,7 +39,7 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     
     IKTarget target {
         0,
-        IKMode::Pose,
+        IKMode::Position,
         Transform<>(Quaternion<>::fromEuler(0, -M_PI_2, 0), Vector<3>(0.04,0.7,0.2)),
         {1, 1, 1, 0.8, 0.8, 0.8}
     };
