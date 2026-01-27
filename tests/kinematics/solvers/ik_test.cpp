@@ -39,9 +39,9 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     
     IKTarget target {
         0,
-        IKMode::Position,
-        Transform<>(Quaternion<>::fromEuler(0, -M_PI_2, 0), Vector<3>(0.04,0.7,0.2)),
-        {1, 1, 1, 0.8, 0.8, 0.8}
+        IKMode::Pose,
+        Transform<>(Quaternion<>::fromEuler(M_PI_4, -M_PI_2, 0), Vector<3>(0.04,0.8,0.2)),
+        {1, 1, 1, 1, 1, 1}
     };
 
     IKSolution sol = ik.solve(target);

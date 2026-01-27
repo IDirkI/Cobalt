@@ -52,7 +52,7 @@ UNIVERSAL_DEFAULT_INIT = [0.0, 0.0]
 UNIVERSAL_DEFAULT_HOME= [0.0, 0.0]
 
 ## Spherical Joint
-SPHERICAL_DEFAULT_AXES = [[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]]
+SPHERICAL_DEFAULT_AXES = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]]
 SPHERICAL_DEFAULT_LIMITS = [[-pi, pi], [-pi, pi], [-pi, pi]]
 SPHERICAL_DEFAULT_INIT = [0.0, 0.0, 0.0]
 SPHERICAL_DEFAULT_HOME= [0.0, 0.0, 0.0]
