@@ -222,40 +222,6 @@ class InverseKinematics {
         }
 
         /**
-         *  @brief Check if configuration is near a singularity
-         *  @param J Task jacobian
-         *  @return `true` if near singularity, `false` otherwise
-         */
-        template<cobalt::math::index_t M>
-        inline bool isNearSingularity(const cobalt::math::linear_algebra::Matrix<M, nJ> &J) {
-            float manipulability = computeManipulability<M>(J);
-            return (manipulability < IK_MANIPULABILITY_THRESHOLD);
-        }
-
-
-        /**
-         *  @brief Compute the maximum max reachable distance of the robot
-         *  @param frameId ID of the frame to check max reach of
-         *  @return Maxium distance the robot can reach 
-         */
-        inline float computeMaxReach(id_t frameId) const {
-            float maxReach = 0.0f;
-
-            for(const Joint &j : robot_.model().getJoints()) {
-                if(j.getType() == JointType::Prismatic) { 
-                    maxReach += std::abs(j.getMaxLimit());
-                }
-                else if(j.getType() == JointType::Revolute) {
-                    maxReach += norm(j.getOrigin().translation());
-                }
-            }
-
-            maxReach += norm(robot_.model().getFrames()[frameId].getOrigin().translation());
-
-            return maxReach;
-        } 
-
-        /**
          *  @brief Compute the damped psuedo-inverse of the position jacobian
          *  @param J Task-jacobian of the current robot state
          *  @param errNorm Last norm of the error to be used in adaptive damping
@@ -263,7 +229,7 @@ class InverseKinematics {
          *  @note Uses right-inverse for [nJ >= M] and left-inverse for [nJ < M]
          */
         template<cobalt::math::index_t M>
-        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInv(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm, bool &isSingular) {
+        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInv(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm, bool &isSingular, bool &isNearSingularity) {
             float lambda = damping_*(1.0f + errNorm);
 
             if constexpr (nJ >= M) {    // Wide J, J† = Jᵀ(JJᵀ + λ²I)⁻¹
@@ -276,8 +242,9 @@ class InverseKinematics {
                     isSingular = true;
                     lambda *= 10.0f;
                 }
-                float manip = computeManipulability<M>(J);
+                float manip = cobalt::math::linear_algebra::det(JJt);
                 if(manip < IK_MANIPULABILITY_THRESHOLD) {
+                    isNearSingularity = true;
                     lambda *= (IK_MANIPULABILITY_THRESHOLD / manip);
                 }
 
@@ -301,8 +268,9 @@ class InverseKinematics {
                     isSingular = true;
                     lambda *= 10.0f;
                 }
-                float manip = computeManipulability<M>(J);
+                float manip = cobalt::math::linear_algebra::det(JtJ);
                 if(manip < IK_MANIPULABILITY_THRESHOLD) {
+                    isNearSingularity = true;
                     lambda *= (IK_MANIPULABILITY_THRESHOLD / manip);
                 }
 
@@ -387,21 +355,6 @@ class InverseKinematics {
             iter_t smallProgCount = 0;
             iter_t singularCount = 0;
 
-            // Check max reachability length
-            if(target.mode == IKMode::Position || target.mode == IKMode::Pose) {
-                float targetDist = norm(target.pose.translation());
-                float maxReach = computeMaxReach(target.frameId);
-
-                if((targetDist > maxReach*IK_MAXREACH_MARGIN) && false) { // TODO: Refactor computeMaxReach
-                    output.status = IKStatus::Unreachable;
-                    fk_.solve(robot_.state());
-                    output.error = computeError(target.pose, robot_.state().frameTransforms[target.frameId]);
-                    robot_.setJoints(q_init);
-
-                    return output;
-                }
-            }
-
             // Error DOF weights
             cobalt::math::linear_algebra::Matrix<6,6> W =  cobalt::math::linear_algebra::Matrix<6,6>::diagonal(target.weight);
 
@@ -449,12 +402,12 @@ class InverseKinematics {
                 cobalt::math::linear_algebra::Matrix<M, nJ> J_task = extractTaskJacobian<M>(J_W, target.mode);
 
                 bool isSingular = false;
-                bool nearSignularity = isNearSingularity<M>(J_task);
+                bool isNearSignularity = false;
 
-                cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInv(J_task, errNorm, isSingular);
+                cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInv(J_task, errNorm, isSingular, isNearSignularity);
 
                 // Handle singulartiy
-                if((isSingular || nearSignularity) && false) {  //TODO: Refine later
+                if((isSingular || isNearSignularity) && false) {  //TODO: Refine later
                     if(singularCount >= IK_MAX_SINGULAR_COUNT) {
                         output.status = IKStatus::Singular;
                         output.iterations = iter;
