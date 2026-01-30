@@ -67,7 +67,7 @@
 }
 \joint S {
     .links = [l3, l4]
-    .limits = [[-pi, pi], [-pi, pi], [-pi, pi]]
+    .limits = [[-pi/2, pi/2], [-pi/2, pi/2], [-pi/2, pi/2]]
     .origin = {
         .xyz = [0.5, 0, 0]
         .rpy = [0, 0, 0]

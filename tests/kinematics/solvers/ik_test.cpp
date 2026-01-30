@@ -42,7 +42,7 @@ TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     IKTarget target {
         0,
         IKMode::Pose,
-        Transform<>(Quaternion<>::fromEuler(M_PI_4, M_PI, 0), Vector<3>(1.1,1.1,0.3)),
+        Transform<>(Quaternion<>::fromEuler(M_PI_4, M_PI, 0), Vector<3>(0.9,1.1,0.3)),
         {1, 1, 1, 0.01, 0.01, 0.01}
     };
 
