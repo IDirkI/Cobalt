@@ -979,7 +979,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     code += f"  RobotState<{L}, {J}, {F}> {name}_state{{\n"
     code += f"      cobalt::math::linear_algebra::Vector<{J}>({initial_vals}),  // q \n"
     code += f"      cobalt::math::linear_algebra::Vector<{J}>({initial_velocities}),  // dq\n"
-    code += f"      {{}},    // J\n"
+    code += f"      cobalt::math::linear_algebra::Matrix<6,{J}>::zero(),    // J\n"
     code += f"      {{}},    // linkTransforms\n"
     code += f"      {{}},    // frameTransforms\n"
     code += f"      false,  // validJ\n"

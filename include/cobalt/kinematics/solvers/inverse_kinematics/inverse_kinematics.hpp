@@ -20,31 +20,7 @@
 
 namespace cobalt::kinematics::solvers {
 
-constexpr iter_t IK_SINGULAR_THRESHOLD = 100;
-constexpr float IK_MANIPULABILITY_THRESHOLD = 1e-4f;
-
-constexpr float IK_SVD_SIGMA_THRESHOLD = 1e-3f;
-constexpr float IK_SVD_NEAR_THRESHOLD = 1e-2f;
-constexpr float IK_BACKTRACK_FACTOR = 0.5f;
-constexpr float IK_ARMIJO_COND_CONST = 0.1f;
-constexpr iter_t IK_BACKTRACK_NUM = 10;
-constexpr float IK_MAXREACH_MARGIN = 1.05;
-constexpr float IK_MIN_ERROR_CHANGE = 1e-5;
-constexpr float IK_MIN_STEP_SIZE = 1e-7;
-constexpr float IK_MAX_SINGULAR_COUNT = 5;
-constexpr float IK_UNREACHABLE_MULT = 5;
-constexpr float IK_SINGULAR_ESCAPE_FACTOR = 0.1f;
-constexpr iter_t IK_NOPROG_THRESHOLD = 100;
-constexpr iter_t IK_SMALLPROG_THRESHOLD = 10;
-
-
-constexpr iter_t IK_DEFAULT_MAX_ITERATIONS = 200;
-constexpr float IK_DEFAULT_THRESHOLD = 1e-3;
-constexpr float IK_DEFAULT_STEP = 0.5f;
-constexpr float IK_DEFAULT_DAMPING = 1e-2;
-constexpr float IK_DEFAULT_MARGIN = 0.05f;
-
-
+// ---------------- Enum ----------------
 enum class IKStatus : uint8_t {
     Success,
     Unreachable,
@@ -59,6 +35,46 @@ enum class IKMode : uint8_t {
     Pose,
 };
 
+enum class IKSolver : uint8_t {
+    Mixed,
+    DLS,
+    SVD,
+};
+
+// ---------------- Definitions ----------------
+// Stability
+constexpr float IK_MIN_STEP_SIZE = 1e-7;
+constexpr float IK_MIN_ERROR_CHANGE = 1e-5;
+
+// Line-search
+constexpr float IK_BACKTRACK_FACTOR = 0.5f;
+constexpr iter_t IK_BACKTRACK_NUM = 10;
+constexpr float IK_ARMIJO_COND_CONST = 0.1f;
+
+// Singularity escape
+constexpr float IK_SINGULAR_ESCAPE_FACTOR = 0.1f;
+
+// Status Checks
+constexpr iter_t IK_NOPROG_THRESHOLD = 100;
+constexpr iter_t IK_NOPROG_SOFT_THRESHOLD = 20;
+constexpr iter_t IK_SMALLPROG_THRESHOLD = 10;
+constexpr float IK_SINGULAR_ESCAPE_THRESHOLD = 5;
+
+// Defaults
+constexpr IKSolver IK_DEFAULT_SOLVER = IKSolver::Mixed;
+constexpr iter_t IK_DEFAULT_MAX_ITERATIONS = 200;
+constexpr float IK_DEFAULT_THRESHOLD = 1e-3;
+constexpr float IK_DEFAULT_STEP = 0.5f;
+constexpr float IK_DEFAULT_DAMPING = 1e-2;
+constexpr float IK_DEFAULT_MARGIN = 0.05f;
+constexpr float IK_DEFAULT_SINGULAR_THRESHOLD = 100.0f;
+constexpr float IK_DEFAULT_MANIP_THRESHOLD = 1e-4f;
+constexpr float IK_DEFAULT_SVD_DIR_DAMPING_ALPHA = 1.0f;
+constexpr float IK_DEFAULT_SVD_SIGMA_THRESHOLD = 1e-3f;
+constexpr float IK_DEFAULT_SVD_NEAR_THRESHOLD = 1e-2f;
+constexpr float IK_DEFAULT_UNREACHABLE_MULT = 5;
+
+// ---------------- Structs ----------------
 /**
  *  @brief Frames goal position/orientation/pose after the IK process
  */
@@ -82,11 +98,46 @@ struct IKSolution {
 
 /**
  *  @brief Configuration of the IK solver after solving
+ *  @param solver Solver type to use
+ *  @param maxIterations Maximum number of iterations before termination
+ *  @param threshold Error threshold for termination
+ *  @param damping Damping factor for DLS solver
+ *  @param step Step size for each iteration
+ *  @param projectMargin Margin to keep from joint limits when projecting
+ *  @param singularityThreshold Threshold for detecting singularities (manipulability measure)
+ *  @param manipThreshold Threshold for manipulability measure to consider singular
+ *  @param svdSigmaMin Minimum singular value threshold for SVD solver
+ *  @param svdSigmaNear Near singular value threshold for SVD solver
+ *  @param svdDirDamping Alpha damping factor for near-singular directions in S
+ *  @param unreachableMult Multiplier to increase step size when target is unreachable
+ *  @note All parameters are optional and have default values
+ *  @warning Improper configuration may lead to poor convergence or failure to converge
  */
 struct IKConfig {
-    iter_t maxIterations_ = IK_DEFAULT_MAX_ITERATIONS;
-};
+    // Solver type
+    IKSolver solver = IK_DEFAULT_SOLVER;
 
+    // Termination
+    iter_t maxIterations = IK_DEFAULT_MAX_ITERATIONS;
+    float threshold = IK_DEFAULT_THRESHOLD;
+
+    // Step control
+    float damping = IK_DEFAULT_DAMPING;
+    float step = IK_DEFAULT_STEP;
+    float projectMargin = IK_DEFAULT_MARGIN;
+
+    // Singularity handling
+    float singularityThreshold = IK_DEFAULT_SINGULAR_THRESHOLD;
+    float manipThreshold = IK_DEFAULT_MANIP_THRESHOLD;
+
+    // SVD
+    float svdSigmaMin = IK_DEFAULT_SVD_SIGMA_THRESHOLD;
+    float svdSigmaNear = IK_DEFAULT_SVD_NEAR_THRESHOLD;
+    float svdDirDamping = IK_DEFAULT_SVD_DIR_DAMPING_ALPHA;
+
+    // Unreachability
+    float unreachableMult = IK_DEFAULT_UNREACHABLE_MULT;
+};
 
 // --------------------------------------
 //           Inverse Kinematics
@@ -98,14 +149,9 @@ template<id_t nL, id_t nJ, id_t nE>
 class InverseKinematics {   
     private:
         Robot<nL, nJ, nE> &robot_;
+        IKConfig config_;
         JacobianBuilder<nL, nJ, nE> jacobian_;
         ForwardKinematics<nL, nJ, nE> fk_;
-
-        iter_t maxIterations_{IK_DEFAULT_MAX_ITERATIONS};
-        float threshold_{IK_DEFAULT_THRESHOLD};
-        float damping_{IK_DEFAULT_DAMPING};
-        float step_{IK_DEFAULT_STEP};
-        float projectMargin_{IK_DEFAULT_STEP};
 
         // ---------------- Helper Functions ----------------
         /**
@@ -245,24 +291,12 @@ class InverseKinematics {
          *  @note Uses right-inverse for [nJ >= M] and left-inverse for [nJ < M]
          */
         template<cobalt::math::index_t M>
-        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvDLS(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm, bool &isSingular, bool &isNearSingularity) {
-            float lambda = damping_*(1.0f + errNorm);
+        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvDLS(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm, bool &isSingular) {
+            float lambdaSqr = config_.damping*config_.damping*(1.0f + errNorm);
 
             if constexpr (nJ >= M) {    // Wide J, J† = Jᵀ(JJᵀ + λ²I)⁻¹
-                cobalt::math::linear_algebra::Matrix<M, M> JJt = J * transpose(J);
-                cobalt::math::linear_algebra::Matrix<M, M> A = JJt + cobalt::math::linear_algebra::Matrix<M, M>::eye()*(lambda * lambda);
-
-                // Singularity avoidance
-                float cond = cobalt::math::linear_algebra::conditionNum(JJt);
-                if(cond > IK_SINGULAR_THRESHOLD) {
-                    isSingular = true;
-                    lambda *= 10.0f;
-                }
-                float manip = cobalt::math::linear_algebra::det(JJt);
-                if(manip < IK_MANIPULABILITY_THRESHOLD) {
-                    isNearSingularity = true;
-                    lambda *= (IK_MANIPULABILITY_THRESHOLD / manip);
-                }
+                cobalt::math::linear_algebra::Matrix<M, M> A = J * transpose(J);
+                A += cobalt::math::linear_algebra::Matrix<M, M>::eye() * lambdaSqr;
 
                 cobalt::math::linear_algebra::Matrix<M, M> Ainv;
                 bool success = inv(A, Ainv);
@@ -271,24 +305,11 @@ class InverseKinematics {
                     return cobalt::math::linear_algebra::Matrix<nJ, M>::zero(); 
                 }
 
-                cobalt::math::linear_algebra::Matrix<nJ, M> Jpinv = transpose(J) * Ainv;
-                return Jpinv;
+                return transpose(J) * Ainv;
             }
             else {                      // Tall J, J† = (JᵀJ + λ²I)⁻¹Jᵀ
-                cobalt::math::linear_algebra::Matrix<nJ, nJ> JtJ = transpose(J) * J;
-                cobalt::math::linear_algebra::Matrix<nJ, nJ> A = JtJ + cobalt::math::linear_algebra::Matrix<nJ, nJ>::eye()*(lambda * lambda);
-
-                // Singularity avoidance
-                float cond = cobalt::math::linear_algebra::conditionNum(JtJ);
-                if(cond > IK_SINGULAR_THRESHOLD) {
-                    isSingular = true;
-                    lambda *= 10.0f;
-                }
-                float manip = cobalt::math::linear_algebra::det(JtJ);
-                if(manip < IK_MANIPULABILITY_THRESHOLD) {
-                    isNearSingularity = true;
-                    lambda *= (IK_MANIPULABILITY_THRESHOLD / manip);
-                }
+                cobalt::math::linear_algebra::Matrix<nJ, nJ> A = transpose(J) * J;
+                A += cobalt::math::linear_algebra::Matrix<nJ, nJ>::eye() * lambdaSqr;
 
                 cobalt::math::linear_algebra::Matrix<nJ, nJ> Ainv;
                 bool success = inv(A, Ainv);
@@ -296,20 +317,19 @@ class InverseKinematics {
                     isSingular = true;
                     return cobalt::math::linear_algebra::Matrix<nJ, M>::zero(); 
                 }
-
-                cobalt::math::linear_algebra::Matrix<nJ, M> Jpinv = Ainv * transpose(J);
-                return Jpinv;
+                
+                return Ainv * transpose(J);
             }
         }
 
         /**
          *  @brief Compute the SVD based psuedo-inverse of the task jacobian
          *  @param J Task-jacobian of the current robot state
-         *  @param errNorm Last norm of the error to be used in adaptive damping
+         *  @param err Last error to be used in adaptive damping
          *  @return nJx3/6 damped pseudo-inverse of the task jacobian
          */
         template<cobalt::math::index_t M>
-        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvSVD(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm, bool &isSingular, bool &isNearSingularity) {
+        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvSVD(const cobalt::math::linear_algebra::Matrix<M, nJ> &J,  cobalt::math::linear_algebra::Vector<M> err, bool &isSingular, bool &isNearSingularity) {
             cobalt::math::linear_algebra::Matrix<M, M> U;
             cobalt::math::linear_algebra::Matrix<M, nJ> S;
             cobalt::math::linear_algebra::Matrix<nJ, nJ> V;
@@ -318,24 +338,33 @@ class InverseKinematics {
 
             cobalt::math::linear_algebra::Matrix<nJ, M> J_pinv = cobalt::math::linear_algebra::Matrix<nJ, M>::zero();
 
+            float manip = 1.0f;
+            const float sigMax = S(0,0);
             cobalt::math::index_t r = (M < nJ) ?M :nJ;
             for(cobalt::math::index_t i = 0; i < r; i++) {
                 const float sig = S(i,i);
+                manip *= sig;
 
-                if(sig < IK_SVD_SIGMA_THRESHOLD) {
+                if(sig < config_.svdSigmaMin * sigMax) {
                     isSingular = true;
                     continue;
                 } 
 
-                if(sig < IK_SVD_NEAR_THRESHOLD) {
+                if(sig < config_.svdSigmaNear * sigMax) {
                     isNearSingularity = true;
                 } 
-
-                const float invSig = 1.0f/sig;
+                if(manip < config_.manipThreshold) {
+                    isNearSingularity = true;
+                } 
+                
+                // Directional damping
+                float ue = cobalt::math::linear_algebra::dot(cobalt::math::linear_algebra::getColumn(U, i), err);
+                float lambda_i = config_.svdDirDamping * ue*ue;
+                const float dampedSig = sig/(sig*sig + lambda_i*lambda_i);
 
                 for(cobalt::math::index_t j = 0; j < nJ; j++) {
                     for(cobalt::math::index_t k = 0; k < M; k++) {
-                        J_pinv(j, k) += V(j, i) * invSig * U(k, i);
+                        J_pinv(j, k) += V(j, i) * dampedSig * U(k, i);
                     }
                 }
             }
@@ -385,7 +414,7 @@ class InverseKinematics {
         inline float getStepSize(const cobalt::math::linear_algebra::Vector<nJ> &q, cobalt::math::linear_algebra::Vector<nJ> &dq, const IKTarget &target, float err) {
             cobalt::math::linear_algebra::Vector<nJ> q_init = robot_.state().q;
             
-            float alpha = step_;
+            float alpha = config_.step;
 
             for(iter_t i = 0; i < IK_BACKTRACK_NUM; i++) {
                 cobalt::math::linear_algebra::Vector<nJ> q_prime = q + alpha * dq;
@@ -422,8 +451,8 @@ class InverseKinematics {
         inline void projectAwayFromLimits(const cobalt::math::linear_algebra::Vector<nJ> &q, cobalt::math::linear_algebra::Vector<nJ> &dq, float step) {
             for(id_t j = 0; j < nJ; j++) {
                 float range = robot_.model().getJoints()[j].getMaxLimit() - robot_.model().getJoints()[j].getMinLimit();
-                float upperMargin = robot_.model().getJoints()[j].getMaxLimit() - projectMargin_ * range;
-                float lowerMargin = robot_.model().getJoints()[j].getMinLimit() + projectMargin_ * range;
+                float upperMargin = robot_.model().getJoints()[j].getMaxLimit() - config_.projectMargin * range;
+                float lowerMargin = robot_.model().getJoints()[j].getMinLimit() + config_.projectMargin * range;
 
                 if((q[j] + dq[j] * step > upperMargin) && (dq[j] > 0)) { dq[j] = 0.0f; }
                 if((q[j] + dq[j] * step < lowerMargin) && (dq[j] < 0)) { dq[j] = 0.0f; }
@@ -458,7 +487,7 @@ class InverseKinematics {
 
             // Main IK loop
             iter_t iter;
-            for(iter = 0; iter < maxIterations_; iter++) {
+            for(iter = 0; iter < config_.maxIterations; iter++) {
                 fk_.solve(robot_.state());
 
                 const cobalt::math::geometry::Transform<> &T_curr = robot_.state().frameTransforms[target.frameId];
@@ -469,7 +498,7 @@ class InverseKinematics {
                 output.error = error;
                 float errNorm = norm(taskErr);
 
-                if(errNorm < threshold_) {    // IK terminate check
+                if(errNorm < config_.threshold) {    // IK terminate check
                     output.status = IKStatus::Success;
                     output.iterations = iter;
                     output.q = robot_.state().q;
@@ -481,7 +510,7 @@ class InverseKinematics {
                 if(prevErr - errNorm < IK_MIN_ERROR_CHANGE) {
                     noProgCount++;
                     if(noProgCount >= IK_NOPROG_THRESHOLD) {
-                        if(errNorm > threshold_ * IK_UNREACHABLE_MULT) {
+                        if(errNorm > config_.threshold * config_.unreachableMult) {
                             output.status = IKStatus::Unreachable;
                             output.iterations = iter;
                             output.q = robot_.state().q;
@@ -502,11 +531,12 @@ class InverseKinematics {
                 bool isSingular = false;
                 bool isNearSignularity = false;
 
-                cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInvSVD(J_task, errNorm, isSingular, isNearSignularity);
+                //cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInvDLS(J_task, errNorm, isSingular);
+                cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInvSVD(J_task, taskErr, isSingular, isNearSignularity);
 
                 // Handle singulartiy
-                if((isSingular || isNearSignularity) && false) {  //TODO: Refine later
-                    if(singularCount >= IK_MAX_SINGULAR_COUNT) {
+                if((isSingular || isNearSignularity) && noProgCount > IK_NOPROG_SOFT_THRESHOLD) {
+                    if(singularCount >= IK_SINGULAR_ESCAPE_THRESHOLD) {
                         output.status = IKStatus::Singular;
                         output.iterations = iter;
                         output.q = robot_.state().q;
@@ -525,7 +555,7 @@ class InverseKinematics {
                 projectAwayFromLimits(robot_.state().q, delta_q, stepSize);
 
                 // Handle step-size
-                if((norm(delta_q)*stepSize < IK_MIN_STEP_SIZE) && (errNorm > threshold_ * IK_UNREACHABLE_MULT)) {
+                if((norm(delta_q)*stepSize < IK_MIN_STEP_SIZE) && (errNorm > config_.threshold * config_.unreachableMult)) {
                     smallProgCount++;
                     if(smallProgCount >= IK_SMALLPROG_THRESHOLD) {
                             output.status = IKStatus::Unreachable;
@@ -541,10 +571,14 @@ class InverseKinematics {
                 // Actuate
                 cobalt::math::linear_algebra::Vector<nJ> q_new = robot_.state().q + delta_q * stepSize;
                 robot_.setJoints(q_new);
+
+                // Cache state data
+                robot_.state().dq = delta_q;
+                robot_.state().J = J;
             }
 
-            if(iter >= maxIterations_) {
-                if(minErr > threshold_ * IK_UNREACHABLE_MULT) {
+            if(iter >= config_.maxIterations) {
+                if(minErr > config_.threshold * config_.unreachableMult) {
                     output.status = IKStatus::Unreachable;
                 }
                 else {
@@ -572,39 +606,25 @@ class InverseKinematics {
          *  @brief Construct a inverse kinematics solver for an arbitrary robot
          *  @param robot Robot to solve IK for
          */
-        explicit InverseKinematics(Robot<nL, nJ, nE> &robot, 
-                                   iter_t maxIterations = IK_DEFAULT_MAX_ITERATIONS,
-                                   float threshold = IK_DEFAULT_THRESHOLD,
-                                   float step = IK_DEFAULT_STEP,
-                                   float damping = IK_DEFAULT_DAMPING,
-                                   float projectionMargin = IK_DEFAULT_MARGIN
-                                ) : robot_(robot), jacobian_(robot), fk_(robot), maxIterations_(maxIterations), threshold_(threshold), step_(step), damping_(damping), projectMargin_(projectionMargin)  {}
+        explicit InverseKinematics(Robot<nL, nJ, nE> &robot, IKConfig config) 
+                    : robot_(robot), config_(config), jacobian_(robot), fk_(robot)  {}
 
-        // ---------------- Getters ----------------
-        inline constexpr iter_t getMaxIterations() const { return maxIterations_; }
-        inline constexpr float getThreshold() const { return threshold_; }
-        inline constexpr float getDampingCoeff() const { return damping_; }
-        inline constexpr float getStepSize() const { return step_; }
-        inline constexpr float getProjMargin() const { return projectMargin_; }
+        // ---------------- Accessors ----------------
+        /**
+         *  @brief Get reference to IK configuration
+         *  @return Reference to IK configuration
+         */
+        constexpr IKConfig &config() {
+            return config_;
+        } 
 
-        // ---------------- Setters ----------------
-        void setMaxIterations(iter_t iterations) { maxIterations_ = iterations; }
-        void setThreshold(float threshold) { 
-            assert(threshold >= 0.0f && "Threshold must be non-negative");
-            threshold_ = threshold; 
-        }
-        void setDampingCoeff(float dampingCoeff) { 
-            assert(dampingCoeff >= 0.0f && "Damping coefficient must be non-negative");
-            damping_ = dampingCoeff; 
-        }
-        void setStepSize(float stepSize) { 
-            assert(stepSize >= 0.0f && "Step size must be positive");
-            step_ = stepSize; 
-        }
-        void setProjMargin(float projectionMargin) { 
-            assert(projectMargin_ >= 0.0f && "Margion of projection must be positive");
-            projectMargin_ = projectionMargin; 
-        }
+        /**
+         *  @brief Get const reference to IK configuration
+         *  @return Const reference to IK configuration
+         */
+        constexpr const IKConfig &config() const {
+            return config_;
+        } 
 
         // ---------------- Member Functions ----------------
         /**

@@ -22,7 +22,7 @@ struct RobotState {
         cobalt::math::linear_algebra::Vector<nJ> q{};
         cobalt::math::linear_algebra::Vector<nJ> dq{};
 
-        std::array<cobalt::math::linear_algebra::Matrix<6, nJ>, nJ> J{};
+        cobalt::math::linear_algebra::Matrix<6, nJ> J{};
 
         std::array<cobalt::math::geometry::Transform<>, nL> linkTransforms{};
         std::array<cobalt::math::geometry::Transform<>, nE> frameTransforms{};

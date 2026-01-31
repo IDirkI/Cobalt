@@ -26,6 +26,7 @@ using cobalt::kinematics::solvers::InverseKinematics;
 using cobalt::kinematics::solvers::IKTarget;
 using cobalt::kinematics::solvers::IKMode;
 using cobalt::kinematics::solvers::IKSolution;
+using cobalt::kinematics::solvers::IKConfig;
 using cobalt::kinematics::util::logRobotState;
 
 using cobalt::math::index_t;
@@ -36,14 +37,15 @@ using cobalt::math::geometry::Quaternion;
 
 TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     Robot test_robot = makeKuka();
+    IKConfig conf{};
     
-    InverseKinematics ik(test_robot);
+    InverseKinematics ik(test_robot, conf);
     
     IKTarget target {
         0,
         IKMode::Pose,
-        Transform<>(Quaternion<>::fromEuler(M_PI_4, M_PI, 0), Vector<3>(0.9,1.1,0.3)),
-        {1, 1, 1, 0.01, 0.01, 0.01}
+        Transform<>(Quaternion<>::fromEuler(1, -0.7, 0), {0, 0, 0.8}),
+        {1, 1, 1, 0.3, 0.3, 0.3}
     };
 
     IKSolution sol = ik.solve(target);
