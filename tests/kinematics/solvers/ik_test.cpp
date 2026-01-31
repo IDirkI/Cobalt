@@ -27,6 +27,7 @@ using cobalt::kinematics::solvers::IKTarget;
 using cobalt::kinematics::solvers::IKMode;
 using cobalt::kinematics::solvers::IKSolution;
 using cobalt::kinematics::solvers::IKConfig;
+using cobalt::kinematics::solvers::IKSolver;
 using cobalt::kinematics::util::logRobotState;
 
 using cobalt::math::index_t;
@@ -37,7 +38,9 @@ using cobalt::math::geometry::Quaternion;
 
 TEST_CASE("InverseKinematics, default construction", "[kinematics]") {
     Robot test_robot = makeKuka();
-    IKConfig conf{};
+    IKConfig conf{
+        .solver = IKSolver::SVD
+    };
     
     InverseKinematics ik(test_robot, conf);
     

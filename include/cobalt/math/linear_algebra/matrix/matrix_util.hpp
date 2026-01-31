@@ -440,6 +440,47 @@ template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<
     }
 
 /**
+ *  @brief Compute the Cholesky-decomposition of a symmetric positive-definite matrix
+ *  Decomposes `A` into lower triangular matrix `L` such that A = LLᵀ
+ *  @param A Symmetric positive-definite matrix to Cholesky-decompose (NxN)
+ *  @param L Lower triangular matrix L (NxN) decomposition output
+ *  @return `true` if A is positive-definite and decomposition succeeded, `false` otherwise
+ *  @note Only defined for PSD square matrices
+ *  @warning If function returns `false`, L is not modified and does not represent a valid decomposition. Return value should be handled properly
+ */
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
+    [[nodiscard]] bool cholesky(const Matrix<N, N, T> &A, Matrix<N, N, T> &L) {
+        L = Matrix<N, N, T>::zero();
+
+        for(index_t i = 0; i < N; i++) {
+            for(index_t j = 0; j < N; j++) {
+                T sum = static_cast<T>(0);
+
+                if(i == j) {
+                    for(index_t k = 0; k < j; k++) {
+                        sum += L(j, k) * L(j, k);
+                    }
+
+                    T diag = A(i, j) - sum;
+                    if(diag <= epsilon_<T>) {
+                        return false;   // non-PSD
+                    }
+
+                    L(i, j) = std::sqrt(diag);
+                }
+                else {
+                    for(index_t k = 0; k < j; k++) {
+                        sum += L(i, k) * L(j, k);
+                    }
+                    L(i, j) = (A(i,j) - sum)/L(j,j);
+                }
+            }
+        }
+
+        return true;
+    }
+
+/**
  *  @brief Compute the QR-decomposition of a matrix using the Gram-Schmidt process
  *  Decomposes `A` into orthogonal matrix `Q` and upper triangular matrix `R` such that A = QR
  *  @param A Matrix to QR-decompose (NxM)

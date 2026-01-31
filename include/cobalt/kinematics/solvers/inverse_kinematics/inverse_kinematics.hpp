@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-
 #include "jacobian_builder.hpp"
 
 #include "cobalt/kinematics/config.hpp"
@@ -65,7 +63,7 @@ constexpr IKSolver IK_DEFAULT_SOLVER = IKSolver::Mixed;
 constexpr iter_t IK_DEFAULT_MAX_ITERATIONS = 200;
 constexpr float IK_DEFAULT_THRESHOLD = 1e-3;
 constexpr float IK_DEFAULT_STEP = 0.5f;
-constexpr float IK_DEFAULT_DAMPING = 1e-2;
+constexpr float IK_DEFAULT_DAMPING_DLS = 1e-2f;
 constexpr float IK_DEFAULT_MARGIN = 0.05f;
 constexpr float IK_DEFAULT_SINGULAR_THRESHOLD = 100.0f;
 constexpr float IK_DEFAULT_MANIP_THRESHOLD = 1e-4f;
@@ -122,7 +120,7 @@ struct IKConfig {
     float threshold = IK_DEFAULT_THRESHOLD;
 
     // Step control
-    float damping = IK_DEFAULT_DAMPING;
+    float dampingDLS = IK_DEFAULT_DAMPING_DLS;
     float step = IK_DEFAULT_STEP;
     float projectMargin = IK_DEFAULT_MARGIN;
 
@@ -292,33 +290,61 @@ class InverseKinematics {
          */
         template<cobalt::math::index_t M>
         inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvDLS(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm, bool &isSingular) {
-            float lambdaSqr = config_.damping*config_.damping*(1.0f + errNorm);
+            float lambdaSqr = config_.dampingDLS*config_.dampingDLS;
 
             if constexpr (nJ >= M) {    // Wide J, J† = Jᵀ(JJᵀ + λ²I)⁻¹
                 cobalt::math::linear_algebra::Matrix<M, M> A = J * transpose(J);
                 A += cobalt::math::linear_algebra::Matrix<M, M>::eye() * lambdaSqr;
 
-                cobalt::math::linear_algebra::Matrix<M, M> Ainv;
-                bool success = inv(A, Ainv);
-                if(!success) { 
+                cobalt::math::linear_algebra::Matrix<M, M> L;
+                if(!cobalt::math::linear_algebra::cholesky(A, L)) { 
                     isSingular = true;
-                    return cobalt::math::linear_algebra::Matrix<nJ, M>::zero(); 
+                    return cobalt::math::linear_algebra::transpose(J);
                 }
 
-                return transpose(J) * Ainv;
+                cobalt::math::linear_algebra::Matrix<nJ, M> J_pinv;
+                for(cobalt::math::index_t j = 0; j < nJ; j++) {
+                    cobalt::math::linear_algebra::Vector<M> b = cobalt::math::linear_algebra::getRow(cobalt::math::linear_algebra::transpose(J), j);
+                    cobalt::math::linear_algebra::Vector<M> x;
+
+                    if(!cobalt::math::linear_algebra::solvePSD(A, b, x)) {
+                        isSingular = true;
+                        return cobalt::math::linear_algebra::transpose(J);
+                    }
+
+                    for(cobalt::math::index_t i = 0; i < M; i++) {
+                        J_pinv(j, i) = x[i];
+                    }
+                }
+
+                return J_pinv;
             }
             else {                      // Tall J, J† = (JᵀJ + λ²I)⁻¹Jᵀ
-                cobalt::math::linear_algebra::Matrix<nJ, nJ> A = transpose(J) * J;
+                cobalt::math::linear_algebra::Matrix<nJ, nJ> A = transpose(J)*J;
                 A += cobalt::math::linear_algebra::Matrix<nJ, nJ>::eye() * lambdaSqr;
 
-                cobalt::math::linear_algebra::Matrix<nJ, nJ> Ainv;
-                bool success = inv(A, Ainv);
-                if(!success) { 
+                cobalt::math::linear_algebra::Matrix<nJ, nJ> L;
+                if(!cobalt::math::linear_algebra::cholesky(A, L)) { 
                     isSingular = true;
-                    return cobalt::math::linear_algebra::Matrix<nJ, M>::zero(); 
+                    return cobalt::math::linear_algebra::transpose(J);
                 }
-                
-                return Ainv * transpose(J);
+
+                cobalt::math::linear_algebra::Matrix<nJ, M> J_pinv;
+                for(cobalt::math::index_t j = 0; j < M; j++) {
+                    cobalt::math::linear_algebra::Vector<nJ> b = cobalt::math::linear_algebra::getColumn(cobalt::math::linear_algebra::transpose(J), j);
+                    cobalt::math::linear_algebra::Vector<nJ> x;
+
+                    if(!cobalt::math::linear_algebra::solvePSD(A, b, x)) {
+                        isSingular = true;
+                        return cobalt::math::linear_algebra::transpose(J);
+                    }
+
+                    for(cobalt::math::index_t i = 0; i < nJ; i++) {
+                        J_pinv(i, j) = x[i];
+                    }
+                }
+
+                return J_pinv;
             }
         }
 
@@ -329,7 +355,7 @@ class InverseKinematics {
          *  @return nJx3/6 damped pseudo-inverse of the task jacobian
          */
         template<cobalt::math::index_t M>
-        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvSVD(const cobalt::math::linear_algebra::Matrix<M, nJ> &J,  cobalt::math::linear_algebra::Vector<M> err, bool &isSingular, bool &isNearSingularity) {
+        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvSVD(const cobalt::math::linear_algebra::Matrix<M, nJ> &J,  cobalt::math::linear_algebra::Vector<M> err, bool &isSingular, bool &isNearSingularity, float &manip) {
             cobalt::math::linear_algebra::Matrix<M, M> U;
             cobalt::math::linear_algebra::Matrix<M, nJ> S;
             cobalt::math::linear_algebra::Matrix<nJ, nJ> V;
@@ -338,7 +364,7 @@ class InverseKinematics {
 
             cobalt::math::linear_algebra::Matrix<nJ, M> J_pinv = cobalt::math::linear_algebra::Matrix<nJ, M>::zero();
 
-            float manip = 1.0f;
+            manip = 1.0f;
             const float sigMax = S(0,0);
             cobalt::math::index_t r = (M < nJ) ?M :nJ;
             for(cobalt::math::index_t i = 0; i < r; i++) {
@@ -483,7 +509,7 @@ class InverseKinematics {
             iter_t singularCount = 0;
 
             // Error DOF weights
-            cobalt::math::linear_algebra::Matrix<6,6> W =  cobalt::math::linear_algebra::Matrix<6,6>::diagonal(target.weight);
+            cobalt::math::linear_algebra::Matrix<6,6> W = cobalt::math::linear_algebra::Matrix<6,6>::diagonal(target.weight);
 
             // Main IK loop
             iter_t iter;
@@ -531,8 +557,29 @@ class InverseKinematics {
                 bool isSingular = false;
                 bool isNearSignularity = false;
 
-                //cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInvDLS(J_task, errNorm, isSingular);
-                cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv = computePseudoInvSVD(J_task, taskErr, isSingular, isNearSignularity);
+                cobalt::math::linear_algebra::Matrix<nJ,M> J_pinv;
+
+                switch(config_.solver) {
+                    case(IKSolver::DLS): {
+                        J_pinv = computePseudoInvDLS(J_task, errNorm, isSingular);
+                        break;
+                    }
+                    case(IKSolver::SVD): {
+                        float manip = 0.0f;
+                        J_pinv = computePseudoInvSVD(J_task, taskErr, isSingular, isNearSignularity, manip);
+                        break;
+                    }
+                    case(IKSolver::Mixed): {
+                        float manip = 0.0f;
+                        cobalt::math::linear_algebra::Matrix<nJ,M> J_dls = computePseudoInvDLS(J_task, errNorm, isSingular);
+                        cobalt::math::linear_algebra::Matrix<nJ,M> J_svd = computePseudoInvSVD(J_task, taskErr, isSingular, isNearSignularity, manip);
+
+                        float w = std::clamp(manip/config_.manipThreshold, 0.0f, 1.0f);
+                        J_pinv = w*J_dls + (1.0f - w)*J_svd;
+                        break;
+                    }
+                    default: { break; }
+                }
 
                 // Handle singulartiy
                 if((isSingular || isNearSignularity) && noProgCount > IK_NOPROG_SOFT_THRESHOLD) {

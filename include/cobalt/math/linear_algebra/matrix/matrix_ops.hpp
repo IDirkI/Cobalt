@@ -509,4 +509,32 @@ template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<
         return true;
     }
 
+    template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
+    [[nodiscard]] inline bool solvePSD(const Matrix<N, N, T> &A, const Vector<N, T> &b, Vector<N, T> &x) {
+        Matrix<N, N, T> L;
+        
+        if(!cholesky(A, L)) { return false; }    // non-PSD
+        
+        // Forward sub, Ly = b
+        Vector<N, T> y;
+        for(index_t i = 0; i < N; i++) {
+            T sum = static_cast<T>(0);
+            for(index_t j = 0; j < i; j++) {
+                sum += L(i, j) * y[j];
+            } 
+            y[i] = b[i] - sum;
+        }
+
+        // Back sub, Ux = y
+        for(int8_t i = N-1; i >= 0; i--) {
+            T sum = static_cast<T>(0.0f);
+            for(index_t j = i+1; j < N; j++) {
+                sum += L(j, i) * x[j];
+            } 
+            x[i] = (y[i] - sum) / L(i, i);
+        }
+
+        return true;
+    }
+
 } // cobalt::math::linear_algebra
