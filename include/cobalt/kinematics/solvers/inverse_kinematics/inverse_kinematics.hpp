@@ -51,6 +51,7 @@ constexpr float IK_ARMIJO_COND_CONST = 0.1f;
 
 // Singularity escape
 constexpr float IK_SINGULAR_ESCAPE_FACTOR = 0.1f;
+constexpr float IK_DLS_LAMBDA_NOPROG_MULT = 0.1f;
 
 // Status Checks
 constexpr iter_t IK_NOPROG_THRESHOLD = 100;
@@ -64,6 +65,8 @@ constexpr iter_t IK_DEFAULT_MAX_ITERATIONS = 200;
 constexpr float IK_DEFAULT_THRESHOLD = 1e-3;
 constexpr float IK_DEFAULT_STEP = 0.5f;
 constexpr float IK_DEFAULT_DAMPING_DLS = 1e-2f;
+constexpr float IK_DEFAULT_DAMPING_MIN = 1e-5f;
+constexpr float IK_DEFAULT_DAMPING_MAX = 1e-1f;
 constexpr float IK_DEFAULT_MARGIN = 0.05f;
 constexpr float IK_DEFAULT_SINGULAR_THRESHOLD = 100.0f;
 constexpr float IK_DEFAULT_MANIP_THRESHOLD = 1e-4f;
@@ -95,6 +98,15 @@ struct IKSolution {
 };
 
 /**
+ *  @brief Cache for the last valid pseudoinverse
+ */
+template<id_t nJ>
+struct IKCache {
+    cobalt::math::linear_algebra::Matrix<nJ, 6> lastJ_pinv6;
+    cobalt::math::linear_algebra::Matrix<nJ, 3> lastJ_pinv3;
+};
+
+/**
  *  @brief Configuration of the IK solver after solving
  *  @param solver Solver type to use
  *  @param maxIterations Maximum number of iterations before termination
@@ -120,8 +132,10 @@ struct IKConfig {
     float threshold = IK_DEFAULT_THRESHOLD;
 
     // Step control
-    float dampingDLS = IK_DEFAULT_DAMPING_DLS;
     float step = IK_DEFAULT_STEP;
+    float dampingDLS = IK_DEFAULT_DAMPING_DLS;
+    float dampingMin = IK_DEFAULT_DAMPING_MIN;
+    float dampingMax = IK_DEFAULT_DAMPING_MAX;
     float projectMargin = IK_DEFAULT_MARGIN;
 
     // Singularity handling
@@ -151,6 +165,7 @@ class InverseKinematics {
         JacobianBuilder<nL, nJ, nE> jacobian_;
         ForwardKinematics<nL, nJ, nE> fk_;
 
+        IKCache<nJ> cache_;
         // ---------------- Helper Functions ----------------
         /**
          *  @brief Compute the current error of the robot state vs the target destination
@@ -289,8 +304,11 @@ class InverseKinematics {
          *  @note Uses right-inverse for [nJ >= M] and left-inverse for [nJ < M]
          */
         template<cobalt::math::index_t M>
-        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvDLS(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm, bool &isSingular) {
-            float lambdaSqr = config_.dampingDLS*config_.dampingDLS;
+        inline cobalt::math::linear_algebra::Matrix<nJ, M> computePseudoInvDLS(const cobalt::math::linear_algebra::Matrix<M, nJ> &J, float errNorm, iter_t noProgCount, IKTarget target, bool &isSingular) {
+            float lambda = config_.dampingDLS*(1.0f + errNorm);
+            lambda *= (1.0f + noProgCount*IK_DLS_LAMBDA_NOPROG_MULT);
+            lambda = std::clamp(lambda, config_.dampingMin, config_.dampingMax);
+            float lambdaSqr = lambda*lambda;
 
             if constexpr (nJ >= M) {    // Wide J, J† = Jᵀ(JJᵀ + λ²I)⁻¹
                 cobalt::math::linear_algebra::Matrix<M, M> A = J * transpose(J);
@@ -299,7 +317,8 @@ class InverseKinematics {
                 cobalt::math::linear_algebra::Matrix<M, M> L;
                 if(!cobalt::math::linear_algebra::cholesky(A, L)) { 
                     isSingular = true;
-                    return cobalt::math::linear_algebra::transpose(J);
+                    if constexpr (M==3) { return cache_.lastJ_pinv3; }
+                    else                { return cache_.lastJ_pinv6; }
                 }
 
                 cobalt::math::linear_algebra::Matrix<nJ, M> J_pinv;
@@ -336,7 +355,8 @@ class InverseKinematics {
 
                     if(!cobalt::math::linear_algebra::solvePSD(A, b, x)) {
                         isSingular = true;
-                        return cobalt::math::linear_algebra::transpose(J);
+                        if constexpr (M==3) { return cache_.lastJ_pinv3; }
+                        else                { return cache_.lastJ_pinv6; }
                     }
 
                     for(cobalt::math::index_t i = 0; i < nJ; i++) {
@@ -561,7 +581,7 @@ class InverseKinematics {
 
                 switch(config_.solver) {
                     case(IKSolver::DLS): {
-                        J_pinv = computePseudoInvDLS(J_task, errNorm, isSingular);
+                        J_pinv = computePseudoInvDLS(J_task, errNorm, noProgCount, target, isSingular);
                         break;
                     }
                     case(IKSolver::SVD): {
@@ -571,7 +591,7 @@ class InverseKinematics {
                     }
                     case(IKSolver::Mixed): {
                         float manip = 0.0f;
-                        cobalt::math::linear_algebra::Matrix<nJ,M> J_dls = computePseudoInvDLS(J_task, errNorm, isSingular);
+                        cobalt::math::linear_algebra::Matrix<nJ,M> J_dls = computePseudoInvDLS(J_task, errNorm, noProgCount, target, isSingular);
                         cobalt::math::linear_algebra::Matrix<nJ,M> J_svd = computePseudoInvSVD(J_task, taskErr, isSingular, isNearSignularity, manip);
 
                         float w = std::clamp(manip/config_.manipThreshold, 0.0f, 1.0f);
@@ -620,6 +640,8 @@ class InverseKinematics {
                 robot_.setJoints(q_new);
 
                 // Cache state data
+                if constexpr (M == 3)   { cache_.lastJ_pinv3 = J_pinv; }   // M = 3
+                else                    { cache_.lastJ_pinv6 = J_pinv; }   // M = 6
                 robot_.state().dq = delta_q;
                 robot_.state().J = J;
             }
@@ -654,7 +676,7 @@ class InverseKinematics {
          *  @param robot Robot to solve IK for
          */
         explicit InverseKinematics(Robot<nL, nJ, nE> &robot, IKConfig config) 
-                    : robot_(robot), config_(config), jacobian_(robot), fk_(robot)  {}
+                    : robot_(robot), config_(config), jacobian_(robot), fk_(robot), cache_({})  {}
 
         // ---------------- Accessors ----------------
         /**
