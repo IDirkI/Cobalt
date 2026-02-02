@@ -1,6 +1,7 @@
 from math import pi
 
 # === LINK ===
+LINK_ALLOWED_BASES = ["base", "ground", "reference"]
 LINK_DEFAULT_MASS = "0.0"
 LINK_DEFAULT_INERTIA = """[
     [1.0, 0.0, 0.0],

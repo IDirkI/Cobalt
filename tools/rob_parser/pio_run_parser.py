@@ -1,4 +1,3 @@
-from ast import Import
 import os
 import sys
 import subprocess
@@ -23,7 +22,8 @@ else:
 
 result = subprocess.run(
     [sys.executable, parser_path],
-    cwd=kinematics_path
+    cwd=kinematics_path,
+    env={**os.environ, "PROJECT_DIR": str(project_dir)}
 )
 
 if result.returncode != 0:
