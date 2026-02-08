@@ -38,6 +38,14 @@ struct JointLimits {
     bool enabled = false;
 };
 
+/**
+ *  @brief Wrapper for representing velocity limit of a joint
+ */
+struct JointVelocityLimit {
+    float max = 0.0f;
+    bool enabled = false;
+};
+
 constexpr id_t JOINT_DEFAULT_ID = invalidID_;
 constexpr float JOINT_DEFAULT_HOME = 0.0f;
 constexpr JointType JOINT_DEFAULT_TYPE = JointType::Fixed;
@@ -67,6 +75,7 @@ struct Joint  {
         cobalt::math::linear_algebra::Vector<3> axis_{JOINT_DEFAULT_AXIS};
         
         JointLimits limits_{};
+        JointVelocityLimit velocityLimit_{};
         float home_{JOINT_DEFAULT_HOME};
 
         CompoundJointType compoundType_{JOINT_DEFAULT_COMPTYPE};
@@ -101,6 +110,7 @@ struct Joint  {
          *  @param origin Transform of the joint relative to the parent link frame
          *  @param axis Axis of rotation/translation for revolute/prismatic joints
          *  @param limits Joint limits for revolute/prismatic joints
+         *  @param velLimit Joint velocity limits for revolute/prismatic joints
          *  @param home Home position of the joint
          *  @param compoundType Type of the compound joint. (None-[0] if not compound)
          *  @param compIndex Index of the joint in its compound joint. (-1 if not compound)
@@ -114,10 +124,11 @@ struct Joint  {
                        const cobalt::math::geometry::Transform<> &origin = JOINT_DEFAULT_ORIGIN,
                        const cobalt::math::linear_algebra::Vector<3> &axis = JOINT_DEFAULT_AXIS,
                        const JointLimits &limits = JointLimits(),
+                       const JointVelocityLimit &velLimit = JointVelocityLimit(),
                        float home = JOINT_DEFAULT_HOME,
                        CompoundJointType compoundType = JOINT_DEFAULT_COMPTYPE,
                        cidx_t compIndex = JOINT_DEFAULT_COMP_INDEX)
-            : id_(id), idParent_(idParent), idChild_(idChild), type_(type), origin_(origin), axis_(axis), limits_(limits), home_(home), compoundType_(compoundType), compIndex_(compIndex) {
+            : id_(id), idParent_(idParent), idChild_(idChild), type_(type), origin_(origin), axis_(axis), limits_(limits), velocityLimit_(velLimit), home_(home), compoundType_(compoundType), compIndex_(compIndex) {
                 validate();
             }
 
@@ -143,8 +154,8 @@ struct Joint  {
          */
         constexpr JointType getType() const { return type_; }
         /**
-         *  @brief Get the joint limits
-         *  @return JointLimits struct containing joint limit information
+         *  @brief Get the minimum joint limit
+         *  @return Minimum joint limit
          */
         constexpr float getMinLimit() const { return limits_.min; }
         /**
@@ -152,6 +163,11 @@ struct Joint  {
          *  @return Maximum joint limit
          */
         constexpr float getMaxLimit() const { return limits_.max; }
+        /**
+         *  @brief Get the maximum joint velocity limit
+         *  @return Maximum joint velocity limit
+         */
+        constexpr float getVelocityLimit() const { return velocityLimit_.max; }
         /**
          *  @brief Get the home position of the joint
          *  @return Home position of the joint
@@ -162,6 +178,11 @@ struct Joint  {
          *  @return `true` if joint limits are enabled, `false` otherwise
          */
         constexpr bool areLimitsEnabled() const { return limits_.enabled; }
+        /**
+         *  @brief Check if joint velocity limit are enabled
+         *  @return `true` if joint velocity limits are enabled, `false` otherwise
+         */
+        constexpr bool isVelocityLimitEnabled() const { return velocityLimit_.enabled; }
         /**
          *  @brief Get the type of the compound joint
          *  @return CompoundJointType enum indicating the type of compound joint

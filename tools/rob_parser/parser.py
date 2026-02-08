@@ -50,6 +50,7 @@ class Joint:
     type: str
     axis: List[float]
     limits: List[float]
+    vel_limit: float
     init: float
     home: float
     origin_xyz: List[float]
@@ -417,7 +418,7 @@ def parse_multi_limits(value) -> List[List[float]]:
         error(f"Failed to parse multi-DOF limits: {str(e)}")
     
     if not isinstance(mat, list):
-        error("Multi-DOF limits must be a list of [min, max] pairs, e.g. [[min1, max1], [min2, max2]]")
+        error("Multi-DOF limits must be a list of [min, max] pairs, e.g. [[min1, max1], [min2, max2], ...]")
     
     result = []
     for i, limit_pair in enumerate(mat):
@@ -676,6 +677,13 @@ def parse_rob_file(file_path: str):
                 limits = UNIVERSAL_DEFAULT_LIMITS
             else:
                 limits = parse_multi_limits(limits_str)
+
+            vel_limits_str = block.fields.get("vel_limit", None)
+            if vel_limits_str is None:
+                warning(f"Universal joint has no .vel_limit defined, using defaults")
+                vel_limits = UNIVERSAL_DEFAULT_VELOCITY_LIMIT
+            else:
+                vel_limits = parse_multi_values(vel_limits_str)
             
             init_str = block.fields.get("init", None)
             if init_str is None:
@@ -694,11 +702,13 @@ def parse_rob_file(file_path: str):
             # Validation
             if len(axes) != 2:
                 param_error(f"Universal joint must have exactly 2 axes, found {len(axes)}")
-            if len(limits) != 3:
+            if len(limits) != 2:
                 param_error(f"Universal joint must have exactly 2 DOF limit pairs, found {len(limits)}")
-            if len(init_vals) != 3:
+            if len(vel_limits) != 2:
+                param_error(f"Universal joint must have exactly 2 DOF velocity limits, found {len(vel_limits)}")
+            if len(init_vals) != 2:
                 param_error(f"Universal joint must have exactly 2 initial values, found {len(init_vals)}")
-            if len(home_vals) != 3:
+            if len(home_vals) != 2:
                 param_error(f"Universal joint must have exactly 2 home values, found {len(home_vals)}")
             
             # Axis orthogonality validation
@@ -731,9 +741,11 @@ def parse_rob_file(file_path: str):
             name_to_id[f"_u_link_{base_joint_id}"] = invisible_link_id
             
             # Create revolute joints
-            for i, (axis, limit, init_val, home_val) in enumerate(zip(axes, limits, init_vals, home_vals)):
+            for i, (axis, limit, vel_limit, init_val, home_val) in enumerate(zip(axes, limits, vel_limits, init_vals, home_vals)):
                 if limit[0] > limit[1]:
                     param_error(f"Universal joint DOF {i}: min limit ({limit[0]}) > max limit ({limit[1]})")
+                if vel_limit < 0:
+                    param_error(f"Universal joint DOF {i}: veloicty limit ({vel_limit}) must be non-negative")
                 if not ((limit[0] <= init_val) and (init_val <= limit[1])):
                     param_error(f"Universal joint DOF {i}: initial value ({init_val}) is outside limits [{limit[0]}, {limit[1]}]")
                 
@@ -751,6 +763,7 @@ def parse_rob_file(file_path: str):
                 debug(f"    —— init: {init_val:2.4f}")
                 debug(f"    —— home: {home_val:2.4f}")
                 debug(f"    —— limits: [{limit[0]:2.4f}, {limit[1]:2.4f}]")
+                debug(f"    —— vel_limit: {vel_limit:2.4f}")
                 debug(f"    —— axis: <{axis[0]:2.4f}, {axis[1]:2.4f}, {axis[2]:2.4f}>")
                 debug("     —— origin: {")
                 debug(f"    \txyz: <{current_origin_xyz[0]:2.4f}, {current_origin_xyz[1]:2.4f}, {current_origin_xyz[2]:2.4f}>")
@@ -767,6 +780,7 @@ def parse_rob_file(file_path: str):
                     type="revolute",
                     axis=axis,
                     limits=limit,
+                    vel_limit=vel_limit,
                     init=init_val,
                     home=home_val,
                     origin_xyz=current_origin_xyz,
@@ -788,6 +802,13 @@ def parse_rob_file(file_path: str):
                 limits = SPHERICAL_DEFAULT_LIMITS
             else:
                 limits = parse_multi_limits(limits_str)
+
+            vel_limits_str = block.fields.get("vel_limit", None)
+            if vel_limits_str is None:
+                warning(f"Spherical joint has no .vel_limit defined, using defaults")
+                vel_limits = SPHERICAL_DEFAULT_VELOCITY_LIMIT
+            else:
+                vel_limits = parse_multi_values(vel_limits_str)
             
             init_str = block.fields.get("init", None)
             if init_str is None:
@@ -808,6 +829,8 @@ def parse_rob_file(file_path: str):
                 param_error(f"Spherical joint must have exactly 3 axes, found {len(axes)}")
             if len(limits) != 3:
                 param_error(f"Spherical joint must have exactly 3 DOF limit pairs, found {len(limits)}")
+            if len(vel_limits) != 3:
+                param_error(f"Spherical joint must have exactly 3 DOF velocity limits, found {len(vel_limits)}")
             if len(init_vals) != 3:
                 param_error(f"Spherical joint must have exactly 3 initial values, found {len(init_vals)}")
             if len(home_vals) != 3:
@@ -860,9 +883,11 @@ def parse_rob_file(file_path: str):
             ))
             name_to_id[f"_s_link2_{base_joint_id}"] = invisible_link_2_id
             
-            for i, (axis, limit, init_val, home_val) in enumerate(zip(axes, limits, init_vals, home_vals)):
+            for i, (axis, limit, vel_limit, init_val, home_val) in enumerate(zip(axes, limits, vel_limits, init_vals, home_vals)):
                 if limit[0] > limit[1]:
                     param_error(f"Spherical joint DOF {i}: min limit ({limit[0]}) > max limit ({limit[1]})")
+                if vel_limit < 0:
+                    param_error(f"Spherical joint DOF {i}: veloicty limit ({vel_limit}) must be non-negative")
                 if not ((limit[0] <= init_val) and (init_val <= limit[1])):
                     param_error(f"Spherical joint DOF {i}: initial value ({init_val}) is outside limits [{limit[0]}, {limit[1]}]")
                 
@@ -891,6 +916,7 @@ def parse_rob_file(file_path: str):
                 debug(f"    —— init: {init_val:2.4f}")
                 debug(f"    —— home: {home_val:2.4f}")
                 debug(f"    —— limits: [{limit[0]:2.4f}, {limit[1]:2.4f}]")
+                debug(f"    —— vel_limit: {vel_limit:2.4f}")
                 debug(f"    —— axis: <{axis[0]:2.4f}, {axis[1]:2.4f}, {axis[2]:2.4f}>")
                 debug("     —— origin: {")
                 debug(f"    \txyz: <{current_origin_xyz[0]:2.4f}, {current_origin_xyz[1]:2.4f}, {current_origin_xyz[2]:2.4f}>")
@@ -907,6 +933,7 @@ def parse_rob_file(file_path: str):
                     type="revolute",
                     axis=axis,
                     limits=limit,
+                    vel_limit=vel_limit,
                     init=init_val,
                     home=home_val,
                     origin_xyz=current_origin_xyz,
@@ -930,6 +957,13 @@ def parse_rob_file(file_path: str):
             else:
                 limits = parse_multi_limits(limits_str)
             
+            vel_limits_str = block.fields.get("vel_limit", None)
+            if vel_limits_str is None:
+                warning(f"Cylinderical joint has no .vel_limit defined, using defaults")
+                vel_limits = CYLINDERICAL_DEFAULT_VELOCITY_LIMIT
+            else:
+                vel_limits = parse_multi_values(vel_limits_str)
+            
             init_str = block.fields.get("init", None)
             if init_str is None:
                 warning(f"Cylinderical joint has no .init defined, using default")
@@ -947,6 +981,8 @@ def parse_rob_file(file_path: str):
             # Validation
             if len(limits) != 2:
                 param_error(f"Cylinderical joint must have exactly 2 DOF limit pairs, found {len(limits)}")
+            if len(vel_limits) != 2:
+                param_error(f"Cylinderical joint must have exactly 2 DOF velocity limits, found {len(vel_limits)}")
             if len(init_vals) != 2:
                 param_error(f"Cylinderical joint must have exactly 2 initial values, found {len(init_vals)}")
             if len(home_vals) != 2:
@@ -975,9 +1011,11 @@ def parse_rob_file(file_path: str):
             name_to_id[f"_c_link_{base_joint_id}"] = invisible_link_id
             
             # Create revolute joint
-            for i, (limit, init_val, home_val) in enumerate(zip(limits, init_vals, home_vals)):
+            for i, (limit, vel_limit, init_val, home_val) in enumerate(zip(limits, vel_limits, init_vals, home_vals)):
                 if limit[0] > limit[1]:
                     param_error(f"Cylinderical joint DOF {i}: min limit ({limit[0]}) > max limit ({limit[1]})")
+                if vel_limit < 0:
+                    param_error(f"Cylinderical joint DOF {i}: veloicty limit ({vel_limit}) must be non-negative")
                 if not ((limit[0] <= init_val) and (init_val <= limit[1])):
                     param_error(f"Cylinderical joint DOF {i}: initial value ({init_val}) is outside limits [{limit[0]}, {limit[1]}]")
                 
@@ -995,6 +1033,7 @@ def parse_rob_file(file_path: str):
                 debug(f"    —— init: {init_val:2.4f}")
                 debug(f"    —— home: {home_val:2.4f}")
                 debug(f"    —— limits: [{limit[0]:2.4f}, {limit[1]:2.4f}]")
+                debug(f"    —— vel_limit: {vel_limit:2.4f}")
                 debug(f"    —— axis: <{axis[0]:2.4f}, {axis[1]:2.4f}, {axis[2]:2.4f}>")
                 debug("     —— origin: {")
                 debug(f"    \txyz: <{current_origin_xyz[0]:2.4f}, {current_origin_xyz[1]:2.4f}, {current_origin_xyz[2]:2.4f}>")
@@ -1011,6 +1050,7 @@ def parse_rob_file(file_path: str):
                     type= "revolute" if i == 0 else "prismatic",
                     axis=axis,
                     limits=limit,
+                    vel_limit=vel_limit,
                     init=init_val,
                     home=home_val,
                     origin_xyz=current_origin_xyz,
@@ -1033,6 +1073,13 @@ def parse_rob_file(file_path: str):
                 limits = PLANAR_DEFAULT_LIMITS
             else:
                 limits = parse_multi_limits(limits_str)
+
+            vel_limits_str = block.fields.get("vel_limit", None)
+            if vel_limits_str is None:
+                warning(f"Planar joint has no .vel_limit defined, using defaults")
+                vel_limits = PLANAR_DEFAULT_VELOCITY_LIMIT
+            else:
+                vel_limits = parse_multi_values(vel_limits_str)
             
             init_str = block.fields.get("init", None)
             if init_str is None:
@@ -1053,6 +1100,8 @@ def parse_rob_file(file_path: str):
                 param_error(f"Planar joint must have exactly 3 axes, found {len(axes)}")
             if len(limits) != 3:
                 param_error(f"Planar joint must have exactly 3 DOF limit pairs, found {len(limits)}")
+            if len(vel_limits) != 3:
+                param_error(f"Planar joint must have exactly 3 DOF velocity limits, found {len(vel_limits)}")
             if len(init_vals) != 3:
                 param_error(f"Planar joint must have exactly 3 initial values, found {len(init_vals)}")
             if len(home_vals) != 3:
@@ -1105,9 +1154,11 @@ def parse_rob_file(file_path: str):
             name_to_id[f"_e_link2_{base_joint_id}"] = invisible_link_2_id
             
             # Create prismatic and revolute joints
-            for i, (axis, limit, init_val, home_val) in enumerate(zip(axes, limits, init_vals, home_vals)):
+            for i, (axis, limit, vel_limit, init_val, home_val) in enumerate(zip(axes, limits, vel_limits, init_vals, home_vals)):
                 if limit[0] > limit[1]:
                     param_error(f"Planar joint DOF {i}: min limit ({limit[0]}) > max limit ({limit[1]})")
+                if vel_limit < 0:
+                    param_error(f"Planar joint DOF {i}: veloicty limit ({vel_limit}) must be non-negative")
                 if not ((limit[0] <= init_val) and (init_val <= limit[1])):
                     param_error(f"Planar joint DOF {i}: initial value ({init_val}) is outside limits [{limit[0]}, {limit[1]}]")
                 
@@ -1139,6 +1190,7 @@ def parse_rob_file(file_path: str):
                 debug(f"    —— init: {init_val:2.4f}")
                 debug(f"    —— home: {home_val:2.4f}")
                 debug(f"    —— limits: [{limits[0]:2.4f}, {limits[1]:2.4f}]")
+                debug(f"    —— vel_limit: {vel_limit:2.4f}")
                 debug(f"    —— axis: <{axis[0]:2.4f}, {axis[1]:2.4f}, {axis[2]:2.4f}>")
                 debug("     —— origin: {")
                 debug(f"    \txyz: <{current_origin_xyz[0]:2.4f}, {current_origin_xyz[1]:2.4f}, {current_origin_xyz[2]:2.4f}>")
@@ -1155,6 +1207,7 @@ def parse_rob_file(file_path: str):
                     type=current_type,
                     axis=axis,
                     limits=limit,
+                    vel_limit=vel_limit,
                     init=init_val,
                     home=home_val,
                     origin_xyz=current_origin_xyz,
@@ -1179,6 +1232,13 @@ def parse_rob_file(file_path: str):
                 limits = parse_bracket(JOINT_DEFAULT_LIMITS)
             else:
                 limits = parse_bracket(limits_str)
+
+            vel_limit_str = block.fields.get("vel_limit", None)
+            if vel_limit_str is None:
+                warning(f"Joint has no .vel_limit defined, using defaults")
+                vel_limit = safe_eval(JOINT_DEFAULT_VELOCITY_LIMIT)
+            else:
+                vel_limit = safe_eval(vel_limit_str)
 
             home_str = block.fields.get("home", None)
             if home_str is None:
@@ -1217,6 +1277,7 @@ def parse_rob_file(file_path: str):
             debug(f"    —— init: {initial:2.4f}")
             debug(f"    —— home: {home:2.4f}")
             debug(f"    —— limits: [{limits[0]:2.4f}, {limits[1]:2.4f}]")
+            debug(f"    —— vel_limit: {vel_limit:2.4f}")
             debug(f"    —— axis: <{axis[0]:2.4f}, {axis[1]:2.4f}, {axis[2]:2.4f}>")
             debug("     —— origin: {")
             debug(f"    \txyz: <{origin_xyz[0]:2.4f}, {origin_xyz[1]:2.4f}, {origin_xyz[2]:2.4f}>")
@@ -1233,6 +1294,7 @@ def parse_rob_file(file_path: str):
                 type=joint_type,
                 axis=axis,
                 limits=limits,
+                vel_limit=vel_limit,
                 init=initial,
                 home=home,
                 origin_xyz=origin_xyz,
@@ -1360,6 +1422,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
         code += f"                                                        .rotateZ({joint.origin_rpy[2]}).rotateY({joint.origin_rpy[1]}).rotateX({joint.origin_rpy[0]}),\n"
         code += f"               cobalt::math::linear_algebra::Vector<3>({float(joint.axis[0])}, {float(joint.axis[1])}, {float(joint.axis[2])}),\n"
         code += f"              JointLimits{{ {float(joint.limits[0])}, {float(joint.limits[1])}, {str(limitsEnabled).lower()} }},\n"
+        code += f"              JointVelocityLimit{{ {float(joint.vel_limit)}, {str(limitsEnabled).lower()} }},\n"
         code += f"               {float(joint.home)},\n"
         code += f"               CompoundJointType::{joint.comp_type.capitalize()},\n"
         code += f"               (cidx_t){int(joint.comp_index)}),\n"
