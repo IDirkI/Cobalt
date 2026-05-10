@@ -205,8 +205,8 @@ struct Transform {
         }
 
         /**
-         *  @brief Const access to the rotation matrix part of the transformation
-         *  @return Const reference to rotation matrix `q` associated with the transformation
+         *  @brief Const access to the rotation quaternion part of the transformation
+         *  @return Const reference to rotation quaternion `q` associated with the transformation
          */
         const cobalt::math::geometry::Quaternion<T> &rotation() const {
             return q_;

@@ -23,12 +23,13 @@ struct RobotState {
         cobalt::math::linear_algebra::Vector<nJ> dq{};
 
         cobalt::math::linear_algebra::Matrix<6, nJ> J{};
-
         std::array<cobalt::math::geometry::Transform<>, nL> linkTransforms{};
+        std::array<cobalt::math::geometry::Transform<>, nJ> jointTransforms{};
         std::array<cobalt::math::geometry::Transform<>, nE> frameTransforms{};
 
         bool validJ{false};
         bool validLinks{false};
+        bool validJoints{false};
         bool validFrames{false};
 }; 
 

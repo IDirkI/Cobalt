@@ -35,8 +35,8 @@ add_executable(cobalt_tests
         #./kinematics/core/frame_test.cpp
 
         ## ----- Solvers -----
-        #./kinematics/solvers/fk_test.cpp
-        #./kinematics/solvers/jacobian_test.cpp
+        ./kinematics/solvers/fk_test.cpp
+        ./kinematics/solvers/jacobian_test.cpp
         ./kinematics/solvers/ik_test.cpp
     
     ### ===== Control =====

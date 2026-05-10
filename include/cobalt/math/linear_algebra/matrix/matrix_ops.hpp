@@ -475,7 +475,6 @@ template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_i
  *  @param b Right-hand side vector
  *  @param x Solution vector output
  *  @return `true` if the system has a unique solution, `false` otherwise
- *  @note Only defined for square matrices
  *  @warning If function returns `false`, x is not modified and is not a valid solution. Return value should be handled properly.
  */
 template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
@@ -509,32 +508,55 @@ template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<
         return true;
     }
 
-    template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
+/**
+ *  @brief Solve the linear system Lx = b where L is a lower triangular matrix using forward substitution
+ *  @param L Coefficient matrix (lower triangular)
+ *  @param b Right-hand side vector
+ *  @param x Solution vector output
+ *  @return `true` if the system has a unique solution, `false` otherwise
+ *  @warning If function returns `false`, x is not modified and is not a valid solution. Return value should be handled properly.
+ */
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
+    [[nodiscard]] inline bool solveCholesky( const Matrix<N, N, T> &L, const Vector<N, T> &b, Vector<N, T> &x) {
+        Vector<N, T> y;
+
+        for(index_t i = 0; i < N; i++) {
+            if(std::abs(L(i,i)) < epsilon_<T>) { return false; }
+
+            T sum = b[i];
+            for(index_t k = 0; k < i; k++) {
+                sum -= L(i, k) * y[k];
+            }
+            y[i] = sum / L(i,i);
+        }
+
+        for(index_t i = N - 1; i < N; i--) {
+            if(std::abs(L(i,i)) < epsilon_<T>) { return false; }
+
+            T sum = y[i];
+            for(index_t k = i+1; k < N; k++) {
+                sum -= L(k, i) * x[k];
+            }
+            x[i] = sum / L(i,i);
+        }
+
+        return true;
+    }
+
+/**
+ *  @brief Solve the linear system Ax = b where A is a positive semi-definite matrix using Cholesky decomposition
+ *  @param A Coefficient matrix (positive semi-definite)
+ *  @param b Right-hand side vector 
+ *  @param x Solution vector output
+ *  @return `true` if the system has a unique solution, `false` otherwise
+ *  @warning If function returns `false`, x is not modified and is not a valid solution. Return value should be handled properly.
+ */
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     [[nodiscard]] inline bool solvePSD(const Matrix<N, N, T> &A, const Vector<N, T> &b, Vector<N, T> &x) {
         Matrix<N, N, T> L;
         
         if(!cholesky(A, L)) { return false; }    // non-PSD
-        
-        // Forward sub, Ly = b
-        Vector<N, T> y;
-        for(index_t i = 0; i < N; i++) {
-            T sum = static_cast<T>(0);
-            for(index_t j = 0; j < i; j++) {
-                sum += L(i, j) * y[j];
-            } 
-            y[i] = b[i] - sum;
-        }
-
-        // Back sub, Ux = y
-        for(int8_t i = N-1; i >= 0; i--) {
-            T sum = static_cast<T>(0.0f);
-            for(index_t j = i+1; j < N; j++) {
-                sum += L(j, i) * x[j];
-            } 
-            x[i] = (y[i] - sum) / L(i, i);
-        }
-
-        return true;
+        return solveCholesky(L, b, x);
     }
 
 } // cobalt::math::linear_algebra
