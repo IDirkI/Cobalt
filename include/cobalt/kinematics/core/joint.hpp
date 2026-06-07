@@ -25,7 +25,7 @@ enum class CompoundJointType : uint8_t {
     Spherical = 1,
     Universal = 2,
     Cylinderical = 3,
-    Planar = 3,
+    Planar = 4,
 };
 
 
@@ -82,21 +82,16 @@ struct Joint  {
         cidx_t compIndex_{JOINT_DEFAULT_COMP_INDEX};
 
         // ---------------- Helper Function ----------------
-        constexpr void validate() {
-            if(type_ != JointType::Fixed) { 
-                    assert((isZero(axis_) == false) && "[JOINT Error] : Joint axis cannot be zero vector.");
-                    axis_ = normalize(axis_); 
-                }
-                else {
-                    axis_ = cobalt::math::linear_algebra::Vector<3>::zero();
-                    limits_.enabled = false; 
-                }
+        constexpr bool validate() {
+            if((type_ != JointType::Fixed) && (isZero(axis_))) { return false; }
 
-                if(limits_.enabled) { assert((limits_.min <= limits_.max) && "[JOINT Error] : Joint limits are invalid."); }
+            if((limits_.enabled) && (limits_.min > limits_.max)) { return false; }
 
-                if(idParent_ != invalidID_ && idChild_ != invalidID_) {
-                    assert((idParent_ != idChild_) && "[JOINT Error] : Joint parent and child link IDs cannot be the same.");
-                }
+            if(idParent_ != invalidID_ && idChild_ != invalidID_ && (idParent_ == idChild_)) { return false;}
+
+            if(isNormalized(axis_)) { axis_ = normalize(axis_); }
+
+            return true;
         }
 
     public: 
@@ -129,7 +124,7 @@ struct Joint  {
                        CompoundJointType compoundType = JOINT_DEFAULT_COMPTYPE,
                        cidx_t compIndex = JOINT_DEFAULT_COMP_INDEX)
             : id_(id), idParent_(idParent), idChild_(idChild), type_(type), origin_(origin), axis_(axis), limits_(limits), velocityLimit_(velLimit), home_(home), compoundType_(compoundType), compIndex_(compIndex) {
-                validate();
+                validate(); // TODO: Add embedded safe assertion
             }
 
         // ---------------- Getters ----------------

@@ -84,6 +84,11 @@ struct Robot {
                 state_.q[j] = value;
             }
 
+            state_.validLinks = false;
+            state_.validJoints = false;
+            state_.validFrames= false;
+            state_.validJ = false;
+
             return withinLimits;
         }
 };

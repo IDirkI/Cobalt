@@ -4,35 +4,35 @@ add_executable(cobalt_tests
 
     ### ===== Math =====
         ## ----- Vector -----
-        #./math/linear_algebra/vector/vector_core_test.cpp
-        #./math/linear_algebra/vector/vector_ops_test.cpp
-        #./math/linear_algebra/vector/vector_util_test.cpp
+        ./math/linear_algebra/vector/vector_core_test.cpp
+        ./math/linear_algebra/vector/vector_ops_test.cpp
+        ./math/linear_algebra/vector/vector_util_test.cpp
 
         ## ----- Matrix -----
-        #./math/linear_algebra/matrix/matrix_core_test.cpp
-        #./math/linear_algebra/matrix/matrix_ops_test.cpp
-        #./math/linear_algebra/matrix/matrix_util_test.cpp
+        ./math/linear_algebra/matrix/matrix_core_test.cpp
+        ./math/linear_algebra/matrix/matrix_ops_test.cpp
+        ./math/linear_algebra/matrix/matrix_util_test.cpp
 
         ## ----- Complex -----
-        #./math/algebra/complex/complex_core_test.cpp
-        #./math/algebra/complex/complex_ops_test.cpp
-        #./math/algebra/complex/complex_util_test.cpp
+        ./math/algebra/complex/complex_core_test.cpp
+        ./math/algebra/complex/complex_ops_test.cpp
+        ./math/algebra/complex/complex_util_test.cpp
 
         ## ----- Quaternion -----
-        #./math/geometry/quaternion/quaternion_core_test.cpp
-        #./math/geometry/quaternion/quaternion_ops_test.cpp
-        #./math/geometry/quaternion/quaternion_util_test.cpp
+        ./math/geometry/quaternion/quaternion_core_test.cpp
+        ./math/geometry/quaternion/quaternion_ops_test.cpp
+        ./math/geometry/quaternion/quaternion_util_test.cpp
 
         ## ----- Transform -----
-        #./math/geometry/transform/transform_core_test.cpp
-        #./math/geometry/transform/transform_ops_test.cpp
-        #./math/geometry/transform/transform_util_test.cpp
+        ./math/geometry/transform/transform_core_test.cpp
+        ./math/geometry/transform/transform_ops_test.cpp
+        ./math/geometry/transform/transform_util_test.cpp
 
     ### ===== Kinematics =====
         ## ----- Core -----
-        #./kinematics/core/link_test.cpp
-        #./kinematics/core/joint_test.cpp
-        #./kinematics/core/frame_test.cpp
+        ./kinematics/core/link_test.cpp
+        ./kinematics/core/joint_test.cpp
+        ./kinematics/core/frame_test.cpp
 
         ## ----- Solvers -----
         ./kinematics/solvers/fk_test.cpp
@@ -40,16 +40,21 @@ add_executable(cobalt_tests
         ./kinematics/solvers/ik_test.cpp
     
     ### ===== Control =====
-    #./control/controller/pid_test.cpp
+    ./control/controller/pid_test.cpp
 
     ### ===== Utility =====
-    #./util/meta_test.cpp
+    ./util/meta_test.cpp
 )
 
 # Include paths
 target_include_directories(cobalt_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/include      # Cobalt Headers
     ${CMAKE_SOURCE_DIR}/generated    # Generated Robots
+)
+
+# Root Definitions
+target_compile_definitions(cobalt_tests PRIVATE
+    COBALT_PROJECT_ROOT="${CMAKE_SOURCE_DIR}"
 )
 
 # Link Libraries

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <string>
 #include <array>
-#include <cassert>
+#include <algorithm>
 
 #include "cobalt/kinematics/config.hpp"
 #include "cobalt/kinematics/core/link.hpp"
@@ -33,7 +32,7 @@ struct KinematicPath {
         std::array<id_t, nJ> joints{};
         id_t length{0};
 
-        bool contains(id_t jointId) {
+        bool contains(id_t jointId) const {
             for(id_t i = 0; i < length; i++) {
                 if(jointId == joints[i]) { return true; }
             }
@@ -50,7 +49,7 @@ struct KinematicPath {
 template<id_t nL, id_t nJ, id_t nE>
 struct RobotModel {
     private:
-        std::string name_{""};
+        const char *name_{""};
         RobotType type_{RobotType::Invalid};
 
         std::array<Link, nL> links_{};
@@ -61,162 +60,128 @@ struct RobotModel {
         std::array<KinematicPath<nJ>, nE> framePaths_{};
 
         // ---------------- Private Helpers ----------------
-        enum class VisitColor : uint8_t { 
+        enum class Color : uint8_t { 
             White, 
             Grey, 
             Black 
         };
 
-        struct Adjacency {
+        RobotType buildTopology() {
             std::array<id_t, nL> head{};
             std::array<id_t, nJ> next{};
-            std::array<id_t, nJ> child{};
             std::array<id_t, nL> childCount{};
-            id_t edgeCount{0};
+            std::array<uint8_t, nL> inDegree{};
 
-            void init() {
-                head.fill(invalidID_);
-                next.fill(invalidID_);
-                child.fill(invalidID_);
-                childCount.fill(0);
-                edgeCount = 0;
-            }
+            head.fill(invalidID_);
+            next.fill(invalidID_);
+            childCount.fill(0);
+            inDegree.fill(0);
 
-            void addEdge(id_t p, id_t c) {
-                id_t edge = edgeCount++;
-                child[edge] = c;
-                next[edge] = head[p];
-                head[p] = edge;
+            for(id_t j = 0; j < nJ; j++) {
+                const id_t p = joints_[j].getParentId();
+                const id_t c = joints_[j].getChildId();
+
+                // TODO
+                // assert p < nL
+                // assert c < nL
+                // assert p != c
+
+                next[j] = head[p];
+                head[p] = j;
                 childCount[p]++;
-            }
-        };
-
-        void validate(std::array<VisitColor, nL> &color) {
-            // Check ID limits
-            for(const Joint &j: joints_) {
-                assert((j.getParentId() < nL) && "[ROBOT MODEL Error] : Joint has invalid parent link ID.");
-                assert((j.getChildId() < nL) && "[ROBOT MODEL Error] : Joint has invalid child link ID.");
+                inDegree[c]++;
             }
 
-            // Check Disconnection
+
+            id_t rootCount = 0;
             for(id_t i = 0; i < nL; i++) {
-                assert((color[i] != VisitColor::White) && "[ROBOT MODEL Error] : Robot model is disconnected.");
-            }
-        }
-
-        RobotType decideType(Adjacency &adj, std::array<VisitColor, nL> &color, id_t &rootCount, bool &hasCycle) const {
-            // Decide type
-            if(hasCycle) { 
-                return RobotType::Parallel;
+                if((inDegree[i] == 0) && (childCount[i] > 0)) { rootCount++; }
             }
 
-            if(rootCount != 1) {
-                return RobotType::Invalid;
-            }
 
-            for(id_t i = 0; i < nL; i++) {
-                if(adj.childCount[i] > 1) {
-                    return RobotType::Tree;
+            std::array<Color, nL> visit{};
+            visit.fill(Color::White);
+
+            std::array<id_t, nL> stack{};
+            bool isCyclic = false;
+
+            for(id_t root = 0; (root < nL) && (!isCyclic); root++) {
+                if(visit[root] != Color::White) { continue; }
+
+                id_t size = 0;
+                stack[size++] = root;
+
+                while((size > 0) && !isCyclic) {
+                    const id_t node = stack[--size];
+
+                    if(visit[node] == Color::Grey) {
+                        visit[node] = Color::Black;
+                        continue;
+                    }
+
+                    if(visit[node] != Color::White) { continue; }
+
+                    visit[node] = Color::Grey;
+                    stack[size++] = node;
+
+                    for(id_t j = head[node]; j != invalidID_; j = next[j]) {
+                        const id_t child = joints_[j].getChildId();
+
+                        if(visit[child] == Color::White) { stack[size++] = child; }
+                        else if (visit[child] == Color::Grey) { 
+                            isCyclic = true;
+                            break;
+                        }
+                    }
                 }
+            }
+
+
+            if(!isCyclic) {
+                for(id_t i = 0; i < nL; i++) {
+                    // TODO
+                    // assert visit[i] != white
+                }
+            }
+
+
+            if(isCyclic) { return RobotType::Parallel; }
+            if(rootCount != 1) { return RobotType::Invalid; }
+            
+            for(id_t i = 0; i < nL; i++) {
+                if(childCount[i] > 1) { return RobotType::Tree; }
             }
 
             return RobotType::Serial;
         }
 
-        void dfs(Adjacency &adj, std::array<VisitColor, nL> &color, id_t &rootCount, bool &hasCycle) {            
-            adj.init();
-
-            std::array<uint8_t, nL> inDegree{};
-            inDegree.fill(0);
-
-            for(const Joint &j: joints_) {
-                adj.addEdge(j.getParentId(), j.getChildId());
-                inDegree[j.getChildId()]++;
-            }
-
-            // Count roots
-            rootCount = 0;
-            for(id_t i = 0; i < nL; i++) {
-                if((inDegree[i] == 0) && adj.childCount[i] > 0) rootCount++;
-            }
-
-            // Check cycles
-            color.fill(VisitColor::White);
-
-            hasCycle = false;
-            for(id_t i = 0; i < nL; i++) {
-                if(color[i] == VisitColor::White) { // DFS
-                    std::array<id_t, nL> stack;
-                    id_t size = 0;
-                    stack[size++] = i;
-
-                    while(size > 0) {
-                        size--;
-                        id_t node = stack[size];
-
-                        if(color[node] == VisitColor::White) {
-                            color[node] = VisitColor::Grey;
-
-                            for(id_t edge = adj.head[node]; edge != invalidID_; edge = adj.next[edge]) {
-                                id_t child = adj.child[edge];
-                                if(color[child] == VisitColor::White) {
-                                    stack[size++] = child;
-                                }
-                                else if(color[child] == VisitColor::Grey) {
-                                    hasCycle = true;
-                                    break;
-                                }
-                            }
-                        }
-                        else {
-                            color[node] = VisitColor::Black;
-                        }
-
-                        if(hasCycle) break;
-                    }
-                
-                }
-            }
-        }
-
-        KinematicPath<nJ> generateLinkPath(id_t linkId) {
-            KinematicPath<nJ> path;
-            
+        void computeKinematicPaths() {
             std::array<id_t, nL> linkToJoint{};
             linkToJoint.fill(invalidID_);
 
             for(id_t j = 0; j < nJ; j++) {
-                const Joint &joint = joints_[j];
-                linkToJoint[joint.getChildId()] = j;
+                linkToJoint[joints_[j].getChildId()] = j;
             }
 
-            id_t currLink = linkId;
-            while(currLink != invalidID_) {
-                id_t parentJointId = linkToJoint[currLink];
+            for(id_t i = 0; i < nL; i++) {
+                KinematicPath<nJ> &path = linkPaths_[i];
+                path.length = 0;
 
-                if(parentJointId == invalidID_) {
-                    break;
+                id_t curr = i;
+                while(curr != invalidID_) {
+                    const id_t j = linkToJoint[curr];
+                    if(j == invalidID_) { break; }
+                    path.joints[path.length++] = j;
+                    curr = joints_[j].getParentId();
                 }
-                
-                path.joints[path.length++] = parentJointId;
-                currLink = joints_[parentJointId].getParentId();
+
+                for(id_t k = 0; k < path.length/2; k++) {
+                    std::swap(path.joints[k], path.joints[path.length - 1 - k]);
+                }
             }
 
-            for(id_t i = 0; i < path.length / 2; i++) {
-                std::swap(path.joints[i], path.joints[path.length - 1 - i]);
-            }
-
-            return path;
-        }
-
-        void computeKinematicPaths() {
-            for(id_t i = 0 ; i < nL; i++) { // For links
-                linkPaths_[i] = generateLinkPath(i);
-            }
-
-            for(id_t i = 0 ; i < nE; i++) { // For frames
-                const FrameAttachment &frame = frames_[i];
-                framePaths_[i] = linkPaths_[frame.getLinkId()];
+            for(id_t i = 0; i < nE; i++) {
+                framePaths_[i] = linkPaths_[frames_[i].getLinkId()];
             }
         }
            
@@ -232,21 +197,13 @@ struct RobotModel {
          *  @note Validates the robot model topology upon construction
          *  @throws AssertionError if the robot model topology is invalid
          */
-        explicit RobotModel(const std::string &name = "",
+        explicit RobotModel(const char *name = "",
                             const std::array<Link, nL> &links = {},
                             const std::array<Joint, nJ> &joints = {},
                             const std::array<FrameAttachment, nE> &frames = {})
             : name_(name), links_(links), joints_(joints), frames_(frames) {
-                Adjacency adj;
-                std::array<VisitColor, nL> color;
-                id_t rootCount = 0;
-                bool hasCycle = false;
-
-                dfs(adj, color, rootCount, hasCycle);
-
-                validate(color);
-                type_ = decideType(adj, color, rootCount, hasCycle);
-                assert((type_ != RobotType::Invalid) && "[ROBOT MODEL Error] : Robot model topology is invalid.");
+                type_ = buildTopology();
+                // TODO assert: type != invalid
 
                 computeKinematicPaths();
             }
@@ -278,7 +235,7 @@ struct RobotModel {
          *  @brief Get the name of the robot
          *  @return Name of the robot
          */
-        const std::string &getName() const { return name_; }
+        const char *getName() const { return name_; }
         /**
          *  @brief Get the links of the robot
          *  @return Array of links in the robot

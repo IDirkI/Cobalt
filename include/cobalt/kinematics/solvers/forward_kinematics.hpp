@@ -55,16 +55,14 @@ class ForwardKinematics {
 
         // ---------------- Helper Functions ----------------
         void fillJointData(const RobotModel<nL, nJ, nE> &model) {
-            struct Edge {
-                id_t parent;
-                id_t child; 
-            };
+            std::array<id_t, nL> head{};
+            std::array<id_t, nJ> next{};
+            head.fill(invalidID_);
+            next.fill(invalidID_);
 
-            std::array<Edge, nJ> edges{};
-            std::array<id_t, nL> childCount{};
-            childCount.fill(0);
+            std::array<bool, nL> isRoot{};
+            isRoot.fill(true);
 
-            // Fill JointFKData
             for(id_t j = 0; j < nJ; j++) {
                 const Joint &joint = model.getJoints()[j];
                 JointFKData &data = jointData_[j];
@@ -75,34 +73,26 @@ class ForwardKinematics {
                 data.axis = joint.getAxis();
                 data.origin = joint.getOrigin();
 
-                edges[j] = {data.idParent, data.idChild};
-                childCount[data.idParent]++;
+                next[j] = head[data.idParent];
+                head[data.idParent] = j;
+
+                isRoot[data.idChild] = false;
             }
 
-            // Compute traversal order
             id_t order = 0;
             id_t size = 0;
             std::array<id_t, nL> stack{};
 
-            std::array<bool, nL> isRoot{};
-            isRoot.fill(true);
-            for(const Edge &e : edges) {
-                isRoot[e.child] = false;
+            for(id_t i = 0; i <nL; i++) {
+                if(isRoot[i]) { stack[size++] = i; }
             }
 
-            for(id_t i = 0; i < nL; i++) {
-                if(isRoot[i]) stack[size++] = i;
-            }
+            while(size > 0) {
+                const id_t link = stack[--size];
 
-            while(size > 0) {   // dfs
-                size--;
-                id_t link = stack[size];
-
-                for(id_t j = 0; j < nJ; j++) {
-                    if(jointData_[j].idParent == link) {
-                        jointOrder_[order++] = j;
-                        stack[size++] = jointData_[j].idChild;
-                    }
+                for(id_t j = head[link]; j != invalidID_; j = next[j]) {
+                    jointOrder_[order++] = j;
+                    stack[size++] = jointData_[j].idChild;
                 }
             }
         }

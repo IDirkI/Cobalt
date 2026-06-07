@@ -30,10 +30,8 @@ TEST_CASE("Meta, build info", "[utility]") {
 TEST_CASE("Meta, platform info", "[utility]") {
     CAPTURE(PlatformInfo::os());
     CAPTURE(PlatformInfo::architecture());
-
-    CAPTURE(PlatformInfo::framework());
-    CAPTURE(PlatformInfo::framework_version());
-
+    CAPTURE(PlatformInfo::isEmbedded());
+    
     REQUIRE(true);
 }   
 

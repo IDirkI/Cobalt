@@ -9,10 +9,6 @@
 #include "core/link.hpp"                    // ---- Link of a robot
 #include "core/frame_attachment.hpp"        // ---- Tools/Frames attached to links
 
-#include "solvers/forward_kinematics.hpp"   // Forward Kinematics solver for general robots
-
+#include "solvers/forward_kinematics.hpp"                    // Forward Kinematics solver for general robots
 #include "solvers/inverse_kinematics/inverse_kinematics.hpp" // Inverse Kinematics solver for general robots
 #include "solvers/inverse_kinematics/jacobian_builder.hpp"   // -- Jacobian computer for IK calculations
-
-
-#include "util/robot_logger.hpp"    // RobotState CVS file generator

@@ -10,7 +10,7 @@
 
 #include "cobalt/kinematics/robot.hpp"
 #include "cobalt/kinematics/solvers/forward_kinematics.hpp"
-#include "cobalt/kinematics/util/robot_logger.hpp"
+#include "cobalt/kinematics/logging/logger_desktop.hpp"
 
 #include "cobalt/math/linear_algebra/vector/vector.hpp"
 #include "cobalt/math/linear_algebra/vector/vector_ops.hpp"
@@ -23,7 +23,7 @@
 using cobalt::kinematics::robot::makeKuka;
 using cobalt::kinematics::Robot;
 using cobalt::kinematics::solvers::ForwardKinematics;
-using cobalt::kinematics::util::logRobotState;
+using cobalt::kinematics::logging::DesktopLogger;
 
 using cobalt::math::index_t;
 using cobalt::math::linear_algebra::Vector;
@@ -33,6 +33,7 @@ using cobalt::math::geometry::Quaternion;
 
 using KukaRobot = Robot<7, 6, 1>;
 using KukaFK    = ForwardKinematics<7, 6, 1>;
+using KukaLog   = DesktopLogger<7, 6, 1>;
 
 // ============================================================================
 //  Helpers
@@ -45,8 +46,8 @@ static float quaternionNorm(const Quaternion<> &q) {
 static void printLinkTransforms(KukaRobot &robot) {
     printf("\n  Link transforms:\n");
     for(cobalt::kinematics::id_t i = 0; i < robot.model().getLinkNum(); i++) {
-        const Transform<> &T = robot.state().linkTransforms[i];
-        const Vector<3>   &p = T.translation();
+        const Transform<>  &T = robot.state().linkTransforms[i];
+        const Vector<3>    &p = T.translation();
         const Quaternion<> &q = T.rotation();
         printf("    [%d] %-12s  p=[%7.4f %7.4f %7.4f]  q=[%6.4f %6.4f %6.4f %6.4f]\n",
                i, robot.model().getLinks()[i].getName(),
@@ -70,18 +71,10 @@ static void printFrameTransforms(KukaRobot &robot) {
 //  Tests
 // ============================================================================
 
-// ----------------------------------------------------------------------------
-// Construction
-// ----------------------------------------------------------------------------
-
 TEST_CASE("ForwardKinematics, construction from robot", "[fk][kinematics]") {
     KukaRobot robot = makeKuka();
     REQUIRE_NOTHROW([&]{ KukaFK fk(robot); }());
 }
-
-// ----------------------------------------------------------------------------
-// Validity Flags
-// ----------------------------------------------------------------------------
 
 TEST_CASE("ForwardKinematics, validity flags false before solve", "[fk][kinematics]") {
     KukaRobot robot = makeKuka();
@@ -102,10 +95,6 @@ TEST_CASE("ForwardKinematics, validity flags set after solve", "[fk][kinematics]
     REQUIRE(robot.state().validFrames);
 }
 
-// ----------------------------------------------------------------------------
-// Base Link
-// ----------------------------------------------------------------------------
-
 TEST_CASE("ForwardKinematics, base link is at identity", "[fk][kinematics]") {
     KukaRobot robot = makeKuka();
     KukaFK fk(robot);
@@ -113,7 +102,6 @@ TEST_CASE("ForwardKinematics, base link is at identity", "[fk][kinematics]") {
     robot.setJoints(Vector<6>::zero());
     fk.solve(robot.state());
 
-    // Base link (id=0) is the world anchor — always at identity
     const Transform<> &T_base = robot.state().linkTransforms[0];
 
     REQUIRE_THAT(T_base.translation()[0], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
@@ -122,10 +110,6 @@ TEST_CASE("ForwardKinematics, base link is at identity", "[fk][kinematics]") {
     REQUIRE_THAT(quaternionNorm(T_base.rotation()), Catch::Matchers::WithinAbs(1.0f, 1e-6f));
     REQUIRE_THAT(T_base.rotation().w(), Catch::Matchers::WithinAbs(1.0f, 1e-5f));
 }
-
-// ----------------------------------------------------------------------------
-// Link Transforms — Zero Configuration
-// ----------------------------------------------------------------------------
 
 TEST_CASE("ForwardKinematics, all link rotations are unit quaternions at zero config", "[fk][kinematics]") {
     KukaRobot robot = makeKuka();
@@ -145,13 +129,9 @@ TEST_CASE("ForwardKinematics, l1 is at correct position at zero config", "[fk][k
     KukaRobot robot = makeKuka();
     KukaFK fk(robot);
 
-    // At zero config the Kuka arm points straight up.
-    // l1 origin has xyz=[0.1,0,0] in local frame after Ry(-pi/2):
-    // Ry(-pi/2) * [0.1,0,0] = [0,0,0.1] — so l1 is at [0,0,0.1] in world.
     robot.setJoints(Vector<6>::zero());
     fk.solve(robot.state());
 
-    // Link id=1 is l1
     const Vector<3> &p = robot.state().linkTransforms[1].translation();
 
     REQUIRE_THAT(p[0], Catch::Matchers::WithinAbs(0.0f, 1e-4f));
@@ -163,8 +143,6 @@ TEST_CASE("ForwardKinematics, gripper frame is at correct position at zero confi
     KukaRobot robot = makeKuka();
     KukaFK fk(robot);
 
-    // At zero config the fully extended arm reaches [0,0,2.4]:
-    // l1=0.1, l2=0.5, l3=0.5, l4=0.1, gripper offset=0.1 → 0.1+0.5+0.5+0.5+0.1+0.1 ≈ 2.4
     robot.setJoints(Vector<6>::zero());
     fk.solve(robot.state());
 
@@ -173,16 +151,10 @@ TEST_CASE("ForwardKinematics, gripper frame is at correct position at zero confi
     printf("\n[Zero config gripper position]\n");
     printf("  achieved : [ %.4f  %.4f  %.4f ]\n", p[0], p[1], p[2]);
 
-    // Arm points along Z at zero config — X and Y must be zero
     REQUIRE_THAT(p[0], Catch::Matchers::WithinAbs(0.0f, 1e-3f));
     REQUIRE_THAT(p[1], Catch::Matchers::WithinAbs(0.0f, 1e-3f));
-    // Z is the sum of all link lengths — just verify it's positive and nonzero
     REQUIRE(p[2] > 1.0f);
 }
-
-// ----------------------------------------------------------------------------
-// Joint Transforms
-// ----------------------------------------------------------------------------
 
 TEST_CASE("ForwardKinematics, joint transforms are unit quaternions", "[fk][kinematics]") {
     KukaRobot robot = makeKuka();
@@ -205,17 +177,12 @@ TEST_CASE("ForwardKinematics, base joint transform is at origin", "[fk][kinemati
     robot.setJoints(Vector<6>::zero());
     fk.solve(robot.state());
 
-    // Joint 0 (base→l1) has origin at [0,0,0] — its world transform must be identity translation
     const Vector<3> &p = robot.state().jointTransforms[0].translation();
 
     REQUIRE_THAT(p[0], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
     REQUIRE_THAT(p[1], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
     REQUIRE_THAT(p[2], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
 }
-
-// ----------------------------------------------------------------------------
-// Configuration Sensitivity
-// ----------------------------------------------------------------------------
 
 TEST_CASE("ForwardKinematics, result changes when joints change", "[fk][kinematics]") {
     KukaRobot robot = makeKuka();
@@ -229,7 +196,6 @@ TEST_CASE("ForwardKinematics, result changes when joints change", "[fk][kinemati
     fk.solve(robot.state());
     const Vector<3> p_moved = robot.state().frameTransforms[0].translation();
 
-    // Frame must have moved
     const float dist = norm(p_moved - p_zero);
     CAPTURE(dist);
     REQUIRE(dist > 1e-3f);
@@ -239,13 +205,10 @@ TEST_CASE("ForwardKinematics, joint 0 rotation moves frame in XY plane", "[fk][k
     KukaRobot robot = makeKuka();
     KukaFK fk(robot);
 
-    // Set a configuration where the arm is tilted off the Z axis
-    // so joint 0 rotation produces measurable XY displacement
     robot.setJoints(Vector<6>{ 0.0f, -0.5f, 0.8f, 0.0f, 0.0f, 0.0f });
     fk.solve(robot.state());
     const Vector<3> p_base = robot.state().frameTransforms[0].translation();
 
-    // Now rotate joint 0 by pi/2
     robot.setJoints(Vector<6>{ (float)M_PI / 2.0f, -0.5f, 0.8f, 0.0f, 0.0f, 0.0f });
     fk.solve(robot.state());
     const Vector<3> p_rotated = robot.state().frameTransforms[0].translation();
@@ -254,17 +217,12 @@ TEST_CASE("ForwardKinematics, joint 0 rotation moves frame in XY plane", "[fk][k
     printf("  q0=0    : [ %.4f  %.4f  %.4f ]\n", p_base[0],    p_base[1],    p_base[2]);
     printf("  q0=pi/2 : [ %.4f  %.4f  %.4f ]\n", p_rotated[0], p_rotated[1], p_rotated[2]);
 
-    // Z should be unchanged — joint 0 is a Z-axis revolution
     REQUIRE_THAT(p_rotated[2], Catch::Matchers::WithinAbs(p_base[2], 1e-3f));
-    // XY norm should be preserved — rotating in XY plane
-    const float r_base    = std::sqrt(p_base[0]*p_base[0]    + p_base[1]*p_base[1]);
+
+    const float r_base    = std::sqrt(p_base[0]*p_base[0]       + p_base[1]*p_base[1]);
     const float r_rotated = std::sqrt(p_rotated[0]*p_rotated[0] + p_rotated[1]*p_rotated[1]);
     REQUIRE_THAT(r_rotated, Catch::Matchers::WithinAbs(r_base, 1e-3f));
 }
-
-// ----------------------------------------------------------------------------
-// Determinism
-// ----------------------------------------------------------------------------
 
 TEST_CASE("ForwardKinematics, repeated solve gives identical result", "[fk][kinematics]") {
     KukaRobot robot = makeKuka();
@@ -284,22 +242,16 @@ TEST_CASE("ForwardKinematics, repeated solve gives identical result", "[fk][kine
     }
 }
 
-// ----------------------------------------------------------------------------
-// Frame Transforms
-// ----------------------------------------------------------------------------
-
 TEST_CASE("ForwardKinematics, frame transform uses parent link not identity", "[fk][kinematics]") {
     KukaRobot robot = makeKuka();
     KukaFK fk(robot);
 
-    // At a non-trivial config, the frame must not be at [0,0,0]
     robot.setJoints(Vector<6>{ 0.1f, -0.4f, 0.6f, 0.0f, 0.2f, 0.0f });
     fk.solve(robot.state());
 
-    const Vector<3> &p = robot.state().frameTransforms[0].translation();
+    const Vector<3> &p        = robot.state().frameTransforms[0].translation();
+    const float      distFromOrigin = norm(p);
 
-    // Frame cannot be at origin — it must reflect the full kinematic chain
-    const float distFromOrigin = norm(p);
     CAPTURE(distFromOrigin, p[0], p[1], p[2]);
     REQUIRE(distFromOrigin > 0.1f);
 }
@@ -332,9 +284,8 @@ TEST_CASE("ForwardKinematics, log zero config state", "[fk][kinematics]") {
     printLinkTransforms(robot);
     printFrameTransforms(robot);
 
-    logRobotState(robot, "fk_zero_config");
-    printf("\n  Logged: fk_zero_config.csv\n");
-    printf("  Visualise: python scripts/kinematics/robot_plotter.py fk_zero_config\n");
+    KukaLog::snapshot(robot, "fk_zero_config");
+    printf("\n  Logged: fk_zero_config.clog\n");
 
     REQUIRE(robot.state().validLinks);
     REQUIRE(robot.state().validJoints);
@@ -351,9 +302,8 @@ TEST_CASE("ForwardKinematics, log arbitrary config state", "[fk][kinematics]") {
     printLinkTransforms(robot);
     printFrameTransforms(robot);
 
-    logRobotState(robot, "fk_arbitrary_config");
-    printf("\n  Logged: fk_arbitrary_config.csv\n");
-    printf("  Visualise: python scripts/kinematics/robot_plotter.py fk_arbitrary_config\n");
+    KukaLog::snapshot(robot, "fk_arbitrary_config");
+    printf("\n  Logged: fk_arbitrary_config.clog\n");
 
     REQUIRE(robot.state().validLinks);
     REQUIRE(robot.state().validJoints);

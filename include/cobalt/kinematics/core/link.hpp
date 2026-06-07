@@ -1,11 +1,10 @@
 #pragma once
 
-#include <string>
-
 #include "cobalt/kinematics/config.hpp"
 
 #include "cobalt/math/config.hpp"
 #include "cobalt/math/linear_algebra/matrix/matrix.hpp"
+#include "cobalt/math/linear_algebra/matrix/matrix_ops.hpp"
 #include "cobalt/math/geometry/transform/transform.hpp"
 
 namespace cobalt::kinematics {
@@ -27,7 +26,7 @@ struct Link {
     private:
         id_t id_{LINK_DEFAULT_ID};
 
-        std::string name_{""};
+        const char *name_{""};
 
         float mass_{LINK_DEFAULT_MASS};
         cobalt::math::linear_algebra::Matrix<3,3> inertia_{LINK_DEFAULT_INERTIA};
@@ -36,14 +35,13 @@ struct Link {
         bool isVirtual_{false};
 
         // ---------------- Helper Function ----------------
-        constexpr void validate() {
-            assert(mass_ >= 0.0f && "[LINK Error] : Link mass cannot be negative.");
+        constexpr bool validate() {
+            if(mass_ < 0.0f) { return false; }
+            
+            cobalt::math::linear_algebra::Matrix<3, 3> L;
+            if(!cobalt::math::linear_algebra::cholesky(inertia_, L)) { return false; }
 
-            for(cobalt::math::index_t i = 0; i < 3; i++) {  //TODO: Replace with isPSD check
-                for(cobalt::math::index_t j = 0; j < 3; j++) {
-                    assert(inertia_(i,j) >= 0.0f && "[LINK Error] : Link inertia matrix cannot have negative elements.");
-                }
-            }
+            return true;
         }
 
     public:
@@ -60,13 +58,13 @@ struct Link {
          *  @throws AssertionError if the link parameters are invalid
          */
         explicit Link(id_t id = LINK_DEFAULT_ID,
-                      const std::string &name = "",
+                      const char *name = "",
                       float mass = LINK_DEFAULT_MASS,
                       const cobalt::math::linear_algebra::Matrix<3,3> &inertia = LINK_DEFAULT_INERTIA,
                       const cobalt::math::geometry::Transform<> &origin = LINK_DEFAULT_COM,
                       bool isVirtual = false)
             : id_(id), name_(name), mass_(mass), inertia_(inertia), origin_(origin), isVirtual_(isVirtual) {
-                validate();
+                validate();     // TODO: Add embedded safe assertion
             }
 
         // ---------------- Getters ----------------
@@ -91,7 +89,7 @@ struct Link {
          *  @brief Get the name of the link
          *  @return Name of the link
          */
-        const std::string &getName() const { return name_; }
+        const char *getName() const { return name_; }
         /**
          *  @brief Get the inertia matrix of the link
          *  @return Inertia matrix of the link about the center of mass

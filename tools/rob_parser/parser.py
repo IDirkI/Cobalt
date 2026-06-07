@@ -311,7 +311,6 @@ def parse_inertia(value: str):
     return mat
 
 def parse_transform_block(lines: List[str], line_nums: List[int] = None):
-    """Parse a transform block with line number tracking"""
     global LINE_NO
     xyz = [0.0, 0.0, 0.0]
     rpy = [0.0, 0.0, 0.0]
@@ -1396,58 +1395,46 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
     code += f"namespace {name}_internals {{\n"
     # ========== Links ==========
     code += f"// ===== Links =====\n"
-    code += f"inline const std::array<Link, {L}> &getLinks() {{\n"
-    code += f"  static const std::array<Link, {L}> {name}_links = {{\n"
+    code += f"inline const std::array<Link, {L}> {name}_links = {{\n"
     for link in links:
-        code += f"    Link({link.id}, \"{link.name}\", {link.mass},\n"
-        code += f"      cobalt::math::linear_algebra::Matrix<3,3>({{{{ {link.inertia[0][0]}, {link.inertia[1][0]}, {link.inertia[2][0]} }},\n"
+        code += f"  Link({link.id}, \"{link.name}\", {link.mass},\n"
+        code += f"    cobalt::math::linear_algebra::Matrix<3,3>({{{{ {link.inertia[0][0]}, {link.inertia[1][0]}, {link.inertia[2][0]} }},\n"
         code += f"                                                 {{ {link.inertia[0][1]}, {link.inertia[1][1]}, {link.inertia[2][1]} }},\n"
         code += f"                                                 {{ {link.inertia[0][2]}, {link.inertia[1][2]}, {link.inertia[2][2]} }}}}),\n"
-        code += f"      cobalt::math::geometry::Transform<>::eye().rotateZ({link.com_rpy[2]}).rotateY({link.com_rpy[1]}).rotateX({link.com_rpy[0]})\n"
-        code += f"                                                .translate(cobalt::math::linear_algebra::Vector<3>({link.com_xyz[0]}, {link.com_xyz[1]}, {link.com_xyz[2]})),\n"
-        code += f"      {str(link.virtual).lower()}),\n"
-    code += f"  }};\n\n"
-    code += f"  return {name}_links;\n"
-    code += f"}}\n"
+        code += f"    cobalt::math::geometry::Transform<>::eye().rotateZ({link.com_rpy[2]}).rotateY({link.com_rpy[1]}).rotateX({link.com_rpy[0]})\n"
+        code += f"                                              .translate(cobalt::math::linear_algebra::Vector<3>({link.com_xyz[0]}, {link.com_xyz[1]}, {link.com_xyz[2]})),\n"
+        code += f"    {str(link.virtual).lower()}),\n"
+    code += f"}};\n\n"
 
     # ========== Joints ==========
     code += f"// ===== Joints =====\n"
-    code += f"inline const std::array<Joint, {J}> &getJoints() {{\n"
-    code += f"  static const std::array<Joint, {J}> {name}_joints = {{\n"
+    code += f"inline const std::array<Joint, {J}> {name}_joints = {{\n"
     for joint in joints:
         limitsEnabled = (joint.type != "fixed")
 
-        code += f"          Joint({joint.id}, {joint.parent_id}, {joint.child_id}, JointType::{joint.type.capitalize()},\n"
-        code += f"              cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({joint.origin_xyz[0]}, {joint.origin_xyz[1]}, {joint.origin_xyz[2]}))\n"
-        code += f"                                                        .rotateZ({joint.origin_rpy[2]}).rotateY({joint.origin_rpy[1]}).rotateX({joint.origin_rpy[0]}),\n"
-        code += f"               cobalt::math::linear_algebra::Vector<3>({float(joint.axis[0])}, {float(joint.axis[1])}, {float(joint.axis[2])}),\n"
-        code += f"              JointLimits{{ {float(joint.limits[0])}, {float(joint.limits[1])}, {str(limitsEnabled).lower()} }},\n"
-        code += f"              JointVelocityLimit{{ {float(joint.vel_limit)}, {str(limitsEnabled).lower()} }},\n"
-        code += f"               {float(joint.home)},\n"
-        code += f"               CompoundJointType::{joint.comp_type.capitalize()},\n"
-        code += f"               (cidx_t){int(joint.comp_index)}),\n"
-    code += f"  }};\n\n"
-    code += f"  return {name}_joints;\n"
-    code += f"}}\n\n"
+        code += f"        Joint({joint.id}, {joint.parent_id}, {joint.child_id}, JointType::{joint.type.capitalize()},\n"
+        code += f"            cobalt::math::geometry::Transform<>::eye().translate(cobalt::math::linear_algebra::Vector<3>({joint.origin_xyz[0]}, {joint.origin_xyz[1]}, {joint.origin_xyz[2]}))\n"
+        code += f"                                                      .rotateZ({joint.origin_rpy[2]}).rotateY({joint.origin_rpy[1]}).rotateX({joint.origin_rpy[0]}),\n"
+        code += f"             cobalt::math::linear_algebra::Vector<3>({float(joint.axis[0])}, {float(joint.axis[1])}, {float(joint.axis[2])}),\n"
+        code += f"            JointLimits{{ {float(joint.limits[0])}, {float(joint.limits[1])}, {str(limitsEnabled).lower()} }},\n"
+        code += f"            JointVelocityLimit{{ {float(joint.vel_limit)}, {str(limitsEnabled).lower()} }},\n"
+        code += f"             {float(joint.home)},\n"
+        code += f"             CompoundJointType::{joint.comp_type.capitalize()},\n"
+        code += f"             (cidx_t){int(joint.comp_index)}),\n"
+    code += f"}};\n\n"
 
     # ========== Frames ==========
     code += f"// ===== Frames =====\n"
-    code += f"inline const std::array<FrameAttachment, {F}> &getFrames() {{\n"
-    code += f"  static const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
+    code += f"inline const std::array<FrameAttachment, {F}> {name}_frames = {{\n"
     for frame in frames:
-        code += f"      FrameAttachment({frame.id}, {frame.link_id}, \"{frame.name}\",\n"
-        code += f"                      cobalt::math::geometry::Transform<>::eye().rotateZ({frame.origin_rpy[2]}).rotateY({frame.origin_rpy[1]}).rotateX({frame.origin_rpy[0]})\n"
-        code += f"                                                                .translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))),\n"
-    code += f"  }};\n\n"
-    code += f"  return {name}_frames;\n"
-    code += f"}}\n\n"
+        code += f"    FrameAttachment({frame.id}, {frame.link_id}, \"{frame.name}\",\n"
+        code += f"                    cobalt::math::geometry::Transform<>::eye().rotateZ({frame.origin_rpy[2]}).rotateY({frame.origin_rpy[1]}).rotateX({frame.origin_rpy[0]})\n"
+        code += f"                                                              .translate(cobalt::math::linear_algebra::Vector<3>({frame.origin_xyz[0]}, {frame.origin_xyz[1]}, {frame.origin_xyz[2]}))),\n"
+    code += f"}};\n\n"
 
     # ========== MAKE MODEL ==========
     code += f"// ===== RobotModel =====\n"
-    code += f"inline const RobotModel<{L}, {J}, {F}> &getModel() {{\n"
-    code += f"  static const RobotModel<{L}, {J}, {F}> {name}_model(\"{name}\", getLinks(), getJoints(), getFrames());\n"
-    code += f"  return {name}_model;\n"
-    code += f"}}\n\n"
+    code += f"inline const RobotModel<{L}, {J}, {F}> {name}_model(\"{name}\", {name}_links, {name}_joints, {name}_frames);\n"
 
     code += f"}} // {name}_internals\n\n"
 
@@ -1474,7 +1461,7 @@ def generate_code(name : str, links : List[Link], joints : List[Joint], frames :
 
     # ========== MAKE ROBOT ==========
     code += f"  // ===== Robot =====\n"
-    code += f"      Robot<{L}, {J}, {F}> {name}({name}_internals::getModel(), {name}_state);\n"
+    code += f"      Robot<{L}, {J}, {F}> {name}({name}_internals::{name}_model, {name}_state);\n"
     code += f"      return {name};\n"
     code += f"  }}\n\n"
 

@@ -12,7 +12,7 @@ namespace cobalt::kinematics {
     /**
      *  @brief Default alias for compound indexes
      */
-    using cidx_t  = std::int16_t;
+    using cidx_t  = std::int8_t;
 
     /**
      *  @brief Default alias for iterations
@@ -23,6 +23,6 @@ namespace cobalt::kinematics {
     /**
      *  @brief Default invalid index value
      */
-    inline constexpr id_t invalidID_ = std::numeric_limits<id_t>::max();
+    constexpr id_t invalidID_ = std::numeric_limits<id_t>::max();
 
 } // cobalt::kinematics

@@ -94,7 +94,7 @@ Vector<6> numericalJacobianColumn(
     const Vector<3> dp = (p_plus - p_minus) * (1.0f / (2.0f * eps));
 
     // Orientation: world-frame angular velocity
-    //   delta_R = R_plus * R_minus^-1  (world frame — matches geometric Jacobian)
+    //   delta_R = R_plus * R_minus^-1  (world frame - matches geometric Jacobian)
     const Quaternion<> r_minus_conj = cobalt::math::geometry::conj(r_minus);
     const Quaternion<> delta_q      = cobalt::math::geometry::normalize(r_plus * r_minus_conj);
     const Vector<3>    dw           = cobalt::math::geometry::toRotationVector(delta_q)
@@ -154,7 +154,7 @@ TEST_CASE("JacobianBuilder, joint transforms are unit quaternions after FK", "[j
 }
 
 // ----------------------------------------------------------------------------
-// Finite Difference — Zero Configuration
+// Finite Difference - Zero Configuration
 // ----------------------------------------------------------------------------
 
 TEST_CASE("JacobianBuilder, position rows correct at zero config", "[jacobian][kinematics]") {
@@ -196,7 +196,7 @@ TEST_CASE("JacobianBuilder, orientation rows correct at zero config", "[jacobian
 }
 
 // ----------------------------------------------------------------------------
-// Finite Difference — Arbitrary Configuration
+// Finite Difference - Arbitrary Configuration
 // ----------------------------------------------------------------------------
 
 TEST_CASE("JacobianBuilder, position rows correct at arbitrary config", "[jacobian][kinematics]") {

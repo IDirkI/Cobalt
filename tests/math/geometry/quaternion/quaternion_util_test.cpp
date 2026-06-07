@@ -283,8 +283,10 @@ TEST_CASE("Quaternion - Shortest Path Same Quaternion", "[quaternion][util][angl
     
     Quaternion<> result = shortestPath(q, q);
     
-    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(q.w(), 1e-6));
-    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(q.x(), 1e-6));
+    REQUIRE_THAT(result.w(), Catch::Matchers::WithinAbs(1.0f, 1e-6f));
+    REQUIRE_THAT(result.x(), Catch::Matchers::WithinAbs(0.0f, 1e-6f));
+    REQUIRE_THAT(result.y(), Catch::Matchers::WithinAbs(0.0f, 1e-6f));
+    REQUIRE_THAT(result.z(), Catch::Matchers::WithinAbs(0.0f, 1e-6f));
 }
 
 TEST_CASE("Quaternion - Shortest Path Negative Dot Product", "[quaternion][util][angle]") {
