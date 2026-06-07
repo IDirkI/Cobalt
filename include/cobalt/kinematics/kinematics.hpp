@@ -1,5 +1,14 @@
 #pragma once
 
-#include "robot_chain.hpp"  // Robot Chian of joints & links
-#include "joint.hpp"        // -- Joints of a robot 
-#include "link.hpp"         // -- Link of a robot
+#include "config.hpp"           // Kinematics config
+
+#include "robot.hpp"                // Robot wrapper struct
+#include "state/robot_state.hpp"        // -- Robot state holding the current robot configuration
+#include "model/robot_model.hpp"        // -- Robot model holding robot structure and topology
+#include "core/joint.hpp"                   // ---- Joints of a robot 
+#include "core/link.hpp"                    // ---- Link of a robot
+#include "core/frame_attachment.hpp"        // ---- Tools/Frames attached to links
+
+#include "solvers/forward_kinematics.hpp"                    // Forward Kinematics solver for general robots
+#include "solvers/inverse_kinematics/inverse_kinematics.hpp" // Inverse Kinematics solver for general robots
+#include "solvers/inverse_kinematics/jacobian_builder.hpp"   // -- Jacobian computer for IK calculations

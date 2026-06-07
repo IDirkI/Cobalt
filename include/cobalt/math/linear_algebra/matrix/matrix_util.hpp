@@ -325,42 +325,54 @@ template<index_t N, typename T>
  */
 template<index_t N, index_t M, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
     size_t svd(const Matrix<N, M, T> &A, Matrix<N, N, T> &U, Matrix<N, M, T> &S, Matrix<M, M, T> &V, size_t maxIterations = MATRIX_DEFAULT_SVD_ITERATIONS) {
-        static_assert(N >= M, "[MATRIX Error] : SVD only exists for matricies(NxM) with N >= M.");
+        size_t iter = 0;
+        if constexpr (N >= M) { // Tall & Square
+            Matrix<M, M, T> AtA = transpose(A)*A;
 
-        Matrix<M, M, T> AtA = transpose(A)*A;
-
-        for(index_t i = 0; i < N; i++) {
-            for(index_t j = 0; j < N; j++) {
-                U(i, j) = (j < M) ?A(i, j) :static_cast<T>(0);
+            for(index_t i = 0; i < N; i++) {
+                for(index_t j = 0; j < N; j++) {
+                    U(i, j) = (j < M) ?A(i, j) :static_cast<T>(0);
+                }
             }
-        }
-        Vector<M> eigen{};
-        S = Matrix<N, M, T>::zero();
-        V = Matrix<M, M, T>::eye();
 
-        size_t iterations = jacobi(AtA, eigen, V, maxIterations);
+            Vector<M, T> eig{};
 
+            S = Matrix<N, M, T>::zero();
+            V = Matrix<M, M, T>::eye();
 
-        // Compute S, singular values
-        Vector<M, T> sig{};
-        for(index_t i = 0; i < M; i++) {
-            sig[i] = static_cast<T>(std::sqrt(std::max(eigen[i], static_cast<T>(0))));
-        }
-        S = Matrix<N, M, T>::diagonal(sig);
+            iter = jacobi(AtA, eig, V, maxIterations);
 
+            Vector<M, T> sig{};
+            for(index_t i = 0; i < M; i++) {
+                sig[i] = static_cast<T>(std::sqrt(std::max(eig[i], static_cast<T>(0))));
+            }
+            S = Matrix<N, M, T>::diagonal(sig);
 
-        // Compute U, A*V*S_inv
-        Matrix<N, M, T> AV = A * V;
+            Matrix<N, M, T> AV = A * V;
 
-        for(index_t j = 0; j < M; j++) {
-            if(static_cast<float>(sig[j]) > epsilon_<T>) {
-                for(index_t i = 0; i < N; i++) {
-                    U(i, j) = AV(i, j) / sig[j];
+            for(index_t j = 0; j < M; j++) {
+                if(static_cast<float>(sig[j]) > epsilon_<T>) {
+                    for(index_t i = 0; i < N; i++) {
+                        U(i, j) = AV(i, j) / sig[j];
+                    }
                 }
             }
         }
+        else {  // Wide
+            Matrix<M, N, T> At = transpose(A);
 
-        return iterations;    
+            Matrix<M, M, T> V_temp;
+            Matrix<M, N, T> S_temp;
+            Matrix<N, N, T> U_temp;
+
+            iter = svd(At, V_temp, S_temp, U_temp, maxIterations);
+
+            U = U_temp;
+            V = V_temp;
+            S = transpose(S_temp);
+        }
+
+        return iter;
     }
 
 /**
@@ -425,6 +437,47 @@ template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<
         }
 
         return true;    // Non-Singular
+    }
+
+/**
+ *  @brief Compute the Cholesky-decomposition of a symmetric positive-definite matrix
+ *  Decomposes `A` into lower triangular matrix `L` such that A = LLᵀ
+ *  @param A Symmetric positive-definite matrix to Cholesky-decompose (NxN)
+ *  @param L Lower triangular matrix L (NxN) decomposition output
+ *  @return `true` if A is positive-definite and decomposition succeeded, `false` otherwise
+ *  @note Only defined for PSD square matrices
+ *  @warning If function returns `false`, L is not modified and does not represent a valid decomposition. Return value should be handled properly
+ */
+template<index_t N, typename T = def_scalar, typename = std::enable_if_t<Scalar<T>>>
+    [[nodiscard]] bool cholesky(const Matrix<N, N, T> &A, Matrix<N, N, T> &L) {
+        L = Matrix<N, N, T>::zero();
+
+        for(index_t i = 0; i < N; i++) {
+            for(index_t j = 0; j < N; j++) {
+                T sum = static_cast<T>(0);
+
+                if(i == j) {
+                    for(index_t k = 0; k < j; k++) {
+                        sum += L(j, k) * L(j, k);
+                    }
+
+                    T diag = A(i, j) - sum;
+                    if(diag <= epsilon_<T>) {
+                        return false;   // non-PSD
+                    }
+
+                    L(i, j) = std::sqrt(diag);
+                }
+                else {
+                    for(index_t k = 0; k < j; k++) {
+                        sum += L(i, k) * L(j, k);
+                    }
+                    L(i, j) = (A(i,j) - sum)/L(j,j);
+                }
+            }
+        }
+
+        return true;
     }
 
 /**

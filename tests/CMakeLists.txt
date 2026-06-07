@@ -1,6 +1,6 @@
 # Build tests
 add_executable(cobalt_tests
-    sanity_test.cpp
+    #sanity_test.cpp
 
     ### ===== Math =====
         ## ----- Vector -----
@@ -14,9 +14,9 @@ add_executable(cobalt_tests
         ./math/linear_algebra/matrix/matrix_util_test.cpp
 
         ## ----- Complex -----
-        #./math/algebra/complex/complex_core_test.cpp
-        #./math/algebra/complex/complex_ops_test.cpp
-        #./math/algebra/complex/complex_util_test.cpp
+        ./math/algebra/complex/complex_core_test.cpp
+        ./math/algebra/complex/complex_ops_test.cpp
+        ./math/algebra/complex/complex_util_test.cpp
 
         ## ----- Quaternion -----
         ./math/geometry/quaternion/quaternion_core_test.cpp
@@ -28,20 +28,33 @@ add_executable(cobalt_tests
         ./math/geometry/transform/transform_ops_test.cpp
         ./math/geometry/transform/transform_util_test.cpp
 
+    ### ===== Kinematics =====
+        ## ----- Core -----
+        ./kinematics/core/link_test.cpp
+        ./kinematics/core/joint_test.cpp
+        ./kinematics/core/frame_test.cpp
+
+        ## ----- Solvers -----
+        ./kinematics/solvers/fk_test.cpp
+        ./kinematics/solvers/jacobian_test.cpp
+        ./kinematics/solvers/ik_test.cpp
+    
     ### ===== Control =====
     ./control/controller/pid_test.cpp
 
-    ### ===== Kinematics =====
-    #./kinematics/kinematics_test.cpp
-    #./kinematics/ik_graphic_test.cpp
-
     ### ===== Utility =====
-    #./util/meta_test.cpp
+    ./util/meta_test.cpp
 )
 
 # Include paths
 target_include_directories(cobalt_tests PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include      # Cobalt Headers
+    ${CMAKE_SOURCE_DIR}/include      # Cobalt Headers
+    ${CMAKE_SOURCE_DIR}/generated    # Generated Robots
+)
+
+# Root Definitions
+target_compile_definitions(cobalt_tests PRIVATE
+    COBALT_PROJECT_ROOT="${CMAKE_SOURCE_DIR}"
 )
 
 # Link Libraries
@@ -49,6 +62,6 @@ target_link_libraries(cobalt_tests PRIVATE cobalt Catch2::Catch2WithMain)
 
 # Register the tests
 enable_testing()
-include(CTEST)
-include(CATCH)
+include(CTest)
+include(Catch)
 catch_discover_tests(cobalt_tests)

@@ -1,5 +1,5 @@
 # ROB file outputs
-/include/cobalt/kinematics/robots/
+/generated/
 
 # External modules
 /extern/
@@ -16,6 +16,9 @@
 /*.user
 /*.suo
 /*.vcxproj
+
+# Python
+/tools/*/__pycache__/
 
 # Temp
 *~

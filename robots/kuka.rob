@@ -1,0 +1,87 @@
+> kuka
+
+# === Links ===
+\link base
+\link l1 {
+    .mass = 1
+    .com = {
+        .xyz = [0.1, 0, 0]
+        .rpy = [0, -pi/2, 0]
+    }
+}
+\link l2 {
+    .mass = 1
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+\link l3 {
+    .mass = 1
+    .com = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+\link l4 {
+    .mass = 1
+    .com = {
+        .xyz = [0.1, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}
+
+# === Joints ===
+\joint R {
+    .links = [base, l1]
+    .axis = [0, 0, 1]
+    .limits = [-pi, pi]
+    .origin = {
+        .xyz = [0, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .home = 0
+    .init = 0
+}
+\joint R {
+    .links = [l1, l2]
+    .axis = [0, -1, 0]
+    .limits = [-pi, pi]
+    .origin = {
+        .xyz = [0.1, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .home = 0
+    .init = 0.3
+}
+\joint R {
+    .links = [l2, l3]
+    .axis = [0, -1, 0]
+    .limits = [-pi, pi]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .home = 0
+    .init = 0.2
+}
+\joint S {
+    .links = [l3, l4]
+    .limits = [[-pi/2, pi/2], [-pi/2, pi/2], [-pi/2, pi/2]]
+    .origin = {
+        .xyz = [0.5, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+    .home = [0, 0, 0]
+    .init = [0, 0, 0]
+}
+
+
+# === Frames ===
+\frame gripper {
+    .link = l4
+    .origin = {
+        .xyz = [0.1, 0, 0]
+        .rpy = [0, 0, 0]
+    }
+}

@@ -134,7 +134,10 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotateX(T angle) {
-            q_*= fromRotationX(angle).rotation();
+            Quaternion<T> Q = Quaternion<T>::fromAxisAngle(
+                cobalt::math::linear_algebra::Vector<3>(1,0,0), angle
+            );
+            q_ *= Q;
             return *this;
         }
 
@@ -144,7 +147,10 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotateY(T angle) {
-            q_*= fromRotationY(angle).rotation();
+            Quaternion<T> Q = Quaternion<T>::fromAxisAngle(
+                cobalt::math::linear_algebra::Vector<3>(0,1,0), angle
+            );
+            q_ *= Q;
             return *this;
         }
 
@@ -154,7 +160,10 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotateZ(T angle) {
-            q_*= fromRotationZ(angle).rotation();
+            Quaternion<T> Q = Quaternion<T>::fromAxisAngle(
+                cobalt::math::linear_algebra::Vector<3>(0,0,1), angle
+            );
+            q_ *= Q;
             return *this;
         }
 
@@ -164,7 +173,7 @@ struct Transform {
          *  @return Reference to this transformation after rotation for chaining
          */
         constexpr Transform<T> &rotate(cobalt::math::geometry::Quaternion<T> rotation) {
-            q_*= rotation;
+            q_ *= rotation;
             return *this;
         } 
 
@@ -174,7 +183,7 @@ struct Transform {
          *  @return Reference to this transformation after translation for chaining
          */
         constexpr Transform<T> &translate(cobalt::math::linear_algebra::Vector<3, T> translation) {
-            t_ += translation;
+            t_ += cobalt::math::geometry::rotate(q_, translation);
             return *this;
         }
 
@@ -196,8 +205,8 @@ struct Transform {
         }
 
         /**
-         *  @brief Const access to the rotation matrix part of the transformation
-         *  @return Const reference to rotation matrix `q` associated with the transformation
+         *  @brief Const access to the rotation quaternion part of the transformation
+         *  @return Const reference to rotation quaternion `q` associated with the transformation
          */
         const cobalt::math::geometry::Quaternion<T> &rotation() const {
             return q_;
@@ -216,11 +225,11 @@ struct Transform {
          *  @brief In-place multiplication of two transformations (concatenation)
          *  @param rhs Right-hand side transformation
          *  @return Reference to this transformation after multiplication
-         *  @note The resulting transformation is equivalent to first applying `rhs`, then `this`
+         *  @note The resulting transformation is equivalent to first applying `this`, then `rhs`
          */
         Transform<T> &operator*=(const Transform<T> &rhs) {
             t_ += cobalt::math::geometry::rotate(q_, rhs.t_);
-            q_ = q_*rhs.q_;
+            q_ *= rhs.q_;
 
             return *this;
         }

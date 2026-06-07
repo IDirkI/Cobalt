@@ -116,22 +116,22 @@ struct Quaternion {
                     x = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(0,0));
 
                     w = static_cast<T>(0.25)*(R(2, 1) - R(1, 2))/x;
-                    y = static_cast<T>(0.25)*(R(0, 1) - R(1, 0))/x;
-                    z = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/x;
+                    y = static_cast<T>(0.25)*(R(0, 1) + R(1, 0))/x;
+                    z = static_cast<T>(0.25)*(R(0, 2) + R(2, 0))/x;
                 }
                 else if(std::abs(max - R(1,1)) < epsilon_<T>) {
                     y = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(1,1));
 
                     w = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/y;
-                    x = static_cast<T>(0.25)*(R(0, 1) - R(1, 0))/y;
-                    z = static_cast<T>(0.25)*(R(1, 2) - R(2, 1))/y;
+                    x = static_cast<T>(0.25)*(R(0, 1) + R(1, 0))/y;
+                    z = static_cast<T>(0.25)*(R(1, 2) + R(2, 1))/y;
                 }
                 else if(std::abs(max - R(2,2)) < epsilon_<T>) {
                     z = static_cast<T>(0.5)*std::sqrt(static_cast<T>(1) - tr + 2*R(2,2));
 
                     w = static_cast<T>(0.25)*(R(1, 0) - R(0, 1))/z;
-                    x = static_cast<T>(0.25)*(R(0, 2) - R(2, 0))/z;
-                    y = static_cast<T>(0.25)*(R(1, 2) - R(2, 1))/z;
+                    x = static_cast<T>(0.25)*(R(0, 2) + R(2, 0))/z;
+                    y = static_cast<T>(0.25)*(R(1, 2) + R(2, 1))/z;
                 }
             }
             
@@ -148,12 +148,12 @@ struct Quaternion {
          *  @note Uses the ZYX rotation order (yaw-pitch-roll)
          */
         static inline Quaternion fromEuler(T roll, T pitch, T yaw) noexcept {
-            T cr = std::cos(roll * 0.5f);
-            T sr = std::sin(roll * 0.5f);
-            T cp = std::cos(pitch * 0.5f);
-            T sp = std::sin(pitch * 0.5f);
-            T cy = std::cos(yaw * 0.5f);
-            T sy = std::sin(yaw * 0.5f);
+            T cr = std::cos(roll * static_cast<T>(0.5));
+            T sr = std::sin(roll * static_cast<T>(0.5));
+            T cp = std::cos(pitch * static_cast<T>(0.5));
+            T sp = std::sin(pitch * static_cast<T>(0.5));
+            T cy = std::cos(yaw * static_cast<T>(0.5));
+            T sy = std::sin(yaw * static_cast<T>(0.5));
 
             return Quaternion(
                 cr*cp*cy + sr*sp*sy,

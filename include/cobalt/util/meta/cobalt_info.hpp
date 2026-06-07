@@ -5,6 +5,8 @@
 
 namespace cobalt::util::meta {
 
+#define __coblat__
+
 struct CobaltInfo {
     static constexpr int VERSION_MAJOR = 2;
     static constexpr int VERSION_MINOR = 2;
